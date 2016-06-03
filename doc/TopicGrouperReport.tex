@@ -406,7 +406,8 @@ We used a subset of 13476 documents, performed stemming (using a Porter stemmer)
 
 A basic Java implementation of Topic Grouper is available under\\
 \href{https://github.com/pfeiferd/TopicGrouperJ}{https://github.com/pfeiferd/TopicGrouperJ}.
-Required libraries first must be included by running Maven\footnote{See \href{https://maven.apache.org/}{https://maven.apache.org/}.} on \texttt{./pom.xml}.
+Required libraries must be included by running Maven\footnote{See \href{https://maven.apache.org/}{https://maven.apache.org/}.} on \texttt{./pom.xml}. The library \texttt{lingpipe-3.9.3.jar} cannot be downloaded from an online Maven archive. It must therefore be registered in your local maven repository using \texttt{./bin/updateRepository.bat} or \texttt{./bin/updateRepository.sh} respectively (prior to running \texttt{./pom.xml}).
+The libary itself is included in the project under \texttt{./lib}.
 
 The main methods of classes in the package \texttt{org.hhn.topicgrouper.figures} can be used to generate \emph{all} the figures of this document.
 (The unqualified Java name of a corresponding class is mentioned in each figure's caption.)
@@ -418,8 +419,6 @@ Textual outputs of Topic Grouper appear on the command line or in a files like \
 
 To run programs related to the Reuters 21578 data set, the data set files must first be downloaded and placed in the folder
 \texttt{./src/main/resources/reuters21578}. There is a read-me file in that folder, that explains the details.
-Note that the library \texttt{./lib/lingpipe-3.9.3.jar} is required on your class path in order to read an tokenize the Reuters documents. (Unfortunately, the library cannot be downloaded from the Internet via Maven.)
-
 
 \nocite{*} %Auch nicht-zitierte BibTeX-Einträge werden angezeigt.
 \bibliographystyle{apalike} %Art der Ausgabe: plain / apalike / amsalpha / ...
