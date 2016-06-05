@@ -304,19 +304,19 @@ We apply \textit{perplexity} as discussed in \cite{Blei:2003:LDA:944919.944937} 
 
 Using topic modeling the document probability $p(d)$ under a (trained) topic model should be determined as follows:
 
-\[p(d) = (|d|! / \prod_{w \in V, f_d(w) > 0} f_d(w)!) \cdot \prod_{w \in V, f_d(w) > 0} p(w|d),\] 
-\[p(w|d) = (\sum_{t \in T} p(w|t) \cdot p(t|d))^{f_d(w)}.\]
+\[p(d) = (|d|! / \prod_{w \in V, f_d(w) > 0} f_d(w)!) \cdot \prod_{w \in V, f_d(w) > 0} p(w|d)^{f_d(w)},\] 
+\[p(w|d) = (\sum_{t \in T} p(w|t) \cdot p(t|d)).\]
 
 The expression $|d|! / \prod_{w \in V, f_d(w) > 0} f_d(w)!$ accounts for the underlying bag of words model for documents (where word order is ignored).
 Note that the size of a test document $|d| = \sum_{w \in V} f_d(w)$ is measured by using with words from the training vocabulary $V$.
 
 Regarding Topic Grouper, the probability $p(w|d)$ can be estimated as follows on the basis of a partitioning $T(n)$ and the maximum likelihood estimations for $p(t|d)$ and $p(w|t)$ from equation \ref{sn}:
 
-\[ p(w|d) \approx (f(w) / f(t(w)) \cdot f_d(t(w)) / |d|)^{f_d(w)}.\]
+\[ p(w|d) \approx (f(w) / f(t(w)) \cdot f_d(t(w)) / |d|).\]
 
 Note that $f_d$ and $|d|$ refer to $D_{test}$ whereas $t(w)$, $f(w)$, $f(t)$ and $V$ belong to the model (i.e., the partitioning $T(n)$ of $V$ into topics) and the training collection $D$ respectively.  Also note that the sum over all topics ${t \in T}$ from above has only one non-zero addend because $p(w|t) = 0$ if $w \notin t$.
 
-The estimation has to extreme cases: If $|T(n)| = 1$, then $p(w|d) \approx (f(w) / \sum_{w \in V} f(w))^{f_d(w)}$ -- this is the unigram model. If $|T(n)| = |V|$, then  $p(w|d) \approx (f_d(w) / |d|)^{f_d(w)}$, which means word probabilities are estimated directly via the test document (and nothing is learned from the training data).
+The estimation has to extreme cases: If $|T(n)| = 1$, then $p(w|d) \approx (f(w) / \sum_{w \in V} f(w))$ -- this is the unigram model. If $|T(n)| = |V|$, then  $p(w|d) \approx (f_d(w) / |d|)$, which means word probabilities are estimated directly via the test document (and nothing is learned from the training data).
 
 Unfortunately, computing $p(w|d)$ on the basis of an LDA-model is not as straight-forward because $p(t|d)$ from the above expression is unknown for test documents $d$.
 Theoretical solutions to this issue are discussed in \cite{Wallach:2009:EMT:1553374.1553515}.
