@@ -2,8 +2,6 @@ package org.hhn.topicgrouper.base;
 
 import gnu.trove.iterator.TIntIterator;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 
 public class InDocumentHoldOutSplitter<T> {
