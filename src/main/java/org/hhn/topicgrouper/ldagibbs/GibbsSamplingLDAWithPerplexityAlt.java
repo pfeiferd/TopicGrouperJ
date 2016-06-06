@@ -2,60 +2,39 @@ package org.hhn.topicgrouper.ldagibbs;
 
 import gnu.trove.iterator.TIntIterator;
 
-import java.util.Arrays;
-
 import org.hhn.topicgrouper.base.Document;
 import org.hhn.topicgrouper.base.DocumentProvider;
-import org.hhn.topicgrouper.report.BasicGibbsSolutionReporter;
 
-public class GibbsSamplingLDAWithPerplexityAlt extends GibbsSamplingLDAAdapt {
-	private final DocumentProvider<String> trainingDocumentProvider;
-	private final DocumentProvider<String> testDocumentProvider;
-	private final BasicGibbsSolutionReporter solutionReporter;
-
+public class GibbsSamplingLDAWithPerplexityAlt extends
+		AbstractGibbsSamplingLDAWithPerplexity {
 	public GibbsSamplingLDAWithPerplexityAlt(
 			DocumentProvider<String> documentProvider, int topics,
 			double inAlpha, double inBeta, int inNumIterations, int inTopWords,
 			String inExpName, String pathToTAfile, int inSaveStep,
-			DocumentProvider<String> testDocumentProvider) throws Exception {
-		this(documentProvider, symmetricAlpha(inAlpha, topics), inBeta,
-				inNumIterations, inTopWords, inExpName, pathToTAfile,
-				inSaveStep, testDocumentProvider);
+			DocumentProvider<String> testDocumentProvider, int ppSteps)
+			throws Exception {
+		this(new BasicGibbsSolutionReporter(System.out), documentProvider,
+				symmetricAlpha(inAlpha, topics), inBeta, inNumIterations,
+				inTopWords, inExpName, pathToTAfile, inSaveStep,
+				testDocumentProvider, ppSteps);
 	}
 
 	public GibbsSamplingLDAWithPerplexityAlt(
+			BasicGibbsSolutionReporter solutionReporter,
 			DocumentProvider<String> documentProvider, double[] inAlpha,
 			double inBeta, int inNumIterations, int inTopWords,
 			String inExpName, String pathToTAfile, int inSaveStep,
-			DocumentProvider<String> testDocumentProvider) throws Exception {
-		super(documentProvider, inAlpha, inBeta, inNumIterations, inTopWords,
-				inExpName, pathToTAfile, inSaveStep);
-		this.testDocumentProvider = testDocumentProvider;
-		this.trainingDocumentProvider = documentProvider;
-		this.solutionReporter = new BasicGibbsSolutionReporter(System.out);
-	}
-
-	public static double[] symmetricAlpha(double alpha, int topics) {
-		double[] v = new double[topics];
-		Arrays.fill(v, alpha);
-		return v;
-	}
-
-	@Override
-	protected void afterSampling(int i, int numberOfIterations) {
-		if (i > 0 && i % 10 == 0) {
-			double d = computePerplexity(testDocumentProvider);
-			perplexityComputed(i, d);
-		}
-	}
-
-	protected void perplexityComputed(int step, double value) {
-		solutionReporter.perplexityComputed(step, value);
+			DocumentProvider<String> testDocumentProvider, int ppSteps)
+			throws Exception {
+		super(solutionReporter, documentProvider, inAlpha, inBeta,
+				inNumIterations, inTopWords, inExpName, pathToTAfile,
+				inSaveStep, testDocumentProvider, ppSteps);
 	}
 
 	public double computePerplexity(DocumentProvider<String> provider) {
 		double sumA = 0;
 		double sumB = 0;
+		DocumentProvider<String> trainingDocumentProvider = getTrainingDocumentProvider();
 		// Compute the document size excluding words not in the training
 		// vocabulary.
 		// (Therefore cannot use d.size() ...)
@@ -78,6 +57,7 @@ public class GibbsSamplingLDAWithPerplexityAlt extends GibbsSamplingLDAAdapt {
 
 	public double computeLogProbability(Document<String> d, int dSize) {
 		double res = logFakN(dSize);
+		DocumentProvider<String> trainingDocumentProvider = getTrainingDocumentProvider();
 
 		// update ptd for d
 		for (int i = 0; i < numTopics; i++) {
@@ -104,27 +84,21 @@ public class GibbsSamplingLDAWithPerplexityAlt extends GibbsSamplingLDAAdapt {
 				int wordFr = d.getWordFrequency(index);
 				if (wordFr > 0) {
 					res -= logFakN(wordFr);
-					res += wordFr * computeWordLogProbability(tIndex, wordFr, d);
+					res += wordFr
+							* computeWordLogProbability(tIndex, wordFr, d);
 				}
 			}
 		}
 		return res;
 	}
 
-	private double computeWordLogProbability(int tIndex, int fr, Document<String> d) {
+	private double computeWordLogProbability(int tIndex, int fr,
+			Document<String> d) {
 		double sum = 0;
 		for (int i = 0; i < numTopics; i++) {
 			sum += ((double) topicWordCount[i][tIndex]) / sumTopicWordCount[i]
 					* ptd[i];
 		}
 		return Math.log(sum);
-	}
-
-	public static double logFakN(int n) {
-		double sum = 0;
-		for (int i = 1; i <= n; i++) {
-			sum += Math.log(i);
-		}
-		return sum;
 	}
 }

@@ -1,6 +1,7 @@
 package org.hhn.topicgrouper.ldagibbs;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -19,6 +20,12 @@ public class GibbsSamplingLDAAdapt extends GibbsSamplingLDA {
 				inExpName, pathToTAfile, inSaveStep, documentProvider);
 	}
 
+	public static double[] symmetricAlpha(double alpha, int topics) {
+		double[] v = new double[topics];
+		Arrays.fill(v, alpha);
+		return v;
+	}
+	
 	@Override
 	protected void initFromCorpus(String pathToCorpus, Object[] addArgs) {
 		DocumentProvider<String> documentProvider = (DocumentProvider<String>) addArgs[0];
@@ -36,14 +43,11 @@ public class GibbsSamplingLDAAdapt extends GibbsSamplingLDA {
 			while (it.hasNext()) {
 				int index = it.next();
 				String word = documentProvider.getWord(index);
-				if (word2IdVocabulary.containsKey(word)) {
-					d.add(word2IdVocabulary.get(word));
-				}				
-				else {
+				if (!word2IdVocabulary.containsKey(word)) {
 					word2IdVocabulary.put(word, index);
 					id2WordVocabulary.put(index, word);
-					d.add(index);
 				}
+				d.add(index);
 			}
 			numWordsInCorpus += d.size();
 			corpus.add(d);			

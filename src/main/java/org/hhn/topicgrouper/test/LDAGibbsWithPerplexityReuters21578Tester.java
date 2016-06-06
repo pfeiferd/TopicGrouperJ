@@ -21,7 +21,7 @@ public class LDAGibbsWithPerplexityReuters21578Tester {
 
 		GibbsSamplingLDAAdapt gibbsSampler = new GibbsSamplingLDAWithPerplexityInDoc(
 				holdoutSplitter.getRest(), 30, 1.6, 0.1, 3000, 10, "demo", "", 0,
-				holdoutSplitter.getHoldOut());
+				holdoutSplitter.getHoldOut(), 50);
 		gibbsSampler.inference();
 	}
 }

@@ -2,55 +2,33 @@ package org.hhn.topicgrouper.ldagibbs;
 
 import gnu.trove.iterator.TIntIterator;
 
-import java.util.Arrays;
-
 import org.hhn.topicgrouper.base.Document;
 import org.hhn.topicgrouper.base.DocumentProvider;
-import org.hhn.topicgrouper.report.BasicGibbsSolutionReporter;
 
-public class GibbsSamplingLDAWithPerplexityInDoc extends GibbsSamplingLDAAdapt {
-	private final DocumentProvider<String> trainingDocumentProvider;
-	private final DocumentProvider<String> testDocumentProvider;
-	private final BasicGibbsSolutionReporter solutionReporter;
-
+public class GibbsSamplingLDAWithPerplexityInDoc extends
+		AbstractGibbsSamplingLDAWithPerplexity {
 	public GibbsSamplingLDAWithPerplexityInDoc(
 			DocumentProvider<String> documentProvider, int topics,
 			double inAlpha, double inBeta, int inNumIterations, int inTopWords,
 			String inExpName, String pathToTAfile, int inSaveStep,
-			DocumentProvider<String> testDocumentProvider) throws Exception {
-		this(documentProvider, symmetricAlpha(inAlpha, topics), inBeta,
-				inNumIterations, inTopWords, inExpName, pathToTAfile,
-				inSaveStep, testDocumentProvider);
+			DocumentProvider<String> testDocumentProvider, int ppSteps)
+			throws Exception {
+		this(new BasicGibbsSolutionReporter(System.out), documentProvider,
+				symmetricAlpha(inAlpha, topics), inBeta, inNumIterations,
+				inTopWords, inExpName, pathToTAfile, inSaveStep,
+				testDocumentProvider, ppSteps);
 	}
 
 	public GibbsSamplingLDAWithPerplexityInDoc(
+			BasicGibbsSolutionReporter solutionReporter,
 			DocumentProvider<String> documentProvider, double[] inAlpha,
 			double inBeta, int inNumIterations, int inTopWords,
 			String inExpName, String pathToTAfile, int inSaveStep,
-			DocumentProvider<String> testDocumentProvider) throws Exception {
-		super(documentProvider, inAlpha, inBeta, inNumIterations, inTopWords,
-				inExpName, pathToTAfile, inSaveStep);
-		this.testDocumentProvider = testDocumentProvider;
-		this.trainingDocumentProvider = documentProvider;
-		this.solutionReporter = new BasicGibbsSolutionReporter(System.out);
-	}
-
-	public static double[] symmetricAlpha(double alpha, int topics) {
-		double[] v = new double[topics];
-		Arrays.fill(v, alpha);
-		return v;
-	}
-
-	@Override
-	protected void afterSampling(int i, int numberOfIterations) {
-		if (i > 0 && i % 10 == 0) {
-			double d = computePerplexity(testDocumentProvider);
-			perplexityComputed(i, d);
-		}
-	}
-
-	protected void perplexityComputed(int step, double value) {
-		solutionReporter.perplexityComputed(step, value);
+			DocumentProvider<String> testDocumentProvider, int ppSteps)
+			throws Exception {
+		super(solutionReporter, documentProvider, inAlpha, inBeta,
+				inNumIterations, inTopWords, inExpName, pathToTAfile,
+				inSaveStep, testDocumentProvider, ppSteps);
 	}
 
 	public double computePerplexity(DocumentProvider<String> provider) {
@@ -62,8 +40,9 @@ public class GibbsSamplingLDAWithPerplexityInDoc extends GibbsSamplingLDAAdapt {
 		int i = 0;
 		for (Document<String> d : provider.getDocuments()) {
 			int dSize = 0;
-			for (int j = 0; j < trainingDocumentProvider.getNumberOfWords(); j++) {
-				String word = trainingDocumentProvider.getWord(j);
+			for (int j = 0; j < getTrainingDocumentProvider()
+					.getNumberOfWords(); j++) {
+				String word = getTrainingDocumentProvider().getWord(j);
 				int index = provider.getIndex(word);
 				if (index >= 0) {
 					dSize += d.getWordFrequency(index);
@@ -84,7 +63,7 @@ public class GibbsSamplingLDAWithPerplexityInDoc extends GibbsSamplingLDAAdapt {
 		while (it.hasNext()) {
 			int index = it.next();
 			String word = d.getProvider().getWord(index);
-			int tIndex = trainingDocumentProvider.getIndex(word);
+			int tIndex = getTrainingDocumentProvider().getIndex(word);
 			// Ensure the word is in the training vocabulary.
 			if (tIndex >= 0) {
 				int wordFr = d.getWordFrequency(index);
@@ -94,10 +73,11 @@ public class GibbsSamplingLDAWithPerplexityInDoc extends GibbsSamplingLDAAdapt {
 					if (pw > 0) {
 						res -= logFakN(wordFr);
 						res += wordFr * Math.log(pw);
+					} else {
+						// Do nothing: should not happen, but it does.
+						// We simple ignore the probability which is in favour
+						// of LDA.
 					}
-//					else {
-//						System.out.println("*******************");
-//					}
 				}
 			}
 		}
@@ -110,14 +90,6 @@ public class GibbsSamplingLDAWithPerplexityInDoc extends GibbsSamplingLDAAdapt {
 		for (int i = 0; i < numTopics; i++) {
 			sum += ((double) topicWordCount[i][tIndex]) / sumTopicWordCount[i]
 					* docTopicCount[dIndex][i] / sumDocTopicCount[dIndex];
-		}
-		return sum;
-	}
-
-	public static double logFakN(int n) {
-		double sum = 0;
-		for (int i = 1; i <= n; i++) {
-			sum += Math.log(i);
 		}
 		return sum;
 	}

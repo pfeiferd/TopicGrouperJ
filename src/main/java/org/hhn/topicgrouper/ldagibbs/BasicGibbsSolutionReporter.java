@@ -1,4 +1,4 @@
-package org.hhn.topicgrouper.report;
+package org.hhn.topicgrouper.ldagibbs;
 
 import info.monitorenter.gui.chart.Chart2D;
 import info.monitorenter.gui.chart.ITrace2D;
@@ -12,8 +12,6 @@ import java.io.PrintStream;
 import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-
-import org.hhn.topicgrouper.base.Solution;
 
 public class BasicGibbsSolutionReporter {
 	private final ITrace2D trace;
@@ -54,11 +52,12 @@ public class BasicGibbsSolutionReporter {
 		});
 		frame.setVisible(true);
 	}
-
-	public void initialized(Solution<String> initialSolution) {
+	
+	protected ITrace2D getTrace() {
+		return trace;
 	}
 
-	public void perplexityComputed(int step, double value) {
+	public void perplexityComputed(int step, double value, int topics) {
 		if (pw != null) {
 			pw.print("Perplexity: ");
 			pw.println(value);
