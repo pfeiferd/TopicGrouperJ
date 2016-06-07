@@ -35,7 +35,7 @@ public class OptimizedTopicGrouper2<T> extends AbstractTopicGrouper<T> {
 
 	// key is word index, value is list of documents with word, list entry
 	// consists of document index and word frequency in respective document
-	protected final TIntObjectMap<List<DocIndexAndWordFr>> invertedIndex;
+	protected TIntObjectMap<List<DocIndexAndWordFr>> invertedIndex;
 
 	protected final int minTopics;
 
@@ -79,7 +79,13 @@ public class OptimizedTopicGrouper2<T> extends AbstractTopicGrouper<T> {
 			onePlusLambdaDivDocSizes[i] = 1 + lambda / documentSizes[i];
 		}
 
-		invertedIndex = new TIntObjectHashMap<List<DocIndexAndWordFr>>();
+		invertedIndex = createInvertedIndex();
+
+		solution2 = createSolution();
+	}
+
+	protected TIntObjectMap<List<DocIndexAndWordFr>> createInvertedIndex() {
+		TIntObjectMap<List<DocIndexAndWordFr>> invertedIndex = new TIntObjectHashMap<List<DocIndexAndWordFr>>();
 		for (int i = 0; i < documents.size(); i++) {
 			Document<T> d = documents.get(i);
 			TIntIterator it = d.getWordIndices().iterator();
@@ -97,8 +103,7 @@ public class OptimizedTopicGrouper2<T> extends AbstractTopicGrouper<T> {
 				value.add(-position - 1, entry);
 			}
 		}
-
-		solution2 = createSolution();
+		return invertedIndex;
 	}
 
 	protected Solution<T> createSolution() {
@@ -290,7 +295,7 @@ public class OptimizedTopicGrouper2<T> extends AbstractTopicGrouper<T> {
 						}
 					}
 					initCounter++;
-					if (initCounter % 100000 == 0) {
+					if (initCounter % 1000 == 0) {
 						solutionListener.initalizing(((double) initCounter)
 								/ initMax);
 					}
@@ -383,8 +388,7 @@ public class OptimizedTopicGrouper2<T> extends AbstractTopicGrouper<T> {
 						}
 					}
 				}
-			}
-			else if (topics[jc.i] != null && topics[jc.j] == null) {
+			} else if (topics[jc.i] != null && topics[jc.j] == null) {
 				if (!updateJoinCandidateForTopic(jc)) {
 					joinCandidates[0] = null;
 				}
