@@ -316,6 +316,9 @@ public class OptimizedTopicGrouper2<T> extends AbstractTopicGrouper<T> {
 			bubbleSort(joinCandidates, nTopics[0]);
 			JoinCandidate jc = joinCandidates[0];
 			// joinCandidates[jcIndex] = null;
+			if (jc == null) {
+				break;
+			}
 			if (topics[jc.i] != null && topics[jc.j] != null) {
 				int t1Size = 0, t2Size = 0;
 				int tid = getHomonymicTopic(jc);
@@ -457,7 +460,7 @@ public class OptimizedTopicGrouper2<T> extends AbstractTopicGrouper<T> {
 
 		while (unsorted) {
 			unsorted = false;
-			for (int i = max; i > 0; i--) {
+			for (int i = max - 1; i > 0; i--) {
 				if (x[i] != null
 						&& (x[i - 1] == null || x[i].improvement > x[i - 1].improvement)) {
 					temp = x[i];
