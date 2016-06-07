@@ -367,7 +367,6 @@ public class OptimizedTopicGrouper<T> extends AbstractTopicGrouper<T> {
 					//
 					// How about the case jc_2.j should become jc.i?
 					// Then jc_2.i < jc.i, but this case comes next...
-
 				}
 
 				// Check for all jc2 with jc2.i < jc.i if jc is a better join
@@ -383,7 +382,6 @@ public class OptimizedTopicGrouper<T> extends AbstractTopicGrouper<T> {
 							// join partner for jc2 must be computed.
 							if (jc2.j == jc.i) {
 								it.remove();
-
 								if (updateJoinCandidateForTopic(jc2)) {
 									addLater.add(jc2);
 								}
