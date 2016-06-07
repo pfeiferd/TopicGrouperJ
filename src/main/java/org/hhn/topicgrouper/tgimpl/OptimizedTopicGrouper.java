@@ -26,11 +26,11 @@ public class OptimizedTopicGrouper<T> extends AbstractTopicGrouper<T> {
 	// Switch to union find only at a later time.
 	protected final UnionFind topicUnionFind;
 	protected final int[] topicSizes;
-	protected TreeSet<JoinCandidate> joinCandidates;
+	protected final TreeSet<JoinCandidate> joinCandidates;
 	protected final double[] topicLikelihoods;
 	protected double totalLikelihood;
 	protected final int[] nTopics;
-	protected final Solution<T> solution2;
+	protected final Solution<T> solution;
 	protected final int[][] topicFrequencyPerDocuments;
 	protected final double[] sumWordFrTimesLogWordFrByTopic;
 	protected final double[] onePlusLambdaDivDocSizes;
@@ -40,15 +40,16 @@ public class OptimizedTopicGrouper<T> extends AbstractTopicGrouper<T> {
 	protected final TIntObjectMap<List<DocIndexAndWordFr>> invertedIndex;
 
 	protected final int minTopics;
+	protected final DocIndexAndWordFr searchDummy = new DocIndexAndWordFr();
 
 	public OptimizedTopicGrouper(int minWordFrequency, double lambda,
 			DocumentProvider<T> documentProvider, int minTopics) {
 		super(minWordFrequency, lambda, documentProvider);
-		
+
 		if (minWordFrequency < 1) {
 			throw new IllegalArgumentException("minWordFrequency must be >= 1");
 		}
-		
+
 		this.minTopics = Math.max(1, minTopics);
 		nWords = documentProvider.getNumberOfWords();
 		topicUnionFind = new UnionFind(nWords);
@@ -81,7 +82,13 @@ public class OptimizedTopicGrouper<T> extends AbstractTopicGrouper<T> {
 			onePlusLambdaDivDocSizes[i] = 1 + lambda / documentSizes[i];
 		}
 
-		invertedIndex = new TIntObjectHashMap<List<DocIndexAndWordFr>>();
+		invertedIndex = createInvertedIndex();
+
+		solution = createSolution();
+	}
+
+	protected TIntObjectMap<List<DocIndexAndWordFr>> createInvertedIndex() {
+		TIntObjectMap<List<DocIndexAndWordFr>> invertedIndex = new TIntObjectHashMap<List<DocIndexAndWordFr>>();
 		for (int i = 0; i < documents.size(); i++) {
 			Document<T> d = documents.get(i);
 			TIntIterator it = d.getWordIndices().iterator();
@@ -99,10 +106,9 @@ public class OptimizedTopicGrouper<T> extends AbstractTopicGrouper<T> {
 				value.add(-position - 1, entry);
 			}
 		}
-
-		solution2 = createSolution();
+		return invertedIndex;
 	}
-
+	
 	protected Solution<T> createSolution() {
 		return new Solution<T>() {
 			@Override
@@ -178,8 +184,6 @@ public class OptimizedTopicGrouper<T> extends AbstractTopicGrouper<T> {
 		return sum;
 	}
 
-	protected final DocIndexAndWordFr searchDummy = new DocIndexAndWordFr();
-
 	protected double computeTwoWordLogLikelihood(int word1, int word2) {
 		double sum = 0;
 		List<DocIndexAndWordFr> l1 = invertedIndex.get(word1);
@@ -247,10 +251,7 @@ public class OptimizedTopicGrouper<T> extends AbstractTopicGrouper<T> {
 		return sum;
 	}
 
-	@Override
-	public void solve(SolutionListener<T> solutionListener) {
-		// Initialization
-		totalLikelihood = 0;
+	protected int createInitialTopics() {
 		int maxTopics = 0;
 		for (int i = 0; i < nWords; i++) {
 			// Only generate topics for elements occurring often in enough
@@ -267,9 +268,11 @@ public class OptimizedTopicGrouper<T> extends AbstractTopicGrouper<T> {
 				maxTopics++;
 			}
 		}
-		
-		solutionListener.beforeInitialization(maxTopics, documentSizes.length);
-		
+		return maxTopics;
+	}
+
+	protected void createInitialJoinCandidates(
+			SolutionListener<T> solutionListener) {
 		int initMax = nWords * (nWords - 1) / 2;
 		int initCounter = 0;
 
@@ -305,19 +308,108 @@ public class OptimizedTopicGrouper<T> extends AbstractTopicGrouper<T> {
 					jc.likelihood = bestLikelihood;
 					jc.i = i;
 					jc.j = bestJ;
-					joinCandidates.add(jc);
+					addToJoinCandiates(i, jc);
 				}
 			}
 		}
+	}
 
-		solutionListener.initialized(solution2);
+	protected void addToJoinCandiates(int i, JoinCandidate jc) {
+		joinCandidates.add(jc);
+	}
 
-		List<JoinCandidate> addLater = new ArrayList<JoinCandidate>();
+	@Override
+	public void solve(SolutionListener<T> solutionListener) {
+		// Initialization
+		totalLikelihood = 0;
+		int maxTopics = createInitialTopics();
+
+		solutionListener.beforeInitialization(maxTopics, documentSizes.length);
+
+		createInitialJoinCandidates(solutionListener);
+
+		solutionListener.initialized(solution);
+
+		groupTopics(maxTopics, solutionListener);
+	}
+
+	protected JoinCandidate getBestJoinCandidate() {
+		JoinCandidate jc = joinCandidates.last();
+		joinCandidates.remove(jc);
+		return jc;
+	}
+
+	private final List<JoinCandidate> addLaterCache = new ArrayList<JoinCandidate>();
+
+	protected void updateJoinCandidates(JoinCandidate jc) {
+		// Recompute the best join partner for joined topic
+		if (updateJoinCandidateForTopic(jc)) {
+			// Add the new best join partner for topic[jc.i]
+			joinCandidates.add(jc);
+			// What if there is a jc_2 with jc_2.j == jc.j?
+			// Should'nt the best join partner k = jc_2.j be
+			// recomputed for jc_2?
+			// By construction the improvement with regard to k must
+			// by less than jc_2.improvement as it is (other we
+			// would have jc_2.j == k already).
+			// So the lame jc_2 will found via treeSet.first() early
+			// enough under case II below.
+			//
+			// How about the case jc_2.j should become jc.i?
+			// Then jc_2.i < jc.i, but this case comes next...
+		}
+
+		// Check for all jc2 with jc2.i < jc.i if jc is a better join
+		// partner than the old one
+		Iterator<JoinCandidate> it = joinCandidates.iterator();
+		addLaterCache.clear();
+		while (it.hasNext()) {
+			JoinCandidate jc2 = it.next();
+			if (jc2.i < jc.i) {
+				if (topics[jc2.i] != null) {
+					// This refers to the old topic of jc.i, so the
+					// new
+					// join partner for jc2 must be computed.
+					if (jc2.j == jc.i) {
+						it.remove();
+						if (updateJoinCandidateForTopic(jc2)) {
+							addLaterCache.add(jc2);
+						}
+					} else {
+						double newLikelihood = computeTwoTopicLogLikelihood(
+								jc2.i, jc.i);
+						double newImprovement = newLikelihood
+								- topicLikelihoods[jc2.i]
+								- topicLikelihoods[jc.i];
+						if (newImprovement > jc2.improvement) {
+							it.remove();
+							jc2.improvement = newImprovement;
+							jc2.likelihood = newLikelihood;
+							jc2.j = jc.i;
+							addLaterCache.add(jc2);
+						}
+					}
+				}
+			}
+		}
+		if (!addLaterCache.isEmpty()) {
+			joinCandidates.addAll(addLaterCache);
+		}
+	}
+	
+	protected void handleInconsistentJoinCandidate(JoinCandidate jc) {
+		if (topics[jc.i] != null && topics[jc.j] == null) {
+			if (updateJoinCandidateForTopic(jc)) {
+				joinCandidates.add(jc);
+			}
+		}		
+	}
+
+	public void groupTopics(int maxTopics, SolutionListener<T> solutionListener) {
 		nTopics[0] = maxTopics;
 		while (nTopics[0] > minTopics) {
 			// Get the best join candidate
-			JoinCandidate jc = joinCandidates.last();
-			joinCandidates.remove(jc);
+			JoinCandidate jc = getBestJoinCandidate();
 			if (topics[jc.i] != null && topics[jc.j] != null) {
 				int t1Size = 0, t2Size = 0;
 				int tid = getHomonymicTopic(jc);
@@ -350,67 +442,13 @@ public class OptimizedTopicGrouper<T> extends AbstractTopicGrouper<T> {
 				nTopics[0]--;
 
 				solutionListener.updatedSolution(jc.i, jc.j, jc.improvement,
-						t1Size, t2Size, solution2);
+						t1Size, t2Size, solution);
 
-				// Recompute the best join partner for joined topic
-				if (updateJoinCandidateForTopic(jc)) {
-					// Add the new best join partner for topic[jc.i]
-					joinCandidates.add(jc);
-					// What if there is a jc_2 with jc_2.j == jc.j?
-					// Should'nt the best join partner k = jc_2.j be
-					// recomputed for jc_2?
-					// By construction the improvement with regard to k must
-					// by less than jc_2.improvement as it is (other we
-					// would have jc_2.j == k already).
-					// So the lame jc_2 will found via treeSet.first() early
-					// enough under case II below.
-					//
-					// How about the case jc_2.j should become jc.i?
-					// Then jc_2.i < jc.i, but this case comes next...
-				}
-
-				// Check for all jc2 with jc2.i < jc.i if jc is a better join
-				// partner than the old one
-				Iterator<JoinCandidate> it = joinCandidates.iterator();
-				addLater.clear();
-				while (it.hasNext()) {
-					JoinCandidate jc2 = it.next();
-					if (jc2.i < jc.i) {
-						if (topics[jc2.i] != null) {
-							// This refers to the old topic of jc.i, so the
-							// new
-							// join partner for jc2 must be computed.
-							if (jc2.j == jc.i) {
-								it.remove();
-								if (updateJoinCandidateForTopic(jc2)) {
-									addLater.add(jc2);
-								}
-							} else {
-								double newLikelihood = computeTwoTopicLogLikelihood(
-										jc2.i, jc.i);
-								double newImprovement = newLikelihood
-										- topicLikelihoods[jc2.i]
-										- topicLikelihoods[jc.i];
-								if (newImprovement > jc2.improvement) {
-									it.remove();
-									jc2.improvement = newImprovement;
-									jc2.likelihood = newLikelihood;
-									jc2.j = jc.i;
-									addLater.add(jc2);
-								}
-							}
-						}
-					}
-				}
-				if (!addLater.isEmpty()) {
-					joinCandidates.addAll(addLater);
-				}
+				updateJoinCandidates(jc);
 			}
 			// Case II
-			else if (topics[jc.i] != null && topics[jc.j] == null) {
-				if (updateJoinCandidateForTopic(jc)) {
-					joinCandidates.add(jc);
-				}
+			else {
+				handleInconsistentJoinCandidate(jc);
 			}
 		}
 	}
