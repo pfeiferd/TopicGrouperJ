@@ -3,7 +3,6 @@ package org.hhn.topicgrouper.report;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Writer;
-import java.util.Collection;
 
 import org.hhn.topicgrouper.report.MindMapSolutionReporter.MapNode;
 import org.hhn.topicgrouper.report.MindMapSolutionReporter.WordInfo;
