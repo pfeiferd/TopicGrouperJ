@@ -8,7 +8,7 @@ public class OptimizedTopicGrouper2<T> extends OptimizedTopicGrouper<T> {
 	public OptimizedTopicGrouper2(int minWordFrequency, double lambda,
 			DocumentProvider<T> documentProvider, int minTopics) {
 		super(minWordFrequency, lambda, documentProvider, minTopics);
-		joinCandidates = new JoinCandidate[nWords];
+		joinCandidates = new JoinCandidate[topics.length];
 	}
 
 	protected void addToJoinCandiates(int i, JoinCandidate jc) {
