@@ -20,6 +20,7 @@ import org.hhn.topicgrouper.util.UnionFind;
 
 public class OptimizedTopicGrouper<T> extends AbstractTopicGrouper<T> {
 	protected final int nWords;
+	protected final int maxTopics;
 
 	protected final TIntList[] topics;
 	protected final UnionFind topicUnionFind;
@@ -50,30 +51,24 @@ public class OptimizedTopicGrouper<T> extends AbstractTopicGrouper<T> {
 
 		this.minTopics = Math.max(1, minTopics);
 		nWords = documentProvider.getNumberOfWords();
-		topicUnionFind = new UnionFind(nWords);
-		topics = new TIntList[nWords];
-		topicSizes = new int[nWords];
+
+		int counter = 0;
+		for (int i = 0; i < nWords; i++) {
+			if (documentProvider.getWordFrequency(i) >= minWordFrequency) {
+				counter++;
+			}
+		}
+		maxTopics = counter;
+
+		topicUnionFind = new UnionFind(maxTopics);
+		topics = new TIntList[maxTopics];
+		topicSizes = new int[maxTopics];
 		joinCandidates = new TreeSet<JoinCandidate>();
-		topicLikelihoods = new double[nWords];
+		topicLikelihoods = new double[maxTopics];
 		nTopics = new int[1];
 
-		topicFrequencyPerDocuments = new int[nWords][];
-		for (int i = 0; i < topicFrequencyPerDocuments.length; i++) {
-			topicFrequencyPerDocuments[i] = new int[documents.size()];
-			for (int j = 0; j < documents.size(); j++) {
-				topicFrequencyPerDocuments[i][j] = documents.get(j)
-						.getWordFrequency(i);
-			}
-		}
-
-		sumWordFrTimesLogWordFrByTopic = new double[documentProvider
-				.getNumberOfWords()];
-		for (int i = 0; i < sumWordFrTimesLogWordFrByTopic.length; i++) {
-			int wordFr = documentProvider.getWordFrequency(i);
-			if (wordFr > 0) {
-				sumWordFrTimesLogWordFrByTopic[i] = wordFr * Math.log(wordFr);
-			}
-		}
+		topicFrequencyPerDocuments = new int[maxTopics][];
+		sumWordFrTimesLogWordFrByTopic = new double[maxTopics];
 
 		onePlusLambdaDivDocSizes = new double[documents.size()];
 		for (int i = 0; i < documents.size(); i++) {
@@ -106,7 +101,7 @@ public class OptimizedTopicGrouper<T> extends AbstractTopicGrouper<T> {
 		}
 		return invertedIndex;
 	}
-	
+
 	protected Solution<T> createSolution() {
 		return new Solution<T>() {
 			@Override
@@ -182,7 +177,8 @@ public class OptimizedTopicGrouper<T> extends AbstractTopicGrouper<T> {
 		return sum;
 	}
 
-	protected double computeTwoWordLogLikelihood(int word1, int word2) {
+	protected double computeTwoWordLogLikelihood(int i, int j, int word1,
+			int word2) {
 		double sum = 0;
 		List<DocIndexAndWordFr> l1 = invertedIndex.get(word1);
 		List<DocIndexAndWordFr> l2 = invertedIndex.get(word2);
@@ -220,9 +216,9 @@ public class OptimizedTopicGrouper<T> extends AbstractTopicGrouper<T> {
 			}
 		}
 
-		sum += sumWordFrTimesLogWordFrByTopic[word1];
-		sum += sumWordFrTimesLogWordFrByTopic[word2];
-		int sizeSum = topicSizes[word1] + topicSizes[word2];
+		sum += sumWordFrTimesLogWordFrByTopic[i];
+		sum += sumWordFrTimesLogWordFrByTopic[j];
+		int sizeSum = topicSizes[i] + topicSizes[j];
 		sum -= (sizeSum) * Math.log(sizeSum);
 
 		return sum;
@@ -249,65 +245,71 @@ public class OptimizedTopicGrouper<T> extends AbstractTopicGrouper<T> {
 		return sum;
 	}
 
-	protected int createInitialTopics() {
-		int maxTopics = 0;
+	protected void createInitialTopics() {
+		int counter = 0;
 		for (int i = 0; i < nWords; i++) {
 			// Only generate topics for elements occurring often in enough
 			// across all entries
-			if (documentProvider.getWordFrequency(i) >= minWordFrequency) {
+			int wordFr = documentProvider.getWordFrequency(i);
+			if (wordFr >= minWordFrequency) {
 				TIntList topic = new TIntArrayList();
 				// Topic with that single element (for a start)
 				topic.add(i);
 				// at position i
-				topics[i] = topic;
-				topicSizes[i] = documentProvider.getWordFrequency(i);
-				topicLikelihoods[i] = computeOneWordTopicLogLikelihood(i);
-				totalLikelihood += topicLikelihoods[i];
-				maxTopics++;
+				topics[counter] = topic;
+				topicSizes[counter] = documentProvider.getWordFrequency(i);
+				topicLikelihoods[counter] = computeOneWordTopicLogLikelihood(i);
+				totalLikelihood += topicLikelihoods[counter];
+
+				topicFrequencyPerDocuments[counter] = new int[documents.size()];
+				for (int j = 0; j < documents.size(); j++) {
+					topicFrequencyPerDocuments[counter][j] = documents.get(j)
+							.getWordFrequency(i);
+				}
+
+				sumWordFrTimesLogWordFrByTopic[counter] = wordFr * Math.log(wordFr);
+
+				counter++;
 			}
 		}
-		return maxTopics;
 	}
 
 	protected void createInitialJoinCandidates(
 			SolutionListener<T> solutionListener) {
-		int initMax = nWords * (nWords - 1) / 2;
+		int initMax = maxTopics * (maxTopics - 1) / 2;
 		int initCounter = 0;
 
-		for (int i = 0; i < nWords - 1; i++) {
+		for (int i = 0; i < maxTopics; i++) {
 			// topics[i] may be null if the element's frequency is below
 			// frThreshold
-			if (topics[i] != null) {
-				double bestImprovement = Double.NEGATIVE_INFINITY;
-				double bestLikelihood = 0;
-				int bestJ = -1;
-				for (int j = i + 1; j < nWords; j++) {
-					if (topics[j] != null) {
-						double newLikelihood = computeTwoWordLogLikelihood(i, j);
-						double newImprovement = newLikelihood
-								- topicLikelihoods[i] - topicLikelihoods[j];
-						if (newImprovement > bestImprovement) {
-							bestImprovement = newImprovement;
-							bestLikelihood = newLikelihood;
-							bestJ = j;
-						}
-					}
-					initCounter++;
-					if (initCounter % 100000 == 0) {
-						solutionListener.initalizing(((double) initCounter)
-								/ initMax);
-					}
+			double bestImprovement = Double.NEGATIVE_INFINITY;
+			double bestLikelihood = 0;
+			int bestJ = -1;
+			for (int j = i + 1; j < maxTopics; j++) {
+				double newLikelihood = computeTwoWordLogLikelihood(i, j,
+						topics[i].get(0), topics[j].get(0));
+				double newImprovement = newLikelihood - topicLikelihoods[i]
+						- topicLikelihoods[j];
+				if (newImprovement > bestImprovement) {
+					bestImprovement = newImprovement;
+					bestLikelihood = newLikelihood;
+					bestJ = j;
 				}
-				// Invariant: topic[j] is the best join partner for topic[i]
-				// with j > i!
-				if (bestJ != -1) {
-					JoinCandidate jc = new JoinCandidate();
-					jc.improvement = bestImprovement;
-					jc.likelihood = bestLikelihood;
-					jc.i = i;
-					jc.j = bestJ;
-					addToJoinCandiates(i, jc);
+				initCounter++;
+				if (initCounter % 100000 == 0) {
+					solutionListener.initalizing(((double) initCounter)
+							/ initMax);
 				}
+			}
+			// Invariant: topic[j] is the best join partner for topic[i]
+			// with j > i!
+			if (bestJ != -1) {
+				JoinCandidate jc = new JoinCandidate();
+				jc.improvement = bestImprovement;
+				jc.likelihood = bestLikelihood;
+				jc.i = i;
+				jc.j = bestJ;
+				addToJoinCandiates(i, jc);
 			}
 		}
 	}
@@ -320,7 +322,7 @@ public class OptimizedTopicGrouper<T> extends AbstractTopicGrouper<T> {
 	public void solve(SolutionListener<T> solutionListener) {
 		// Initialization
 		totalLikelihood = 0;
-		int maxTopics = createInitialTopics();
+		createInitialTopics();
 
 		solutionListener.beforeInitialization(maxTopics, documentSizes.length);
 
@@ -328,7 +330,7 @@ public class OptimizedTopicGrouper<T> extends AbstractTopicGrouper<T> {
 
 		solutionListener.initialized(solution);
 
-		groupTopics(maxTopics, solutionListener);
+		groupTopics(solutionListener);
 	}
 
 	protected JoinCandidate getBestJoinCandidate() {
@@ -394,18 +396,21 @@ public class OptimizedTopicGrouper<T> extends AbstractTopicGrouper<T> {
 			joinCandidates.addAll(addLaterCache);
 		}
 	}
-	
+
 	protected void handleInconsistentJoinCandidate(JoinCandidate jc) {
 		if (topics[jc.i] != null && topics[jc.j] == null) {
 			if (updateJoinCandidateForTopic(jc)) {
 				joinCandidates.add(jc);
 			}
-		}		
+		}
 	}
 
-	public void groupTopics(int maxTopics, SolutionListener<T> solutionListener) {
+	public void groupTopics(SolutionListener<T> solutionListener) {
 		nTopics[0] = maxTopics;
 		while (nTopics[0] > minTopics) {
+			if (nTopics[0] == 288) {
+				System.out.println("stop");
+			}
 			// Get the best join candidate
 			JoinCandidate jc = getBestJoinCandidate();
 			if (topics[jc.i] != null && topics[jc.j] != null) {
@@ -463,7 +468,7 @@ public class OptimizedTopicGrouper<T> extends AbstractTopicGrouper<T> {
 		double bestImprovement = Double.NEGATIVE_INFINITY;
 		double bestLikelihood = 0;
 		int bestJ = -1;
-		for (int j = jc.i + 1; j < nWords; j++) {
+		for (int j = jc.i + 1; j < maxTopics; j++) {
 			if (topics[j] != null) {
 				double newLikelihood = computeTwoTopicLogLikelihood(jc.i, j);
 				double newImprovement = newLikelihood - topicLikelihoods[jc.i]

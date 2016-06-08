@@ -3,12 +3,12 @@ package org.hhn.topicgrouper.tgimpl;
 import org.hhn.topicgrouper.base.DocumentProvider;
 
 public class OptimizedTopicGrouper2<T> extends OptimizedTopicGrouper<T> {
-	protected final JoinCandidate[] joinCandidates;
+	protected JoinCandidate[] joinCandidates;
 
 	public OptimizedTopicGrouper2(int minWordFrequency, double lambda,
 			DocumentProvider<T> documentProvider, int minTopics) {
 		super(minWordFrequency, lambda, documentProvider, minTopics);
-		joinCandidates = new JoinCandidate[topics.length];
+		joinCandidates = new JoinCandidate[maxTopics];
 	}
 
 	protected void addToJoinCandiates(int i, JoinCandidate jc) {
@@ -20,10 +20,9 @@ public class OptimizedTopicGrouper2<T> extends OptimizedTopicGrouper<T> {
 		bubbleSort(joinCandidates, nTopics[0]);
 		return joinCandidates[0];
 	}
-	
+
 	@Override
-	protected void updateJoinCandidates(
-			JoinCandidate jc) {
+	protected void updateJoinCandidates(JoinCandidate jc) {
 		// Recompute the best join partner for joined topic
 		if (!updateJoinCandidateForTopic(jc)) {
 			joinCandidates[0] = null;
@@ -67,7 +66,6 @@ public class OptimizedTopicGrouper2<T> extends OptimizedTopicGrouper<T> {
 			joinCandidates[0] = null;
 		}
 	}
-
 
 	private static void bubbleSort(JoinCandidate[] x, int max) {
 		boolean unsorted = true;
