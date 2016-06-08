@@ -15,7 +15,7 @@ import org.hhn.topicgrouper.report.BasicSolutionReporter;
 import org.hhn.topicgrouper.report.FreeMindXMLTopicHierarchyWriter;
 import org.hhn.topicgrouper.report.MindMapSolutionReporter;
 import org.hhn.topicgrouper.test.AbstractTGTester;
-import org.hhn.topicgrouper.tgimpl.OptimizedTopicGrouper2;
+import org.hhn.topicgrouper.tgimpl.OptimizedTopicGrouper;
 
 public class OptimizedTG2TesterOnAPMindMap extends AbstractTGTester<String> {
 	private MindMapSolutionReporter<String> mindMapSolutionReporter;
@@ -39,7 +39,7 @@ public class OptimizedTG2TesterOnAPMindMap extends AbstractTGTester<String> {
 				.addSolutionListener(mindMapSolutionReporter = new MindMapSolutionReporter<String>(
 						10, false, 1.01, 300));
 		multiplexer.addSolutionListener(new BasicSolutionReporter<String>(
-				System.out, 4, true));
+				System.out, 100, true));
 		return multiplexer;
 	}
 
@@ -58,11 +58,11 @@ public class OptimizedTG2TesterOnAPMindMap extends AbstractTGTester<String> {
 	@Override
 	protected Solver<String> createSolver(
 			DocumentProvider<String> documentProvider) {
-		return new OptimizedTopicGrouper2<String>(20, 0, documentProvider, 1);
+		return new OptimizedTopicGrouper<String>(20, 0, documentProvider, 1);
 	}
 
 	public static void main(String[] args) throws IOException {
-		File file = new File("./target/APMindMap.mm");
+		File file = new File("./target/OptimizedTG2TesterOnAPMindMap.mm");
 		FileWriter writer = new FileWriter(file);
 		new OptimizedTG2TesterOnAPMindMap(writer).run();
 		writer.close();
