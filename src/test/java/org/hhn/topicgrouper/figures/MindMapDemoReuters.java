@@ -34,7 +34,7 @@ public class MindMapDemoReuters extends OptimizedTGTester {
 	@Override
 	protected DocumentProvider<String> createDocumentProvider() {
 		return new Reuters21578(true).getCorpusDocumentProvider(new File(
-				"src/main/resources/reuters21578"), new String[] { "earn" },
+				"src/test/resources/reuters21578"), new String[] { "earn" },
 				true, true);
 	}
 

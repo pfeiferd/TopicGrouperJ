@@ -33,7 +33,7 @@ public class OptimizedTGTesterOnReuters21578 extends AbstractTGTester<String> {
 	protected DocumentProvider<String> createDocumentProvider() {
 		DocumentProvider<String> provider = new Reuters21578(true)
 				.getCorpusDocumentProvider(new File(
-						"src/main/resources/reuters21578"),
+						"src/test/resources/reuters21578"),
 						new String[] { "earn" }, false, true);
 		InDocumentHoldOutSplitter<String> splitter = new InDocumentHoldOutSplitter<String>(
 				new Random(42), provider, 0.1, 10);

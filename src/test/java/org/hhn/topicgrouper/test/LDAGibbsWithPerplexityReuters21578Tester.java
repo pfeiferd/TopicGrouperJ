@@ -13,7 +13,7 @@ public class LDAGibbsWithPerplexityReuters21578Tester {
 	public static void main(String[] args) throws Exception {
 		DocumentProvider<String> documentProvider = new Reuters21578(true)
 				.getCorpusDocumentProvider(new File(
-						"src/main/resources/reuters21578"),
+						"src/test/resources/reuters21578"),
 						new String[] { "earn" }, false, true);
 
 		InDocumentHoldOutSplitter<String> holdoutSplitter = new InDocumentHoldOutSplitter<String>(new Random(42),
