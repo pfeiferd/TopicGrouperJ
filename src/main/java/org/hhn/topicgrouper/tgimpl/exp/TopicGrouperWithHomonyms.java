@@ -1,9 +1,10 @@
-package org.hhn.topicgrouper.tgimpl;
+package org.hhn.topicgrouper.tgimpl.exp;
 
 import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
 
 import org.hhn.topicgrouper.base.DocumentProvider;
+import org.hhn.topicgrouper.tgimpl.OptimizedTopicGrouper;
 
 /*
  * This is purely experimental (and doesn't even work well)

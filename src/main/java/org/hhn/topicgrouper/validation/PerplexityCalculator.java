@@ -1,4 +1,8 @@
-package org.hhn.topicgrouper.base;
+package org.hhn.topicgrouper.validation;
+
+import org.hhn.topicgrouper.base.Document;
+import org.hhn.topicgrouper.base.DocumentProvider;
+import org.hhn.topicgrouper.base.Solution;
 
 import gnu.trove.TIntCollection;
 import gnu.trove.iterator.TIntIterator;

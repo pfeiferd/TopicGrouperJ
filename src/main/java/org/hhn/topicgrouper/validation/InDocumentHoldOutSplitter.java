@@ -1,8 +1,13 @@
-package org.hhn.topicgrouper.base;
+package org.hhn.topicgrouper.validation;
 
 import gnu.trove.iterator.TIntIterator;
 
 import java.util.Random;
+
+import org.hhn.topicgrouper.base.DefaultDocumentProvider;
+import org.hhn.topicgrouper.base.Document;
+import org.hhn.topicgrouper.base.DocumentProvider;
+import org.hhn.topicgrouper.base.DefaultDocumentProvider.DefaultDocument;
 
 public class InDocumentHoldOutSplitter<T> {
 	private DefaultDocumentProvider<T> holdOut;

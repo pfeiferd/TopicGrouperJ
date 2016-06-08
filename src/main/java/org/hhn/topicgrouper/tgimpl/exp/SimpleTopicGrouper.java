@@ -1,4 +1,4 @@
-package org.hhn.topicgrouper.tgimpl;
+package org.hhn.topicgrouper.tgimpl.exp;
 
 import gnu.trove.TIntCollection;
 import gnu.trove.list.TIntList;
@@ -9,6 +9,7 @@ import java.util.List;
 
 import org.hhn.topicgrouper.base.DocumentProvider;
 import org.hhn.topicgrouper.base.Solution;
+import org.hhn.topicgrouper.tgimpl.AbstractTopicGrouper;
 
 public class SimpleTopicGrouper<T> extends AbstractTopicGrouper<T> {
 	public SimpleTopicGrouper(int minWordFrequency, double lambda,

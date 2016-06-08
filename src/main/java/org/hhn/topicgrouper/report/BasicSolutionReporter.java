@@ -18,9 +18,9 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 import org.hhn.topicgrouper.base.DocumentProvider;
-import org.hhn.topicgrouper.base.PerplexityCalculator;
 import org.hhn.topicgrouper.base.Solution;
 import org.hhn.topicgrouper.base.Solver.SolutionListener;
+import org.hhn.topicgrouper.validation.PerplexityCalculator;
 
 public class BasicSolutionReporter<T> implements SolutionListener<T> {
 	private final ITrace2D trace;

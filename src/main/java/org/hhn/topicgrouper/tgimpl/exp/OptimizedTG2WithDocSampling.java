@@ -1,9 +1,10 @@
-package org.hhn.topicgrouper.tgimpl;
+package org.hhn.topicgrouper.tgimpl.exp;
 
 import java.util.BitSet;
 import java.util.Random;
 
 import org.hhn.topicgrouper.base.DocumentProvider;
+import org.hhn.topicgrouper.tgimpl.OptimizedTopicGrouper2;
 
 public class OptimizedTG2WithDocSampling<T> extends OptimizedTopicGrouper2<T> {
 	private final double correctionFactor;
