@@ -74,8 +74,11 @@ public class OptimizedTopicGrouper2<T> extends OptimizedTopicGrouper<T> {
 		while (unsorted) {
 			unsorted = false;
 			for (int i = max - 1; i > 0; i--) {
-				if (x[i] != null
-						&& (x[i - 1] == null || x[i].improvement > x[i - 1].improvement)) {
+				if (x[i] != null && (x[i - 1] == null || /*
+														 * x[i].compareTo(x[i-
+														 * 1]) > 0
+														 */
+				x[i].improvement > x[i - 1].improvement)) {
 					temp = x[i];
 					x[i] = x[i - 1];
 					x[i - 1] = temp;

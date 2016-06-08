@@ -408,9 +408,6 @@ public class OptimizedTopicGrouper<T> extends AbstractTopicGrouper<T> {
 	public void groupTopics(SolutionListener<T> solutionListener) {
 		nTopics[0] = maxTopics;
 		while (nTopics[0] > minTopics) {
-			if (nTopics[0] == 288) {
-				System.out.println("stop");
-			}
 			// Get the best join candidate
 			JoinCandidate jc = getBestJoinCandidate();
 			if (topics[jc.i] != null && topics[jc.j] != null) {
