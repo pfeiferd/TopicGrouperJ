@@ -83,7 +83,7 @@ public class Reuters21578 {
 		String topics[] = Reuters21578Parser.availableTopics();
 		DocumentProvider<String> entryProvider = new Reuters21578(true)
 				.getCorpusDocumentProvider(new File(
-						"src/main/resources/reuters21578"),
+						"src/test/resources/reuters21578"),
 						new String[] { topics[0] }, true, true);
 		System.out.println(entryProvider.getDocuments().size());
 		System.out.println(entryProvider.getNumberOfWords());
