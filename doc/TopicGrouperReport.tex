@@ -167,7 +167,7 @@ We also compute the best possible join partner $s = \{ v \}$ for some $t = \{ w 
 \[f(v) \cdot \log f(v) + f(w) \cdot \log f(w) - (f(v) + f(w)) \cdot \log (f(v) + f(w)).\]
 
 The first sum in this expression is problematic because we would have to iterate over the document set to compute it. 
-Using an inverted index, we can avoid considering documents with $f_d(v) = 0$ or $f_d(w) = 0$.
+Using an inverted index, we can avoid considering documents with $f_d(v) = 0$ and $f_d(w) = 0$.
 
 To further reduce the overhead, we may use sampled document subsets $E \subseteq D$ in order to estimate the first term's value:
 \[|D| / |E| \cdot \sum_{d \in E, f_d(v) + f_d(w) > 0} (1 + \lambda / |d|) \cdot (f_d(v) + f_d(w)) \cdot (\log (f_d(v) + f_d(w)) - \log |d|)\] 
@@ -341,7 +341,7 @@ The perplexity at $n = 4$ is about $13.998$.
 \label{perplexity1}
 \end{figure}
 
-Figure \ref{perplexity2} depicts a perplexity graph for LDA using LDA-P-Method 3 regarding the same data set as in Figure \ref{perplexity1}. LDA hyperparameters are set (in favour of LDA) to the best matching values, which are $n = 4$, $\alpha = (5, 0.5, 0.5, 0.5)^\top$ and $\beta=0.5$. The X axis represents number of iterations. The perplexity is about $15.944$ after 400 iterations. (400 iterations were sufficient for convergence.)
+Figure \ref{perplexity2} depicts a perplexity graph for LDA using LDA-P-Method 3 regarding the same data set as in Figure \ref{perplexity1}. LDA hyperparameters are set (in favour of LDA) to the best matching values, which are $n = 4$, $\alpha = (5, 0.5, 0.5, 0.5)^\top$ and $\beta=0.5$. The X axis represents the number of iterations. The perplexity is about $15.944$ after 400 iterations. (400 iterations were sufficient for convergence.)
 
 \begin{figure}
 \center{\includegraphics[width=1.0\textwidth]{perplexity2.png}}
