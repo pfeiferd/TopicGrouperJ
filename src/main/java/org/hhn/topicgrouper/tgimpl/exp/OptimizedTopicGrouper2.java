@@ -1,6 +1,7 @@
-package org.hhn.topicgrouper.tgimpl;
+package org.hhn.topicgrouper.tgimpl.exp;
 
 import org.hhn.topicgrouper.base.DocumentProvider;
+import org.hhn.topicgrouper.tgimpl.OptimizedTopicGrouper;
 
 public class OptimizedTopicGrouper2<T> extends OptimizedTopicGrouper<T> {
 	protected JoinCandidate[] joinCandidates;

@@ -4,9 +4,9 @@ import java.util.BitSet;
 import java.util.Random;
 
 import org.hhn.topicgrouper.base.DocumentProvider;
-import org.hhn.topicgrouper.tgimpl.OptimizedTopicGrouper2;
+import org.hhn.topicgrouper.tgimpl.OptimizedTopicGrouper;
 
-public class OptimizedTG2WithDocSampling<T> extends OptimizedTopicGrouper2<T> {
+public class OptimizedTG2WithDocSampling<T> extends OptimizedTopicGrouper<T> {
 	private final double correctionFactor;
 	private final int[] sample;
 
