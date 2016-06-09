@@ -1,6 +1,8 @@
 package org.hhn.topicgrouper.ldagibbs;
 
 import org.hhn.topicgrouper.base.DocumentProvider;
+import org.hhn.topicgrouper.base.SolutionListenerMultiplexer;
+import org.hhn.topicgrouper.report.BasicSolutionReporter;
 import org.hhn.topicgrouper.report.TopicFrCollectSolutionReporter;
 import org.hhn.topicgrouper.tgimpl.OptimizedTopicGrouper;
 
@@ -19,8 +21,11 @@ public class MultiTopicGibbsLDAPerplixityAltWithTGAlpha extends
 			throws Exception {
 		OptimizedTopicGrouper<String> tg = new OptimizedTopicGrouper<String>(1,
 				0, getTrainingDocumentProvider(), 1);
+		SolutionListenerMultiplexer<String> mp = new SolutionListenerMultiplexer<String>();
 		TopicFrCollectSolutionReporter<String> r = new TopicFrCollectSolutionReporter<String>();
-		tg.solve(r);
+		mp.addSolutionListener(r);
+		mp.addSolutionListener(new BasicSolutionReporter<String>(System.out, 100, true));
+		tg.solve(mp);
 
 		frequenciesPerNTopicsStore = r.getFrequenciesPerNTopics();
 
@@ -47,4 +52,10 @@ public class MultiTopicGibbsLDAPerplixityAltWithTGAlpha extends
 		}
 		return alpha;
 	}
+	
+	protected String createFileName(int topics, double[] alpha, double beta,
+			int iterations) {
+		return "MultiTopicGibbsLDAPerplixityAltWithAlpha_" + topics;
+	}
+
 }
