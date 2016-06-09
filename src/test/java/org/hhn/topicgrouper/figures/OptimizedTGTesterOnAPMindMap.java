@@ -17,11 +17,11 @@ import org.hhn.topicgrouper.report.MindMapSolutionReporter;
 import org.hhn.topicgrouper.test.AbstractTGTester;
 import org.hhn.topicgrouper.tgimpl.OptimizedTopicGrouper;
 
-public class OptimizedTG2TesterOnAPMindMap extends AbstractTGTester<String> {
+public class OptimizedTGTesterOnAPMindMap extends AbstractTGTester<String> {
 	private MindMapSolutionReporter<String> mindMapSolutionReporter;
 	private Writer file;
 
-	public OptimizedTG2TesterOnAPMindMap(Writer file) throws IOException {
+	public OptimizedTGTesterOnAPMindMap(Writer file) throws IOException {
 		super(null);
 		this.file = file;
 	}
@@ -58,13 +58,13 @@ public class OptimizedTG2TesterOnAPMindMap extends AbstractTGTester<String> {
 	@Override
 	protected Solver<String> createSolver(
 			DocumentProvider<String> documentProvider) {
-		return new OptimizedTopicGrouper<String>(20, 0, documentProvider, 1);
+		return new OptimizedTopicGrouper<String>(5, 0, documentProvider, 1);
 	}
 
 	public static void main(String[] args) throws IOException {
-		File file = new File("./target/OptimizedTG2TesterOnAPMindMap.mm");
+		File file = new File("./target/OptimizedTGTesterOnAPMindMap.mm");
 		FileWriter writer = new FileWriter(file);
-		new OptimizedTG2TesterOnAPMindMap(writer).run();
+		new OptimizedTGTesterOnAPMindMap(writer).run();
 		writer.close();
 	}
 }
