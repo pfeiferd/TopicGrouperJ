@@ -69,19 +69,19 @@ public class OptimizedTopicGrouper2<T> extends OptimizedTopicGrouper<T> {
 
 	private static void bubbleSort(JoinCandidate[] x, int max) {
 		boolean unsorted = true;
-		JoinCandidate temp;
+		JoinCandidate a, b;
 
 		while (unsorted) {
 			unsorted = false;
 			for (int i = max - 1; i > 0; i--) {
-				if (x[i] != null && (x[i - 1] == null || /*
-														 * x[i].compareTo(x[i-
-														 * 1]) > 0
-														 */
-				x[i].improvement > x[i - 1].improvement)) {
-					temp = x[i];
-					x[i] = x[i - 1];
-					x[i - 1] = temp;
+				a = x[i];
+				b = x[i - 1];
+				if (a != null && (b == null || /*
+												 * x[i].compareTo(x[i- 1]) > 0
+												 */
+				a.improvement > b.improvement)) {
+					x[i] = b;
+					x[i - 1] = a;
 					unsorted = true;
 				}
 			}
