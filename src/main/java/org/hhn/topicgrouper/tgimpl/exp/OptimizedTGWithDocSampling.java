@@ -6,11 +6,11 @@ import java.util.Random;
 import org.hhn.topicgrouper.base.DocumentProvider;
 import org.hhn.topicgrouper.tgimpl.OptimizedTopicGrouper;
 
-public class OptimizedTG2WithDocSampling<T> extends OptimizedTopicGrouper<T> {
+public class OptimizedTGWithDocSampling<T> extends OptimizedTopicGrouper<T> {
 	private final double correctionFactor;
 	private final int[] sample;
 
-	public OptimizedTG2WithDocSampling(int minWordFrequency, double lambda,
+	public OptimizedTGWithDocSampling(int minWordFrequency, double lambda,
 			DocumentProvider<T> documentProvider, int minTopics,
 			double samplingRatio, Random random) {
 		super(minWordFrequency, lambda, documentProvider, minTopics);
