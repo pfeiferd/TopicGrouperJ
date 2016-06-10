@@ -15,7 +15,7 @@ public abstract class AbstractMultiTopicGibbsLDA {
 		solutionReporter = createSolutionReporter();
 	}
 
-	BasicGibbsSolutionReporter createSolutionReporter() {
+	protected BasicGibbsSolutionReporter createSolutionReporter() {
 		return new BasicGibbsSolutionReporter(System.out) {
 			@Override
 			public void perplexityComputed(int step, double value, int topics) {
