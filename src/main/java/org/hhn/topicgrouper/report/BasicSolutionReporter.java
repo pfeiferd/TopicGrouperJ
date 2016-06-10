@@ -142,6 +142,10 @@ public class BasicSolutionReporter<T> implements SolutionListener<T> {
 	@Override
 	public void initialized(Solution<T> initialSolution) {
 	}
+	
+	@Override
+	public void done() {
+	}
 
 	private void printTopics(Solution<T> solution, PrintStream pw) {
 		for (TIntCollection topic : solution.getTopics()) {

@@ -331,6 +331,8 @@ public class OptimizedTopicGrouper<T> extends AbstractTopicGrouper<T> {
 		solutionListener.initialized(solution);
 
 		groupTopics(solutionListener);
+		
+		solutionListener.done();
 	}
 
 	protected JoinCandidate getBestJoinCandidate() {

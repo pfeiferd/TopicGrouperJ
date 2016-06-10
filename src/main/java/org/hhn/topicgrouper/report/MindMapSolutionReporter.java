@@ -212,4 +212,8 @@ public class MindMapSolutionReporter<T> implements SolutionListener<T> {
 			return frequency;
 		}
 	}
+	
+	@Override
+	public void done() {
+	}
 }

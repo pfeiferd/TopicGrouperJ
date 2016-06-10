@@ -30,6 +30,10 @@ public class TopicFrCollectSolutionReporter<T> implements SolutionListener<T> {
 	@Override
 	public void initialized(Solution<T> initialSolution) {
 	}
+	
+	@Override
+	public void done() {
+	}
 
 	@Override
 	public void updatedSolution(int newTopicIndex, int oldTopicIndex,
