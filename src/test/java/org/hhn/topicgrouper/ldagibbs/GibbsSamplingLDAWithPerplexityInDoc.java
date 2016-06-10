@@ -34,31 +34,23 @@ public class GibbsSamplingLDAWithPerplexityInDoc extends
 	public double computePerplexity(DocumentProvider<String> provider) {
 		double sumA = 0;
 		double sumB = 0;
+		int[] dSize = new int[1];
 		// Compute the document size excluding words not in the training
 		// vocabulary.
 		// (Therefore cannot use d.size() ...)
 		int i = 0;
 		for (Document<String> d : provider.getDocuments()) {
-			int dSize = 0;
-			for (int j = 0; j < getTrainingDocumentProvider()
-					.getNumberOfWords(); j++) {
-				String word = getTrainingDocumentProvider().getWord(j);
-				int index = provider.getIndex(word);
-				if (index >= 0) {
-					dSize += d.getWordFrequency(index);
-				}
-			}
 			sumA += computeLogProbability(d, dSize, i);
-			sumB += dSize;
+			sumB += dSize[0];
 			i++;
 		}
 		return Math.exp(-sumA / sumB);
 	}
 
-	public double computeLogProbability(Document<String> d, int dSize,
+	public double computeLogProbability(Document<String> d, int[] dSize,
 			int dIndex) {
-		double res = logFakN(dSize);
-
+		double res = 0;
+		dSize[0] = 0;
 		TIntIterator it = d.getWordIndices().iterator();
 		while (it.hasNext()) {
 			int index = it.next();
@@ -78,9 +70,11 @@ public class GibbsSamplingLDAWithPerplexityInDoc extends
 						// We simple ignore the probability which is in favour
 						// of LDA.
 					}
+					dSize[0] += wordFr;
 				}
 			}
 		}
+		res += logFakN(dSize[0]);
 		return res;
 	}
 
@@ -88,8 +82,8 @@ public class GibbsSamplingLDAWithPerplexityInDoc extends
 			Document<String> d, int dIndex) {
 		double sum = 0;
 		for (int i = 0; i < numTopics; i++) {
-			sum += ((double) topicWordCount[i][tIndex]) / sumTopicWordCount[i]
-					* docTopicCount[dIndex][i] / sumDocTopicCount[dIndex];
+			sum += (((double) topicWordCount[i][tIndex]) / sumTopicWordCount[i])
+					* (((double) docTopicCount[dIndex][i]) / sumDocTopicCount[dIndex]);
 		}
 		return sum;
 	}
