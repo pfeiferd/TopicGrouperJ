@@ -49,12 +49,11 @@ public class CSVSolutionReporter<T> implements SolutionListener<T> {
 	public void initalizing(double percentage) {
 		pw.print((int) (percentage * 100));
 		pw.print("% ");
-		pw.println();
-		pw.println();
 	}
 
 	@Override
 	public void initialized(Solution<T> initialSolution) {
+		pw.println();
 		pw.println();
 		pw.print("Number of Topics, ");
 		if (testDocumentProvider != null) {
