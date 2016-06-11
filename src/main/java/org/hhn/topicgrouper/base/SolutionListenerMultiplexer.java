@@ -48,4 +48,10 @@ public class SolutionListenerMultiplexer<T> implements SolutionListener<T> {
 					t1Size, t2Size, solution);
 		}
 	}
+	
+	public void done() {		
+		for (SolutionListener<T> listener : listeners) {
+			listener.done();
+		}
+	}
 }

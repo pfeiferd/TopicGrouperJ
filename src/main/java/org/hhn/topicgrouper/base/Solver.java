@@ -12,5 +12,7 @@ public interface Solver<T> {
 
 		public void updatedSolution(int newTopicIndex, int oldTopicIndex,
 				double improvement, int t1Size, int t2Size, Solution<T> solution);
+		
+		public void done();
 	}
 }
