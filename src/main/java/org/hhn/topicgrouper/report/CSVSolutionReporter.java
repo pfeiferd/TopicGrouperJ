@@ -33,15 +33,15 @@ public class CSVSolutionReporter<T> implements SolutionListener<T> {
 	public void updatedSolution(int newTopicIndex, int oldTopicIndex,
 			double improvement, int t1Size, int t2Size, Solution<T> solution) {
 		pw.print(solution.getNumberOfTopics());
-		pw.print(", ");
+		pw.print("; ");
 		if (testDocumentProvider != null) {
 			double p = perplexityCalculator.computePerplexity(
 					testDocumentProvider, solution);
 			pw.print(p);
-			pw.print(", ");
+			pw.print("; ");
 		}
 		pw.print(improvement);
-		pw.print(", ");
+		pw.print("; ");
 		pw.println(solution.getTotalLikelhood());
 	}
 
@@ -55,11 +55,11 @@ public class CSVSolutionReporter<T> implements SolutionListener<T> {
 	public void initialized(Solution<T> initialSolution) {
 		pw.println();
 		pw.println();
-		pw.print("Number of Topics, ");
+		pw.print("Number of Topics; ");
 		if (testDocumentProvider != null) {
-			pw.print("Perplexity, ");
+			pw.print("Perplexity; ");
 		}
-		pw.print("Log Improvement, ");
+		pw.print("Log Improvement; ");
 		pw.println("Log Likelihood");
 	}
 
