@@ -44,6 +44,10 @@ public class ClusterSolutionReporter<T> implements SolutionListener<T> {
 	@Override
 	public void initalizing(double percentage) {
 	}
+	
+	@Override
+	public void done() {
+	}
 
 	@Override
 	public void initialized(Solution<T> initialSolution) {
