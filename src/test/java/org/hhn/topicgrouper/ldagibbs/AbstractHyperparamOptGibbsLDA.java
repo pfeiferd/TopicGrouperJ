@@ -19,11 +19,11 @@ public abstract class AbstractHyperparamOptGibbsLDA {
 			double[][] xyArea) {
 		this.trainingDocumentProvider = trainingDocumentProvider;
 		this.testDocumentProvider = testDocumentProvider;
-		this.twoParameterSearcher = createParameterSearcher();
-		this.solutionReporter = createSolutionReporter();
 		this.iterations = iterations;
 		this.topics = topics;
 		this.xyArea = xyArea;
+		this.twoParameterSearcher = createParameterSearcher();
+		this.solutionReporter = createSolutionReporter();
 	}
 	
 	public void run() {
@@ -33,9 +33,10 @@ public abstract class AbstractHyperparamOptGibbsLDA {
 	private double perplexityStore;
 
 	protected TwoParameterSearcher createParameterSearcher() {
-		return new TwoParameterSearcher(xyArea, 4) {
+		return new TwoParameterSearcher(xyArea, 10) {
 			@Override
 			protected double optFunction(double x, double y) {
+				checkFor(x, y);
 				try {
 					AbstractGibbsSamplingLDAWithPerplexity sampler = createSampler(
 							topics, createAlpha(x, topics),
@@ -48,6 +49,11 @@ public abstract class AbstractHyperparamOptGibbsLDA {
 				}
 			}
 		};
+	}
+	
+	protected void checkFor(double alpha, double beta) {
+		System.out.println("alpha: " + alpha);
+		System.out.println("beta: " + beta);
 	}
 
 	protected BasicGibbsSolutionReporter createSolutionReporter() {
@@ -81,6 +87,11 @@ public abstract class AbstractHyperparamOptGibbsLDA {
 		return solutionReporter;
 	}
 
+	protected String createFileName(int topics, double[] alpha, double beta,
+			int iterations) {
+		return "HyperparamOptGibbsLDA_";
+	}
+	
 	protected abstract AbstractGibbsSamplingLDAWithPerplexity createSampler(
 			int topics, double[] alpha, double beta, int iterations)
 			throws Exception;
