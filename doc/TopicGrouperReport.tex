@@ -298,6 +298,11 @@ Topic frequencies: [138856 14460 13236 13448 ]\end{verbatim}}
 
 \subsection{Perplexity Analysis}
 
+It is well known that the optimization of probabilistic topic models via predictive holdout measures (such as perplexity) can be problematic because such optimized models often do not coincide (at all) with human intuition and expectation regarding soundness of topics.
+This was more closely investigated in \cite{Chang:Boyd-Graber:Wang:Gerrish:Blei-2009}. Nevertheless related comparisons are useful and well established because they tell about the predictive power of corresponding models regarding given data \cite{Blei:2003:LDA:944919.944937, chen:wang}.
+
+\subsubsection{Perplexity Computation}
+
 We apply \textit{perplexity} as discussed in \cite{Blei:2003:LDA:944919.944937} to a test collection $D_{test}$. The measure is defined as follows:
 
 \[ perplexity(D_{test}) := \exp (- \sum_{d \in D_{test}} \log p(d) / \sum_{d \in D_{test}} |d| )\]
@@ -332,6 +337,8 @@ $p(w|t)$ and $p(t)$:
 So $p(t|d)$ is averaged across the words in $d$ and via the "degree to which $t$ belongs to each $w$".
 We think this is "fair game" because it makes best use of the model and also, there is no need to create questionable holdout documents as discussed in the forum entry. For reference we call this approach "\textbf{LDA-P-Method 3}".
 
+\subsubsection{Results on Synthetic Data}
+
 Figure \ref{perplexity1} depicts a perplexity graph for Topic Grouper regarding the data set from Section \ref{twcdataeval} and a randomized holdout set for test with 10\% of the size of the entire data set (so only 90\% used for training). The X axis represents the number of topics.
 The perplexity at $n = 4$ is about $13.998$.
 
@@ -363,6 +370,37 @@ We also tested LDA-P-Method 2 and constructed the holdout set and training set a
 \label{perplexity4}
 \end{figure}
 
+\subsubsection{Results on AP Corpus Extract}
+
+We ran Topic Grouper and LDA on an extract of the AP Corpus as available under \href{https://www.cs.princeton.edu/~blei/lda-c/index.html}{https://www.cs.princeton.edu/~blei/lda-c/index.html}. As preprocessing steps we performed stop word filtering, Porter stemming and kept only terms which occur at least ten times in the document collection, which resulted in $|V| = 5012$ and $|C| = 2946$.
+
+Regarding LDA, we first performed a hyperparameter search for symmetric $\alpha$ and $\beta$ values using a randomized $10\%$ holdout according to
+LDA-P-Method 2. To do so we ran LDA with a fixed number of $n = 50$ topics and 300 iterations using the Gibbs sampler. We searched the area $\alpha \in [0 \ldots 100] / n$, $\beta \in [0 \ldots 5]$. (We first ensured that 300 iterations were sufficient by inspecting respective perplexity convergence.)
+
+Figure \ref{perplexity5} illustrates how the hyperparameter space was searched towards an exponentially shrinking hyperparameter area with decreasing perplexity.
+Figure \ref{perplexity6} shows the corresponding perplexity at each step. It also highlights how sensitive LDA is with regard to hyperparameter selection as perplexity values vary between 225 and 80 for the given data points.
+
+\begin{figure}
+\center{\includegraphics[width=1.0\textwidth]{APExtractAlphBetaOptGibbsTester1.pdf}}
+\caption{Hyperparameter search for $\alpha$ and $\beta$ using LDA an the AP Corpus extract (Generated with class \texttt{APExtractAlphBetaOptGibbsTester}.)}
+\label{perplexity5}
+\end{figure}
+
+\begin{figure}
+\center{\includegraphics[width=1.0\textwidth]{APExtractAlphBetaOptGibbsTester2.pdf}}
+\caption{Perplexity values for hyperparameter search from Figure \ref{perplexity5} (Generated with class \texttt{APExtractAlphBetaOptGibbsTester}.)}
+\label{perplexity6}
+\end{figure}
+
+Using the optimized values for $\alpha$ and $\beta$, we ran LDA and Topic Grouper on the AP Corpus extract as described above but with a varying number of topics. Figure \ref{perplexity7} shows the corresponding results: Topic Grouper outperforms LDA slightly even after hyperparameter optimization for LDA.
+Please note that although LDA offers low perplexity under these conditions the resulting topics under optimized hyperparameters \emph{are rather inconclusive}. E.g. given $n = 50$ topics, the word "said" appears 24 times in the top ten topic words under LDA (so in almost 50\% of all topics).
+This is not the case for the topics returned from Topic Grouper. (Text: Maybe adding a figure here to illustrate this?)
+
+\begin{figure}
+\center{\includegraphics[width=1.0\textwidth]{TGLDAOnAPExtractMinWordFr10InDocHoldout.pdf}}
+\caption{Perplexity values for LDA and Topic Grouper on AP corpus extract with optimized hyperparameters for LDA (Generated with classes \texttt{APExtractMultiTopicGibbsInDocHoldoutTester} and \texttt{APExtractMultiTopicTGInDocHoldoutTester}.)}
+\label{perplexity7}
+\end{figure}
 
 \subsection{Result Visualization and Inspection}
 
