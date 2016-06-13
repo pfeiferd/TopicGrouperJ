@@ -1,4 +1,4 @@
-package org.hhn.topicgrouper.test;
+package org.hhn.topicgrouper.eval;
 
 import java.io.File;
 import java.io.FileOutputStream;
