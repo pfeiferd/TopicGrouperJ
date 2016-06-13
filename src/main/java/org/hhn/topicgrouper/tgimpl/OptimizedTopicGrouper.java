@@ -323,9 +323,8 @@ public class OptimizedTopicGrouper<T> extends AbstractTopicGrouper<T> {
 	public void solve(SolutionListener<T> solutionListener) {
 		// Initialization
 		totalLikelihood = 0;
-		createInitialTopics();
-
 		solutionListener.beforeInitialization(maxTopics, documentSizes.length);
+		createInitialTopics();
 
 		createInitialJoinCandidates(solutionListener);
 
