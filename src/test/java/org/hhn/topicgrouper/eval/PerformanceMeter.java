@@ -74,8 +74,7 @@ public class PerformanceMeter {
 		out.print("; ");
 		out.print(wordsPerTopic);
 		out.print("; ");
-		out.print(((OptimizedTopicGrouper) tester.run())
-				.getLogLikelihoodCalls());
+		tester.run();
 		out.print("; ");
 		out.print(maxTopics);
 		out.print("; ");
@@ -143,7 +142,7 @@ public class PerformanceMeter {
 	}
 
 	public static void main(String[] args) throws IOException {
-		File file = new File("./target/performanc.csv");
+		File file = new File("./target/performance.csv");
 		FileOutputStream out = new FileOutputStream(file);
 		OutputStreamMultiplexer multiplexer = new OutputStreamMultiplexer();
 		multiplexer.addOutputStream(out);

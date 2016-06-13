@@ -23,12 +23,19 @@ public abstract class AbstractTGTester<T> {
 		printStream = new PrintStream(os);
 	}
 
-	public void run() {
+	public Solver<T> run() {
 		DocumentProvider<T> provider = createDocumentProvider();
-		createSolver(provider).solve(createSolutionListener(printStream));
+		Solver<T> solver = createSolver(provider);
+		SolutionListener<T> solutionListener = createSolutionListener(printStream);
+		startSolving();
+		solver.solve(solutionListener);
 		done();
+		return solver;
 	}
-
+	
+	protected void startSolving() {		
+	}
+	
 	protected void done() {
 	}
 
