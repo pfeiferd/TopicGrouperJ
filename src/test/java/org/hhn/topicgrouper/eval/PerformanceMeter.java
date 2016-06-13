@@ -8,8 +8,10 @@ import java.util.Random;
 
 import org.hhn.topicgrouper.base.DocumentProvider;
 import org.hhn.topicgrouper.base.Solution;
+import org.hhn.topicgrouper.base.SolutionListenerMultiplexer;
 import org.hhn.topicgrouper.base.Solver;
 import org.hhn.topicgrouper.base.Solver.SolutionListener;
+import org.hhn.topicgrouper.report.BasicSolutionReporter;
 import org.hhn.topicgrouper.tgimpl.OptimizedTopicGrouper;
 import org.hhn.topicgrouper.util.OutputStreamMultiplexer;
 
@@ -25,33 +27,38 @@ public class PerformanceMeter {
 	}
 
 	public void measure(PrintStream out) throws IOException {
-		out.println("docs; words per doc; topics; words per topic; max topics; millis");
-		int topics = 10;
-		int wordsPerTopic = 10;
-		int wordsPerDoc = 100;
-		int docs;
+		out.println("docs; words per doc; topics; words per topic; ll calls; max topics; millis");
+		int docs, topics, wordsPerDoc, wordsPerTopic;
 
-//		for (docs = 100; docs <= 6000; docs += 100) {
-//			test(out, docs, wordsPerDoc, topics, wordsPerTopic);
-//		}
-//		out.println();
-		
-//		docs = 1000;		
-//		for (wordsPerDoc = 100; wordsPerDoc <= 6000; wordsPerDoc += 100) {
-//			test(out, docs, wordsPerDoc, topics, wordsPerTopic);
-//		}
-//		out.println();
-		
-//		wordsPerDoc = 100;
-		docs = 10000;
-//		for (wordsPerTopic = 10; wordsPerTopic <= 200; wordsPerTopic += 10) {
-//			test(out, docs, wordsPerDoc, topics, wordsPerTopic);			
-//		}
-//		out.println();
-		
+		topics = 10;
+		wordsPerDoc = 10000;
 		wordsPerTopic = 10;
-		for (topics = 10; topics <= 200; topics += 10) {
-			test(out, docs, wordsPerDoc, topics, wordsPerTopic);						
+		for (docs = 100; docs <= 6000; docs += 100) {
+			test(out, docs, wordsPerDoc, topics, wordsPerTopic);
+		}
+		out.println();
+
+		docs = 100;
+		topics = 10;
+		wordsPerTopic = 10;
+		for (wordsPerDoc = 1000; wordsPerDoc <= 100000; wordsPerDoc += 1000) {
+			test(out, docs, wordsPerDoc, topics, wordsPerTopic);
+		}
+		out.println();
+
+		topics = 10;
+		docs = 100;
+		wordsPerDoc = 10000;
+		for (wordsPerTopic = 10; wordsPerTopic <= 400; wordsPerTopic += 10) {
+			test(out, docs, wordsPerDoc, topics, wordsPerTopic);
+		}
+		out.println();
+
+		docs = 100;
+		wordsPerDoc = 10000;
+		wordsPerTopic = 10;
+		for (topics = 10; topics <= 400; topics += 10) {
+			test(out, docs, wordsPerDoc, topics, wordsPerTopic);
 		}
 	}
 
@@ -67,7 +74,9 @@ public class PerformanceMeter {
 		out.print("; ");
 		out.print(wordsPerTopic);
 		out.print("; ");
-		tester.run();
+		out.print(((OptimizedTopicGrouper) tester.run())
+				.getLogLikelihoodCalls());
+		out.print("; ");
 		out.print(maxTopics);
 		out.print("; ");
 		out.println(endTime - startTime);
@@ -98,7 +107,10 @@ public class PerformanceMeter {
 			@Override
 			protected SolutionListener<String> createSolutionListener(
 					PrintStream out) {
-				return new SolutionListener<String>() {
+				SolutionListenerMultiplexer<String> multiplexer = new SolutionListenerMultiplexer<String>();
+				// multiplexer.addSolutionListener(new
+				// BasicSolutionReporter<String>(System.out, 10, true));
+				multiplexer.addSolutionListener(new SolutionListener<String>() {
 					@Override
 					public void updatedSolution(int newTopicIndex,
 							int oldTopicIndex, double improvement, int t1Size,
@@ -124,7 +136,8 @@ public class PerformanceMeter {
 						startTime = System.currentTimeMillis();
 						PerformanceMeter.this.maxTopics = maxTopics;
 					}
-				};
+				});
+				return multiplexer;
 			}
 		};
 	}
