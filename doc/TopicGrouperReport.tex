@@ -81,7 +81,7 @@ Let $t(w)$ be the topic of word $w$ such that $w \in t \in T(n)$.
 Our goal is to find the optimal partitioning $S(n)$ over all $T(n)$ for a number of topics $n$:
 \begin{equation}
 \label{sn} 
-S(n) := argmax_{T(n)} \prod_{d \in D} \prod_{w \in V, f_d(w) > 0} (p(t(w) | d) \cdot p(w | t(w)))^{f_d(w)}.
+S(n) := argmax_{T(n)} \prod_{d \in D} \prod_{w \in V, f_d(w) > 0} (p(w | t(w)) \cdot p(t(w) | d))^{f_d(w)}.
 \end{equation}
 Let $q(n)$ be the value of the argmax-expression for a corresponding $T(n)$.
 The idea is that a document $d \in D$ is considered to be generated via a simple stochastic process where a word $w$ in $d$
@@ -278,7 +278,7 @@ Notice that the graph is computed from right to left because the algorithm decre
 
 The first four lines of Figure \ref{tgresult} show the top ten words as computed for each topic via Topic Grouper at $n = 4$. In this case, the words per topic are sorted by the frequency in the document collection (as shown in parentheses). All words were assigned correctly. Although not shown, this also holds for most lower ranked words. Errors occur at lower frequencies usually because those frequencies are not significant anymore (i.e., they do not correspond to their true generative probabilities due to the small size of the data set).
 
-The last line of Figure \ref{tgresult} shows the counts $f(t_i)$ for each of the computed topics $t_1,\ldots,t_4$. The frequencies closely match the ratio of the prior $\alpha = (5, 0.5, 0.5, 0.5)^\top$ used at the generation of data set. In other words: Topic Grouper could be applied as a preprocessing procedure for LDA in order to find reasonable hyperparameters for $n$ and $\alpha$.
+The last line of Figure \ref{tgresult} shows the counts $f(t_i)$ for each of the computed topics $t_1,\ldots,t_4$. The frequencies closely match the ratios of the prior $\alpha = (5, 0.5, 0.5, 0.5)^\top$ used at the generation of data set.
 
 Note that we have tried many other variations when parametrizing the generation of the synthetic data set including other document sizes (that also vary across documents), larger document collections, more topics, other $\alpha$-priors an so on. The results reported above are representative in a sense that all data set variations led to similar results and conclusions.
 
@@ -372,7 +372,7 @@ We also tested LDA-P-Method 2 and constructed the holdout set and training set a
 
 \subsubsection{Results on AP Corpus Extract}
 
-We ran Topic Grouper and LDA on an extract of the AP Corpus as available under \href{https://www.cs.princeton.edu/~blei/lda-c/index.html}{https://www.cs.princeton.edu/~blei/lda-c/index.html}. As preprocessing steps we performed stop word filtering, Porter stemming and kept only terms which occur at least ten times in the document collection, which resulted in $|V| = 5012$ and $|C| = 2946$.
+We ran Topic Grouper and LDA on an extract of the AP Corpus as available under \href{https://www.cs.princeton.edu/~blei/lda-c/index.html}{https://www.cs.princeton.edu/~blei/lda-c/index.html}. As preprocessing steps we performed stop word filtering, Porter stemming and kept only terms which occur at least ten times in the document collection, which resulted in $|V| = 5575$ and $|C| = 2946$.
 
 Regarding LDA, we first performed a hyperparameter search for symmetric $\alpha$ and $\beta$ values using a randomized $10\%$ holdout according to
 LDA-P-Method 2. To do so we ran LDA with a fixed number of $n = 50$ topics and 300 iterations using the Gibbs sampler. We searched the area $\alpha \in [0 \ldots 100] / n$, $\beta \in [0 \ldots 5]$. (We first ensured that 300 iterations were sufficient by inspecting respective perplexity convergence.)
@@ -401,6 +401,8 @@ This is not the case for the topics returned from Topic Grouper. (Text: Maybe ad
 \caption{Perplexity values for LDA and Topic Grouper on AP corpus extract with optimized hyperparameters for LDA (Generated with classes \texttt{APExtractMultiTopicGibbsInDocHoldoutTester} and \texttt{APExtractMultiTopicTGInDocHoldoutTester}.)}
 \label{perplexity7}
 \end{figure}
+
+Considering the next to last paragraph from Section \ref{twcdataeval} one could have the idea of using Topic Grouper as a preprocessing step for LDA in order to find reasonable hyperparameters values for $\alpha$ (ratios). We tried this on the AP Corpus extract but neither did it improve perplexity of LDA nor did it seem to substantially improve the quality of resulting topics. 
 
 \subsection{Result Visualization and Inspection}
 
@@ -439,6 +441,52 @@ We used a subset of 13476 documents, performed stemming (using a Porter stemmer)
 \center{\includegraphics[height=1.0\textheight]{mindmap4.png}}
 \caption{Mind map as a result of Topic Grouper on a subset of the Reuters 21578 data set. (Generated with class \texttt{MindMapDemoReuters}.)}
 \label{mindmap2}
+\end{figure}
+
+\subsection{Performance}
+
+We evaluated the performance of a Java implementation of Topic Grouper 
+using the synthetic data set generator from Section \ref{twcdataeval} with a symmetric $\alpha = 50 / n$ (with $n$ being the number of generated topics).
+We measured the computation time of the algorithm when reducing the number of topics from $|V|$ to 1 via the following dimensions (while keeping  parameters of respective other dimensions fixed):
+\begin{enumerate}
+\item number of documents $|D|$,
+\item fixed document size $|d|$,
+\item number of words generated per topic (this influences the size of the vocabulary $|V|$),
+\item number of topics $n$ generated (this influences the size of the vocabulary $|V|$),
+\end{enumerate}
+We used a regular PC environment (Intel i7 processor, 2.2 GHz, 16 GB RAM, Windows 10, Java 1.6 runtime) and reduced algorithmic output to writing the above mentioned parameter values and measured computation times to a file.
+The task of generation the document, i.e. word vectors were not included in the time measurement.
+(This is a preprocessing task that has to be done for all probabilistic topic modeling approaches in more or less the same way.)
+
+Figure \cite{perf1} confirms the theoretical complexity with respect to a linear dependency on the number of documents $|D|$.
+Figure \cite{perf2} confirms that computation time does not depend on the document size.
+Figures \cite{perf3} and \cite{perf4} confirm that computation time depends on $|V|^2$ -- but note that the constant factor of the quadratic component is small. This means that for practical concerns, the linear addend has a much stronger impact when dealing with typical vocabulary sizes less than 50,000.
+
+The results can be used to calibrate the theoretical complexity from Section \ref{complexity}. This enables to forecast (non-parallelized) runtimes $t$ in milliseconds for the given Topic Grouper implementation:
+\[ t(|V|,|D|) \approx \gamma \cdot (0.0168 \cdot |V|^2 \cdot |D|)\]
+with $\gamma = 1$ for the above mentioned results. ($\gamma$ may be used to adapt the formula to any other computing environment.) 
+\begin{figure}
+\center{\includegraphics[height=1.0\textheight]{perf1.png}}
+\caption{Topic Grouper computation time with regard to 1) in text for $|V| = 100$ ($n = 10$, 10 words per topic) and $|d| = 10000$ including a linear regression trend line (Generated with class \texttt{TGPerformanceTester}.)}
+\label{perf1}
+\end{figure}
+
+\begin{figure}
+\center{\includegraphics[height=1.0\textheight]{perf2.png}}
+\caption{Topic Grouper computation time with regard to 2) in text for $|V| = 100$ ($n = 10$, 10 words per topic) and $|D| = 100$ including a linear regression trend line (Generated with class \texttt{TGPerformanceTester}.)}
+\label{perf1}
+\end{figure}
+
+\begin{figure}
+\center{\includegraphics[height=1.0\textheight]{perf3.png}}
+\caption{Topic Grouper computation time with regard to 3) in text for $n = 10$, $|d| = 10000$ and $|D| = 100$ a quadratic regression trend line (Generated with class \texttt{TGPerformanceTester}.)}
+\label{perf1}
+\end{figure}
+
+\begin{figure}
+\center{\includegraphics[height=1.0\textheight]{perf4.png}}
+\caption{Topic Grouper computation time with regard to 3) in text for 10 words per topic, $|d| = 10000$ and $|D| = 100$ a quadratic regression trend line (Generated with class \texttt{TGPerformanceTester}.)}
+\label{perf1}
 \end{figure}
 
 \section{Implementation}
