@@ -11,10 +11,10 @@ import org.hhn.topicgrouper.base.SolutionListenerMultiplexer;
 import org.hhn.topicgrouper.base.Solver;
 import org.hhn.topicgrouper.base.Solver.SolutionListener;
 import org.hhn.topicgrouper.eval.APParser;
+import org.hhn.topicgrouper.eval.AbstractTGTester;
 import org.hhn.topicgrouper.report.BasicSolutionReporter;
 import org.hhn.topicgrouper.report.FreeMindXMLTopicHierarchyWriter;
 import org.hhn.topicgrouper.report.MindMapSolutionReporter;
-import org.hhn.topicgrouper.test.AbstractTGTester;
 import org.hhn.topicgrouper.tgimpl.OptimizedTopicGrouper;
 
 public class OptimizedTGTesterOnAPMindMap extends AbstractTGTester<String> {

@@ -10,9 +10,9 @@ import javax.swing.UIManager;
 import org.hhn.topicgrouper.base.DocumentProvider;
 import org.hhn.topicgrouper.base.Solver;
 import org.hhn.topicgrouper.base.Solver.SolutionListener;
+import org.hhn.topicgrouper.eval.AbstractTGTester;
 import org.hhn.topicgrouper.eval.TWCLDAPaperDocumentGenerator;
 import org.hhn.topicgrouper.report.BasicSolutionReporter;
-import org.hhn.topicgrouper.test.AbstractTGTester;
 import org.hhn.topicgrouper.tgimpl.OptimizedTopicGrouper;
 import org.hhn.topicgrouper.validation.HoldOutSplitter;
 

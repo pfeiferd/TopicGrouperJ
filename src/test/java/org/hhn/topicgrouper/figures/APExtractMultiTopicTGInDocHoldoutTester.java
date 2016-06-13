@@ -11,8 +11,8 @@ import org.hhn.topicgrouper.base.DocumentProvider;
 import org.hhn.topicgrouper.base.Solver;
 import org.hhn.topicgrouper.base.Solver.SolutionListener;
 import org.hhn.topicgrouper.eval.APParser;
+import org.hhn.topicgrouper.eval.AbstractTGTester;
 import org.hhn.topicgrouper.report.CSVSolutionReporter;
-import org.hhn.topicgrouper.test.AbstractTGTester;
 import org.hhn.topicgrouper.tgimpl.OptimizedTopicGrouper;
 import org.hhn.topicgrouper.validation.InDocumentHoldOutSplitter;
 
