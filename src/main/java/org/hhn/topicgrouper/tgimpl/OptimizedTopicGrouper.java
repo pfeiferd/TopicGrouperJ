@@ -267,7 +267,8 @@ public class OptimizedTopicGrouper<T> extends AbstractTopicGrouper<T> {
 							.getWordFrequency(i);
 				}
 
-				sumWordFrTimesLogWordFrByTopic[counter] = wordFr * Math.log(wordFr);
+				sumWordFrTimesLogWordFrByTopic[counter] = wordFr
+						* Math.log(wordFr);
 
 				counter++;
 			}
@@ -331,7 +332,7 @@ public class OptimizedTopicGrouper<T> extends AbstractTopicGrouper<T> {
 		solutionListener.initialized(solution);
 
 		groupTopics(solutionListener);
-		
+
 		solutionListener.done();
 	}
 
@@ -412,45 +413,47 @@ public class OptimizedTopicGrouper<T> extends AbstractTopicGrouper<T> {
 		while (nTopics[0] > minTopics) {
 			// Get the best join candidate
 			JoinCandidate jc = getBestJoinCandidate();
-			if (topics[jc.i] != null && topics[jc.j] != null) {
-				int t1Size = 0, t2Size = 0;
-				int tid = getHomonymicTopic(jc);
-				if (tid == -1) {
-					t1Size = topicSizes[jc.i];
-					t2Size = topicSizes[jc.j];
-					// Join the topics at position jc.i
-					topics[jc.i].addAll(topics[jc.j]);
-					topicUnionFind.union(jc.j, jc.i);
-					topicSizes[jc.i] += t2Size;
-					sumWordFrTimesLogWordFrByTopic[jc.i] += sumWordFrTimesLogWordFrByTopic[jc.j];
-					// Compute likelihood for joined topic
-					totalLikelihood -= topicLikelihoods[jc.i];
-					topicLikelihoods[jc.i] = jc.likelihood;
-					totalLikelihood += topicLikelihoods[jc.i];
-					int[] a = topicFrequencyPerDocuments[jc.i];
-					int[] b = topicFrequencyPerDocuments[jc.j];
-					for (int i = 0; i < a.length; i++) {
-						a[i] += b[i];
+			if (jc != null) {
+				if (topics[jc.i] != null && topics[jc.j] != null) {
+					int t1Size = 0, t2Size = 0;
+					int tid = getHomonymicTopic(jc);
+					if (tid == -1) {
+						t1Size = topicSizes[jc.i];
+						t2Size = topicSizes[jc.j];
+						// Join the topics at position jc.i
+						topics[jc.i].addAll(topics[jc.j]);
+						topicUnionFind.union(jc.j, jc.i);
+						topicSizes[jc.i] += t2Size;
+						sumWordFrTimesLogWordFrByTopic[jc.i] += sumWordFrTimesLogWordFrByTopic[jc.j];
+						// Compute likelihood for joined topic
+						totalLikelihood -= topicLikelihoods[jc.i];
+						topicLikelihoods[jc.i] = jc.likelihood;
+						totalLikelihood += topicLikelihoods[jc.i];
+						int[] a = topicFrequencyPerDocuments[jc.i];
+						int[] b = topicFrequencyPerDocuments[jc.j];
+						for (int i = 0; i < a.length; i++) {
+							a[i] += b[i];
+						}
+					} else {
+						handleHomonym(tid);
 					}
-				} else {
-					handleHomonym(tid);
+					// Topic at position jc.j is gone
+					topics[jc.j] = null;
+					totalLikelihood -= topicLikelihoods[jc.j];
+					topicLikelihoods[jc.j] = 0;
+					topicSizes[jc.j] = 0;
+
+					nTopics[0]--;
+
+					solutionListener.updatedSolution(jc.i, jc.j,
+							jc.improvement, t1Size, t2Size, solution);
+
+					updateJoinCandidates(jc);
 				}
-				// Topic at position jc.j is gone
-				topics[jc.j] = null;
-				totalLikelihood -= topicLikelihoods[jc.j];
-				topicLikelihoods[jc.j] = 0;
-				topicSizes[jc.j] = 0;
-
-				nTopics[0]--;
-
-				solutionListener.updatedSolution(jc.i, jc.j, jc.improvement,
-						t1Size, t2Size, solution);
-
-				updateJoinCandidates(jc);
-			}
-			// Case II
-			else {
-				handleInconsistentJoinCandidate(jc);
+				// Case II
+				else {
+					handleInconsistentJoinCandidate(jc);
+				}
 			}
 		}
 	}
