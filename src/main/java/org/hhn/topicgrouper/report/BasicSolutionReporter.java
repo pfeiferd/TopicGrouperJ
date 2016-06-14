@@ -96,8 +96,16 @@ public class BasicSolutionReporter<T> implements SolutionListener<T> {
 		} else {
 			if (derive) {
 				if (lastImprovement != Double.NaN) {
-					trace.addPoint(solution.getNumberOfTopics(), improvement
-							/ lastImprovement);
+					double ratio = improvement
+							/ lastImprovement;
+					// Keep the graph in boundaries:
+					if (ratio > 2) {
+						ratio = 2;
+					}
+					else if (ratio < -2) {
+						ratio = -2;
+					}
+					trace.addPoint(solution.getNumberOfTopics(), ratio);
 				}
 			}
 			else {
