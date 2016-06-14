@@ -67,8 +67,7 @@ public class APLargeParser {
 							entry = documentProvider.newDocument();
 							documents[0]++;
 						}
-					}
-					else {
+					} else {
 						entry = null;
 					}
 
@@ -87,25 +86,31 @@ public class APLargeParser {
 				public void endElement(String uri, String localName,
 						String qName) throws SAXException {
 					if (qName.equals("TEXT")) {
-//						System.out.println("---------------");	
+						// System.out.println("---------------");
 						entry = null;
 					}
 				}
 			});
 
+			boolean afterCriticalFile = false;
 			for (File apFile : files) {
-				if (documents[0] < maxDocuments) {
+				if (apFile.getName().equals("ap900101")) {
+					afterCriticalFile = true;
+				}
+				if (documents[0] < maxDocuments && afterCriticalFile) {
 					System.out.println(apFile);
 					System.out.println(documents[0]);
 					final FileInputStream inputStream = new FileInputStream(
 							apFile);
+					// Fix the stream by wrapping the file with a root tag
+					// and fixing some unfortunate character sequences.
 					InputStream fixInputStream = new InputStream() {
 						private final String rootOpen = "<root>";
 						private final String rootClose = "</root>";
 
 						int counter = 0;
 						int counter2 = 0;
-						
+
 						int lookahead = -2;
 
 						@Override
@@ -116,13 +121,22 @@ public class APLargeParser {
 							int res;
 							if (lookahead == -2) {
 								res = inputStream.read();
-							}
-							else {
+							} else {
 								res = lookahead;
 							}
 							lookahead = inputStream.read();
 							if (res != -1) {
-								if (res == '&' && Character.isWhitespace(lookahead)) {
+								if (res == '&'
+								// This is for screwed up ampersand characters
+								// in the AP corpus
+										&& (Character.isWhitespace(lookahead)
+												||
+												// This is for SGML escape
+												// sequences that XML parser
+												// does not like
+												lookahead == 'l'
+												|| lookahead == 'r'
+												|| lookahead == 'p' || lookahead == 'e')) {
 									res = ' ';
 									lookahead = -2;
 								}
@@ -136,6 +150,9 @@ public class APLargeParser {
 					};
 
 					InputSource inputSource = new InputSource(fixInputStream);
+					// It is not UTF-8: will get errors of because of bad byte
+					// sequences otherwise.
+					inputSource.setEncoding("ISO-8859-1");
 					xmlReader.parse(inputSource);
 					inputStream.close();
 				}
@@ -162,7 +179,7 @@ public class APLargeParser {
 			if (word.length() > 1) {
 				char c = word.charAt(0);
 				if (Character.isLetter(c)) {
-//					System.out.println(word);					
+					// System.out.println(word);
 					entry.addWord(word);
 				}
 			}
