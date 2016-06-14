@@ -84,7 +84,7 @@ public class FreeMindXMLTopicHierarchyWriter<T> {
 		}
 		pw.println(">");
 		if (node.isMarked()) {
-			pw.println("<icon BUILTIN=\"flag-yellow\"/>");
+			pw.println("<icon BUILTIN=\"stop-sign\"/>");
 		}
 		if (node.getLeftNode() != null) {
 			writeNode(pw, node.getLeftNode(), avgMaxFrequency);
