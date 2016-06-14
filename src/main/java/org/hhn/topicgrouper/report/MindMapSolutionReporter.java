@@ -46,12 +46,14 @@ public class MindMapSolutionReporter<T> implements SolutionListener<T> {
 				list.add(new WordInfo<T>(wordId, initialSolution
 						.getGlobalWordFrequency(wordId), initialSolution
 						.getWord(wordId)));
-				MapNode<T> node = new MapNode<T>(null, null, list);
+				MapNode<T> node = new MapNode<T>(
+						initialSolution.getNumberOfTopics(), null, null, list,
+						initialSolution.getTotalLikelhood(), 0);
 				currentNodes.put(i, node);
 			}
 		}
 	}
-	
+
 	@Override
 	public void beforeInitialization(int maxTopics, int documents) {
 	}
@@ -67,9 +69,12 @@ public class MindMapSolutionReporter<T> implements SolutionListener<T> {
 			double ratio = improvement / lastImprovement;
 			if (ratio >= markRatioLevel) {
 				mark = true;
+			} else {
+				lastImprovement = improvement;
 			}
+		} else {
+			lastImprovement = improvement;
 		}
-		lastImprovement = improvement;
 
 		MapNode<T> child1 = currentNodes.get(newTopicIndex);
 		currentNodes.remove(newTopicIndex);
@@ -103,8 +108,10 @@ public class MindMapSolutionReporter<T> implements SolutionListener<T> {
 			}
 		}
 
-		MapNode<T> parent = new MapNode<T>(child1List.isEmpty() ? null : child1,
-				child2List.isEmpty() ? null : child2, topList);
+		MapNode<T> parent = new MapNode<T>(solution.getNumberOfTopics(),
+				child1List.isEmpty() ? null : child1,
+				child2List.isEmpty() ? null : child2, topList,
+				solution.getTotalLikelhood(), improvement);
 
 		currentNodes.put(newTopicIndex, parent);
 
@@ -150,16 +157,23 @@ public class MindMapSolutionReporter<T> implements SolutionListener<T> {
 	public static class MapNode<T> {
 		private List<WordInfo<T>> topTopicWordIds;
 
+		private final int id;
 		private final MapNode<T> leftNode;
 		private final MapNode<T> rightNode;
+		private final double likelihood;
+		private final double deltaLikelihood;
 		private boolean marked;
 
-		public MapNode(MapNode<T> leftNode, MapNode<T> rightNode,
-				List<WordInfo<T>> topTopicWordIds) {
+		public MapNode(int id, MapNode<T> leftNode, MapNode<T> rightNode,
+				List<WordInfo<T>> topTopicWordIds, double likelihood,
+				double deltaLikelihood) {
+			this.id = id;
 			this.leftNode = leftNode;
 			this.rightNode = rightNode;
 			this.topTopicWordIds = topTopicWordIds;
 			this.marked = false;
+			this.likelihood = likelihood;
+			this.deltaLikelihood = deltaLikelihood;
 		}
 
 		public MapNode<T> getLeftNode() {
@@ -180,6 +194,18 @@ public class MindMapSolutionReporter<T> implements SolutionListener<T> {
 
 		public void setMarked(boolean marked) {
 			this.marked = marked;
+		}
+
+		public int getId() {
+			return id;
+		}
+
+		public double getDeltaLikelihood() {
+			return deltaLikelihood;
+		}
+
+		public double getLikelihood() {
+			return likelihood;
 		}
 	}
 
@@ -212,7 +238,7 @@ public class MindMapSolutionReporter<T> implements SolutionListener<T> {
 			return frequency;
 		}
 	}
-	
+
 	@Override
 	public void done() {
 	}
