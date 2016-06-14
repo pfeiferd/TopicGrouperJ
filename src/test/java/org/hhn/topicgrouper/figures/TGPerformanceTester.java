@@ -38,17 +38,25 @@ public class TGPerformanceTester {
 		}
 		out.println();
 
-		docs = 100;
+		docs = 1000;
 		topics = 10;
 		wordsPerTopic = 10;
 		for (wordsPerDoc = 1000; wordsPerDoc <= 100000; wordsPerDoc += 1000) {
 			test(out, docs, wordsPerDoc, topics, wordsPerTopic);
 		}
 		out.println();
+		
+		docs = 1000;
+		topics = 20;
+		wordsPerTopic = 10;
+		for (wordsPerDoc = 100; wordsPerDoc <= 1000000; wordsPerDoc *= 10) {
+			test(out, docs, wordsPerDoc, topics, wordsPerTopic);
+		}
+		out.println();
 
 		topics = 10;
 		docs = 100;
-		wordsPerDoc = 10000;
+		wordsPerDoc = 1000;
 		for (wordsPerTopic = 10; wordsPerTopic <= 400; wordsPerTopic += 10) {
 			test(out, docs, wordsPerDoc, topics, wordsPerTopic);
 		}
