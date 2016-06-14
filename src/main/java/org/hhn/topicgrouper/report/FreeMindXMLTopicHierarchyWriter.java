@@ -47,7 +47,11 @@ public class FreeMindXMLTopicHierarchyWriter<T> {
 		if (node.getTopTopicWordInfos().isEmpty()) {
 			return;
 		}
-		pw.print("<node TEXT=\"");
+		pw.print("<node ");
+		pw.print("ID=\"");
+		pw.print(node.getId());
+		pw.print("\" ");
+		pw.print("TEXT=\"");
 		boolean first = true;
 		double sumFr = 0;
 		int c = 0;
@@ -86,6 +90,11 @@ public class FreeMindXMLTopicHierarchyWriter<T> {
 		if (node.getRightNode() != null) {
 			writeNode(pw, node.getRightNode(), avgMaxFrequency);
 		}
+		pw.print("<richcontent TYPE=\"NOTE\">");
+		pw.print(node.getLikelihood());
+		pw.print(", ");
+		pw.print(node.getDeltaLikelihood());
+		pw.println("</richcontent>");
 		pw.println("</node>");
 	}
 
