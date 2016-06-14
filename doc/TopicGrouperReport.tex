@@ -452,40 +452,44 @@ We measured the computation time of the algorithm when reducing the number of to
 \item number of documents $|D|$,
 \item fixed document size $|d|$,
 \item number of words generated per topic (this influences the size of the vocabulary $|V|$),
-\item number of topics $n$ generated (this influences the size of the vocabulary $|V|$),
+\item number of generated topics $n$ (this influences the size of the vocabulary $|V|$),
 \end{enumerate}
-We used a regular PC environment (Intel i7 processor, 2.2 GHz, 16 GB RAM, Windows 10, Java 1.6 runtime) and reduced algorithmic output to writing the above mentioned parameter values and measured computation times to a file.
-The task of generation the document, i.e. word vectors were not included in the time measurement.
+We used a regular PC environment (Intel i7 processor, 2.2 GHz, 16 GB RAM, Windows 10, Java 1.6 runtime) and minimized algorithmic output to writing the above mentioned parameter values and measured computation times to a file.
+The task of generating the documents, i.e. word vectors, were not included in the time measurements.
 (This is a preprocessing task that has to be done for all probabilistic topic modeling approaches in more or less the same way.)
 
 Figure \cite{perf1} confirms the theoretical complexity with respect to a linear dependency on the number of documents $|D|$.
 Figure \cite{perf2} confirms that computation time does not depend on the document size.
-Figures \cite{perf3} and \cite{perf4} confirm that computation time depends on $|V|^2$ -- but note that the constant factor of the quadratic component is small. This means that for practical concerns, the linear addend has a much stronger impact when dealing with typical vocabulary sizes less than 50,000.
+Figures \cite{perf3} and \cite{perf4} confirm that computation time depends on $|V|^2$ -- but note that the constant factor of the quadratic component is small.
 
-The results can be used to calibrate the theoretical complexity from Section \ref{complexity}. This enables to forecast (non-parallelized) runtimes $t$ in milliseconds for the given Topic Grouper implementation:
-\[ t(|V|,|D|) \approx \gamma \cdot (0.0168 \cdot |V|^2 \cdot |D|)\]
-with $\gamma = 1$ for the above mentioned results. ($\gamma$ may be used to adapt the formula to any other computing environment.) 
+The results can be used to roughly calibrate the theoretical complexity from Section \ref{complexity}. This enables to roughly estimate (non-parallelized) runtimes $t$ in seconds for the given Topic Grouper implementation:
+\[ t(|V|,|D|) \approx \gamma \cdot (0.000043 \cdot |V|^2 \cdot |D|)\]
+with $\gamma = 1$ for the above mentioned results. ($\gamma$ may be used to adapt the formula to any other computing environment.)
+Unfortunately the calibration factor is volatile and depends on a number of practical aspects (see \cite{perf3} versus \cite{perf4} for example).
+
+A direct performance comparison with LDA is difficult because there exist different computational approaches for it. Regarding Gibbs sampling and for a given set of topics $n$, $\alpha$ and $\beta$ the cost of one Gibbs iteration is $O(n \cdot \sum_{d\ \in D} |d|)$. Typically one runs at between 300 and 5000 iterations for convergence. Moreover, the cost must be multiplied with the times the algorithm is run in order to do hyperparameter optimization which in practice, often requires interleaved manual result inspection.
+
 \begin{figure}
-\center{\includegraphics[height=1.0\textheight]{perf1.png}}
-\caption{Topic Grouper computation time with regard to 1) in text for $|V| = 100$ ($n = 10$, 10 words per topic) and $|d| = 10000$ including a linear regression trend line (Generated with class \texttt{TGPerformanceTester}.)}
+\center{\includegraphics[width=1.0\textwidth]{perf1.pdf}}
+\caption{Topic Grouper computation time with regard to 1) from text, $|V| = 100$ ($n = 10$, 10 words per topic) and $|d| = 10000$ including a linear regression trend line (Generated with class \texttt{TGPerformanceTester}.)}
 \label{perf1}
 \end{figure}
 
 \begin{figure}
-\center{\includegraphics[height=1.0\textheight]{perf2.png}}
-\caption{Topic Grouper computation time with regard to 2) in text for $|V| = 100$ ($n = 10$, 10 words per topic) and $|D| = 100$ including a linear regression trend line (Generated with class \texttt{TGPerformanceTester}.)}
+\center{\includegraphics[width=1.0\textwidth]{perf2.pdf}}
+\caption{Topic Grouper computation time with regard to 2) from text, $|V| = 100$ ($n = 10$, 10 words per topic) and $|D| = 100$ including a linear regression trend line (Generated with class \texttt{TGPerformanceTester}.)}
 \label{perf1}
 \end{figure}
 
 \begin{figure}
-\center{\includegraphics[height=1.0\textheight]{perf3.png}}
-\caption{Topic Grouper computation time with regard to 3) in text for $n = 10$, $|d| = 10000$ and $|D| = 100$ a quadratic regression trend line (Generated with class \texttt{TGPerformanceTester}.)}
+\center{\includegraphics[width=1.0\textwidth]{perf3.pdf}}
+\caption{Topic Grouper computation time with regard to 3) from text, $n = 10$, $|d| = 1000$ and $|D| = 100$ (ranging words per topic), including a quadratic regression trend line (Generated with class \texttt{TGPerformanceTester}.)}
 \label{perf1}
 \end{figure}
 
 \begin{figure}
-\center{\includegraphics[height=1.0\textheight]{perf4.png}}
-\caption{Topic Grouper computation time with regard to 3) in text for 10 words per topic, $|d| = 10000$ and $|D| = 100$ a quadratic regression trend line (Generated with class \texttt{TGPerformanceTester}.)}
+\center{\includegraphics[width=1.0\textwidth]{perf4.pdf}}
+\caption{Topic Grouper computation time with regard to 3) from text, 10 words per topic, $|d| = 10000$ and $|D| = 100$ (ranging number of topics $n$) including a quadratic regression trend line (Generated with class \texttt{TGPerformanceTester}.)}
 \label{perf1}
 \end{figure}
 
