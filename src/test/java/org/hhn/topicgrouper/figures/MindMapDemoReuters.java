@@ -43,7 +43,7 @@ public class MindMapDemoReuters extends OptimizedTGTester {
 		SolutionListenerMultiplexer<String> multiplexer = new SolutionListenerMultiplexer<String>();
 		multiplexer
 				.addSolutionListener(mindMapSolutionReporter = new MindMapSolutionReporter<String>(
-						5, false, 1.2, 20));
+						5, false, 1.2, 50));
 		multiplexer.addSolutionListener(new BasicSolutionReporter<String>(
 				System.out, 30, true));
 		return multiplexer;
@@ -62,7 +62,7 @@ public class MindMapDemoReuters extends OptimizedTGTester {
 	}
 
 	public static void main(String[] args) throws IOException {
-		File file = new File("./target/MindMapReuters.mm");
+		File file = new File("./target/MindMapDemoReuters.mm");
 		FileWriter writer = new FileWriter(file);
 		new MindMapDemoReuters(writer).run();
 		writer.close();
