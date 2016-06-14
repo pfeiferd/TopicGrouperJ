@@ -46,8 +46,7 @@ public class MindMapSolutionReporter<T> implements SolutionListener<T> {
 				list.add(new WordInfo<T>(wordId, initialSolution
 						.getGlobalWordFrequency(wordId), initialSolution
 						.getWord(wordId)));
-				MapNode<T> node = new MapNode<T>(
-						initialSolution.getNumberOfTopics(), null, null, list,
+				MapNode<T> node = new MapNode<T>(-i, null, null, list,
 						initialSolution.getTotalLikelhood(), 0);
 				currentNodes.put(i, node);
 			}
