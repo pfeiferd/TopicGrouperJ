@@ -24,8 +24,7 @@ public class FreeMindXMLTopicHierarchyWriter<T> {
 		this.alphaBase = alphaBase;
 	}
 
-	public void writeToFile(Writer xmlFile, Object[] nodes)
-			throws IOException {
+	public void writeToFile(Writer xmlFile, Object[] nodes) throws IOException {
 		PrintWriter pw = new PrintWriter(xmlFile);
 		pw.println("<map version=\"1.0.1\">");
 		double maxFrequency = 0;
@@ -43,14 +42,17 @@ public class FreeMindXMLTopicHierarchyWriter<T> {
 		pw.println("</map>");
 	}
 
-	public void writeNode(PrintWriter pw, MapNode<T> node, double avgMaxFrequency) {
+	public void writeNode(PrintWriter pw, MapNode<T> node,
+			double avgMaxFrequency) {
 		if (node.getTopTopicWordInfos().isEmpty()) {
 			return;
 		}
 		pw.print("<node ");
-		pw.print("ID=\"");
-		pw.print(node.getId());
-		pw.print("\" ");
+		if (node.getId() > 0) {
+			pw.print("ID=\"");
+			pw.print(node.getId());
+			pw.print("\" ");
+		}
 		pw.print("TEXT=\"");
 		boolean first = true;
 		double sumFr = 0;
