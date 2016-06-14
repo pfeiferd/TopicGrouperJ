@@ -92,14 +92,14 @@ public class APLargeParser {
 				}
 			});
 
-			boolean afterCriticalFile = false;
+//			boolean afterCriticalFile = false;
 			for (File apFile : files) {
-				if (apFile.getName().equals("ap900101")) {
-					afterCriticalFile = true;
-				}
-				if (documents[0] < maxDocuments && afterCriticalFile) {
-					System.out.println(apFile);
-					System.out.println(documents[0]);
+//				if (apFile.getName().equals("ap900101")) {
+//					afterCriticalFile = true;
+//				}
+				if (documents[0] < maxDocuments /*&& afterCriticalFile*/) {
+//					System.out.println(apFile);
+//					System.out.println(documents[0]);
 					final FileInputStream inputStream = new FileInputStream(
 							apFile);
 					// Fix the stream by wrapping the file with a root tag
@@ -189,7 +189,7 @@ public class APLargeParser {
 	public static void main(String[] args) {
 		DocumentProvider<String> entryProvider = new APLargeParser(true)
 				.getCorpusDocumentProvider(new File(
-						"src/test/resources/ap-corpus/full"), 1000000000);
+						"src/test/resources/ap-corpus/full"), Integer.MAX_VALUE);
 		System.out.println(entryProvider.getDocuments().size());
 		System.out.println(entryProvider.getNumberOfWords());
 	}
