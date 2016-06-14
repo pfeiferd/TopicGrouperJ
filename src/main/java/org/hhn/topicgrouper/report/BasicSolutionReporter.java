@@ -75,13 +75,13 @@ public class BasicSolutionReporter<T> implements SolutionListener<T> {
 	public void setTestDocumentProvider(DocumentProvider<T> documentProvider) {
 		this.testDocumentProvider = documentProvider;
 	}
-	
+
 	@Override
 	public void beforeInitialization(int maxTopics, int documents) {
 		pw.println("Processed words / max topics: " + maxTopics);
 		pw.println("Processed documents: " + documents);
 	}
-	
+
 	private Double lastImprovement = Double.NaN;
 
 	@Override
@@ -90,54 +90,55 @@ public class BasicSolutionReporter<T> implements SolutionListener<T> {
 		if (testDocumentProvider != null) {
 			double p = perplexityCalculator.computePerplexity(
 					testDocumentProvider, solution);
-			pw.print("Perplexity: ");
-			pw.println(p);
+			if (pw != null) {
+				pw.print("Perplexity: ");
+				pw.println(p);
+			}
 			trace.addPoint(solution.getNumberOfTopics(), p);
 		} else {
 			if (derive) {
 				if (lastImprovement != Double.NaN) {
-					double ratio = improvement
-							/ lastImprovement;
+					double ratio = improvement / lastImprovement;
 					// Keep the graph in boundaries:
 					if (ratio > 2) {
 						ratio = 2;
-					}
-					else if (ratio < -2) {
+					} else if (ratio < -2) {
 						ratio = -2;
 					}
 					trace.addPoint(solution.getNumberOfTopics(), ratio);
 				}
-			}
-			else {
-				trace.addPoint(solution.getNumberOfTopics(), improvement);				
+			} else {
+				trace.addPoint(solution.getNumberOfTopics(), improvement);
 			}
 		}
 		lastImprovement = improvement;
-		pw.print("Improvement: ");
-		pw.println(improvement);
-		pw.print("Likelihood: ");
-		pw.println(solution.getTotalLikelhood());
-		List<? extends TIntCollection> topics = solution.getTopics();
-		pw.print("Number of topics: ");
-		pw.println(solution.getNumberOfTopics());
-		pw.println("New topic: ");
-		if (topics != null) {
-			printTopic(solution, topics.get(newTopicIndex), pw);
-		} else {
-			printTopic(solution, solution.getTopicsAlt()[newTopicIndex], pw);
+		if (pw != null) {
+			pw.print("Improvement: ");
+			pw.println(improvement);
+			pw.print("Likelihood: ");
+			pw.println(solution.getTotalLikelhood());
+			List<? extends TIntCollection> topics = solution.getTopics();
+			pw.print("Number of topics: ");
+			pw.println(solution.getNumberOfTopics());
+			pw.println("New topic: ");
+			if (topics != null) {
+				printTopic(solution, topics.get(newTopicIndex), pw);
+			} else {
+				printTopic(solution, solution.getTopicsAlt()[newTopicIndex], pw);
+			}
+			pw.println("All topics: ");
+			if (topics != null) {
+				printTopics(solution, pw);
+			} else {
+				printTopics2(solution, pw);
+			}
+			TIntCollection homonyms = solution.getHomonymns();
+			if (homonyms != null) {
+				pw.print("Homonyms: ");
+				printTopic(solution, homonyms, pw);
+			}
+			pw.println("*****************************");
 		}
-		pw.println("All topics: ");
-		if (topics != null) {
-			printTopics(solution, pw);
-		} else {
-			printTopics2(solution, pw);
-		}
-		TIntCollection homonyms = solution.getHomonymns();
-		if (homonyms != null) {
-			pw.print("Homonyms: ");
-			printTopic(solution, homonyms, pw);
-		}
-		pw.println("*****************************");
 	}
 
 	@Override
@@ -146,11 +147,11 @@ public class BasicSolutionReporter<T> implements SolutionListener<T> {
 		pw.print((int) (percentage * 100));
 		pw.println("%.");
 	}
-	
+
 	@Override
 	public void initialized(Solution<T> initialSolution) {
 	}
-	
+
 	@Override
 	public void done() {
 	}
