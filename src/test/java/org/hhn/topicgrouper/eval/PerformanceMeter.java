@@ -11,7 +11,6 @@ import org.hhn.topicgrouper.base.Solution;
 import org.hhn.topicgrouper.base.SolutionListenerMultiplexer;
 import org.hhn.topicgrouper.base.Solver;
 import org.hhn.topicgrouper.base.Solver.SolutionListener;
-import org.hhn.topicgrouper.report.BasicSolutionReporter;
 import org.hhn.topicgrouper.tgimpl.OptimizedTopicGrouper;
 import org.hhn.topicgrouper.util.OutputStreamMultiplexer;
 
@@ -27,7 +26,7 @@ public class PerformanceMeter {
 	}
 
 	public void measure(PrintStream out) throws IOException {
-		out.println("docs; words per doc; topics; words per topic; ll calls; max topics; millis");
+		out.println("docs; words per doc; topics; words per topic; max topics; millis");
 		int docs, topics, wordsPerDoc, wordsPerTopic;
 
 		topics = 10;
@@ -74,8 +73,9 @@ public class PerformanceMeter {
 		out.print("; ");
 		out.print(wordsPerTopic);
 		out.print("; ");
+		
 		tester.run();
-		out.print("; ");
+		
 		out.print(maxTopics);
 		out.print("; ");
 		out.println(endTime - startTime);
