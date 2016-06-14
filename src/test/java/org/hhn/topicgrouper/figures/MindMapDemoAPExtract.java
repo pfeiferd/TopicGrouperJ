@@ -28,7 +28,7 @@ public class MindMapDemoAPExtract extends OptimizedTGTester {
 	@Override
 	protected Solver<String> createSolver(
 			DocumentProvider<String> documentProvider) {
-		return new OptimizedTopicGrouper<String>(50, 0, documentProvider, 1);
+		return new OptimizedTopicGrouper<String>(10, 0, documentProvider, 1);
 	}
 
 	@Override
@@ -42,9 +42,9 @@ public class MindMapDemoAPExtract extends OptimizedTGTester {
 		SolutionListenerMultiplexer<String> multiplexer = new SolutionListenerMultiplexer<String>();
 		multiplexer
 				.addSolutionListener(mindMapSolutionReporter = new MindMapSolutionReporter<String>(
-						5, false, 1.2, 200));
+						5, false, 1.02, 200));
 		multiplexer.addSolutionListener(new BasicSolutionReporter<String>(
-				System.out, 10, true));
+				System.out, 100, true));
 		return multiplexer;
 	}
 
