@@ -26,7 +26,7 @@ public class APExtractMultiTopicTGInDocHoldoutTester extends
 	}
 
 	protected SolutionListener<String> createSolutionListener(PrintStream out) {
-		CSVSolutionReporter<String> res = new CSVSolutionReporter<String>(out);
+		CSVSolutionReporter<String> res = new CSVSolutionReporter<String>(out, true);
 		res.setTestDocumentProvider(testDocumentProvider);
 		return res;
 	}

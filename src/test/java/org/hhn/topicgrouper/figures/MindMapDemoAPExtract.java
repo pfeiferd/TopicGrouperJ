@@ -46,7 +46,7 @@ public class MindMapDemoAPExtract extends OptimizedTGTester {
 				.addSolutionListener(mindMapSolutionReporter = new MindMapSolutionReporter<String>(
 						10, false, 1.01, 200));
 		multiplexer.addSolutionListener(new BasicSolutionReporter<String>(
-				out, 200, true, false));
+				out, 200, true, false, true));
 		return multiplexer;
 	}
 	
