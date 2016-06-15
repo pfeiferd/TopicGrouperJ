@@ -29,11 +29,18 @@ public class BasicSolutionReporter<T> implements SolutionListener<T> {
 	private final PerplexityCalculator<T> perplexityCalculator;
 	private DocumentProvider<T> testDocumentProvider;
 	private final boolean derive;
+	private final boolean verbose;
 
 	public BasicSolutionReporter(PrintStream pw, int reportDetailsAtTopicSize,
 			boolean derive) {
+		this(pw, reportDetailsAtTopicSize, derive, true);
+	}
+
+	public BasicSolutionReporter(PrintStream pw, int reportDetailsAtTopicSize,
+			boolean derive, boolean verbose) {
 		this.pw = pw;
 		this.derive = derive;
+		this.verbose = verbose;
 
 		this.perplexityCalculator = new PerplexityCalculator<T>();
 
@@ -90,10 +97,8 @@ public class BasicSolutionReporter<T> implements SolutionListener<T> {
 		if (testDocumentProvider != null) {
 			double p = perplexityCalculator.computePerplexity(
 					testDocumentProvider, solution);
-			if (pw != null) {
-				pw.print("Perplexity: ");
-				pw.println(p);
-			}
+			pw.print("Perplexity: ");
+			pw.println(p);
 			trace.addPoint(solution.getNumberOfTopics(), p);
 		} else {
 			if (derive) {
@@ -112,7 +117,7 @@ public class BasicSolutionReporter<T> implements SolutionListener<T> {
 			}
 		}
 		lastImprovement = improvement;
-		if (pw != null) {
+		if (verbose) {
 			pw.print("Improvement: ");
 			pw.println(improvement);
 			pw.print("Likelihood: ");
@@ -139,6 +144,23 @@ public class BasicSolutionReporter<T> implements SolutionListener<T> {
 			}
 			pw.println("*****************************");
 		}
+		if (solution.getNumberOfTopics() == reportDetailsAtTopicSize) {
+			for (TIntCollection topic : solution.getTopicsAlt()) {
+				if (topic != null) {
+					printTopicDetails(solution, topic, pw);
+				}
+			}
+			pw.print("Topic frequencies: [");
+			int i = 0;
+			for (TIntCollection topic : solution.getTopicsAlt()) {
+				if (topic != null) {
+					pw.print(solution.getTopicFrequency(i));
+					pw.print(" ");
+				}
+				i++;
+			}
+			pw.println("]");
+		}
 	}
 
 	@Override
@@ -163,29 +185,10 @@ public class BasicSolutionReporter<T> implements SolutionListener<T> {
 	}
 
 	private void printTopics2(Solution<T> solution, PrintStream pw) {
-		int counter = 0;
 		for (TIntCollection topic : solution.getTopicsAlt()) {
 			if (topic != null) {
 				printTopic(solution, topic, pw);
-				counter++;
 			}
-		}
-		if (counter == reportDetailsAtTopicSize) {
-			for (TIntCollection topic : solution.getTopicsAlt()) {
-				if (topic != null) {
-					printTopicDetails(solution, topic, pw);
-				}
-			}
-			System.out.print("Topic frequencies: [");
-			int i = 0;
-			for (TIntCollection topic : solution.getTopicsAlt()) {
-				if (topic != null) {
-					System.out.print(solution.getTopicFrequency(i));
-					System.out.print(" ");
-				}
-				i++;
-			}
-			System.out.println("]");
 		}
 	}
 
