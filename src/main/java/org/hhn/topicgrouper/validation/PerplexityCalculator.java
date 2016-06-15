@@ -8,6 +8,16 @@ import gnu.trove.TIntCollection;
 import gnu.trove.iterator.TIntIterator;
 
 public class PerplexityCalculator<T> {
+	private final boolean bowFactor;
+
+	public PerplexityCalculator() {
+		this(true);
+	}
+
+	public PerplexityCalculator(boolean bowFactor) {
+		this.bowFactor = bowFactor;
+	}
+
 	public double computePerplexity(DocumentProvider<T> provider, Solution<T> s) {
 		double sumA = 0;
 		double sumB = 0;
@@ -29,7 +39,7 @@ public class PerplexityCalculator<T> {
 	}
 
 	public double computeLogProbability(Document<T> d, int dSize, Solution<T> s) {
-		double res = logFakN(dSize);
+		double res = bowFactor ? logFakN(dSize) : 0;
 
 		TIntIterator it = d.getWordIndices().iterator();
 		while (it.hasNext()) {
@@ -41,18 +51,20 @@ public class PerplexityCalculator<T> {
 				int topicIndex = s.getTopicForWord(sIndex);
 				TIntCollection words = s.getTopicsAlt()[topicIndex];
 				if (wordFr > 0 && words != null) {
-					res -= logFakN(wordFr);
+					if (bowFactor) {
+						res -= logFakN(wordFr);
+					}
 					res += wordFr
-							* computeWordLogProbability(sIndex, d,
-									dSize, s, words, topicIndex);
+							* computeWordLogProbability(sIndex, d, dSize, s,
+									words, topicIndex);
 				}
 			}
 		}
 		return res;
 	}
 
-	private double computeWordLogProbability(int sIndex, Document<T> d, int dSize, Solution<T> s,
-			TIntCollection words, int topicIndex) {
+	private double computeWordLogProbability(int sIndex, Document<T> d,
+			int dSize, Solution<T> s, TIntCollection words, int topicIndex) {
 		int topicFrInDoc = 0;
 		TIntIterator it = words.iterator();
 		while (it.hasNext()) {
