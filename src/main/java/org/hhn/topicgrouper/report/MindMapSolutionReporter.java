@@ -68,12 +68,9 @@ public class MindMapSolutionReporter<T> implements SolutionListener<T> {
 			double ratio = improvement / lastImprovement;
 			if (ratio >= markRatioLevel) {
 				mark = true;
-			} else {
-				lastImprovement = improvement;
 			}
-		} else {
-			lastImprovement = improvement;
 		}
+		lastImprovement = improvement;
 
 		MapNode<T> child1 = currentNodes.get(newTopicIndex);
 		currentNodes.remove(newTopicIndex);
