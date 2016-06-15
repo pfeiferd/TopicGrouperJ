@@ -16,7 +16,7 @@ public class MultiTopicGibbsLDAPerplixityAlt extends AbstractMultiTopicGibbsLDA 
 		// More specifically, according to
 		// "Finding scientific topics" by Thomas L. Griffiths and Mark Steyvers
 		return AbstractGibbsSamplingLDAWithPerplexity.symmetricAlpha(
-				50d / topics, topics);
+				0.001d / topics, topics);
 	}
 
 	@Override
