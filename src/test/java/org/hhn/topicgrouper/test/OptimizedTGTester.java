@@ -10,8 +10,9 @@ import javax.swing.UIManager;
 import org.hhn.topicgrouper.base.DocumentProvider;
 import org.hhn.topicgrouper.base.Solver;
 import org.hhn.topicgrouper.base.Solver.SolutionListener;
+import org.hhn.topicgrouper.eval.AbstractTGTester;
 import org.hhn.topicgrouper.eval.TWCLDAPaperDocumentGenerator;
-import org.hhn.topicgrouper.report.BasicSolutionReporter;
+import org.hhn.topicgrouper.report.CSVSolutionReporter;
 import org.hhn.topicgrouper.tgimpl.OptimizedTopicGrouper;
 import org.hhn.topicgrouper.validation.InDocumentHoldOutSplitter;
 
@@ -23,7 +24,7 @@ public class OptimizedTGTester extends AbstractTGTester<String> {
 	}
 	
 	protected SolutionListener<String> createSolutionListener(PrintStream out) {
-		BasicSolutionReporter<String> res = new BasicSolutionReporter<String>(out, 4, true);
+		CSVSolutionReporter<String> res = new CSVSolutionReporter<String>(out, true);
 		res.setTestDocumentProvider(testDocumentProvider);
 		return res;
 	}

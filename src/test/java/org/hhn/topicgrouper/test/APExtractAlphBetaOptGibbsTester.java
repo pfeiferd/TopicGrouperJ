@@ -9,8 +9,8 @@ import org.hhn.topicgrouper.eval.APParser;
 import org.hhn.topicgrouper.ldagibbs.AbstractGibbsSamplingLDAWithPerplexity;
 import org.hhn.topicgrouper.ldagibbs.AbstractHyperparamOptGibbsLDA;
 import org.hhn.topicgrouper.ldagibbs.BasicGibbsSolutionReporter;
-import org.hhn.topicgrouper.ldagibbs.GibbsSamplingLDAWithPerplexityInDoc;
-import org.hhn.topicgrouper.validation.InDocumentHoldOutSplitter;
+import org.hhn.topicgrouper.ldagibbs.GibbsSamplingLDAWithPerplexityAlt;
+import org.hhn.topicgrouper.validation.HoldOutSplitter;
 
 public class APExtractAlphBetaOptGibbsTester {
 	public static void main(String[] args) throws Exception {
@@ -22,7 +22,7 @@ public class APExtractAlphBetaOptGibbsTester {
 		// new Random(45), new double[] { 5, 0.5, 0.5, 0.5 }, 6000, 100,
 		// 100, 30, 30, 0, null, 0.5, 0.8);
 
-		InDocumentHoldOutSplitter<String> splitter = new InDocumentHoldOutSplitter<String>(
+		HoldOutSplitter<String> splitter = new HoldOutSplitter<String>(
 				new Random(42), documentProvider, 0.1, 10);
 
 		final PrintStream pw = new PrintStream(new File(
@@ -57,7 +57,7 @@ public class APExtractAlphBetaOptGibbsTester {
 			protected AbstractGibbsSamplingLDAWithPerplexity createSampler(
 					int topics, double[] alpha, double beta, int iterations)
 					throws Exception {
-				return new GibbsSamplingLDAWithPerplexityInDoc(
+				return new GibbsSamplingLDAWithPerplexityAlt(
 						getSolutionReporter(), getTrainingDocumentProvider(),
 						alpha, beta, iterations, 10, createFileName(topics,
 								alpha, beta, iterations), "", 0,

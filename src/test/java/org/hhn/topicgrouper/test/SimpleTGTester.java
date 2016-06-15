@@ -7,6 +7,7 @@ import javax.swing.UIManager;
 
 import org.hhn.topicgrouper.base.DocumentProvider;
 import org.hhn.topicgrouper.base.Solver;
+import org.hhn.topicgrouper.eval.AbstractTGTester;
 import org.hhn.topicgrouper.eval.TWCLDAPaperDocumentGenerator;
 import org.hhn.topicgrouper.tgimpl.exp.SimpleTopicGrouper;
 

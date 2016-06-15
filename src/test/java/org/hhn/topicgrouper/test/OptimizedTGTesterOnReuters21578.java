@@ -10,10 +10,11 @@ import javax.swing.UIManager;
 import org.hhn.topicgrouper.base.DocumentProvider;
 import org.hhn.topicgrouper.base.Solver;
 import org.hhn.topicgrouper.base.Solver.SolutionListener;
-import org.hhn.topicgrouper.eval.Reuters21578;
-import org.hhn.topicgrouper.report.BasicSolutionReporter;
+import org.hhn.topicgrouper.eval.APParser;
+import org.hhn.topicgrouper.eval.AbstractTGTester;
+import org.hhn.topicgrouper.report.CSVSolutionReporter;
 import org.hhn.topicgrouper.tgimpl.OptimizedTopicGrouper;
-import org.hhn.topicgrouper.validation.InDocumentHoldOutSplitter;
+import org.hhn.topicgrouper.validation.HoldOutSplitter;
 
 public class OptimizedTGTesterOnReuters21578 extends AbstractTGTester<String> {
 	private DocumentProvider<String> testDocumentProvider;
@@ -23,20 +24,22 @@ public class OptimizedTGTesterOnReuters21578 extends AbstractTGTester<String> {
 	}
 
 	protected SolutionListener<String> createSolutionListener(PrintStream out) {
-		BasicSolutionReporter<String> res = new BasicSolutionReporter<String>(
-				out, 4, true);
+		CSVSolutionReporter<String> res = new CSVSolutionReporter<String>(out, true);
 		res.setTestDocumentProvider(testDocumentProvider);
 		return res;
 	}
 
 	@Override
 	protected DocumentProvider<String> createDocumentProvider() {
-		DocumentProvider<String> provider = new Reuters21578(true)
+		DocumentProvider<String> documentProvider = new APParser(true)
 				.getCorpusDocumentProvider(new File(
-						"src/test/resources/reuters21578"),
-						new String[] { "earn" }, false, true);
-		InDocumentHoldOutSplitter<String> splitter = new InDocumentHoldOutSplitter<String>(
-				new Random(42), provider, 0.1, 10);
+						"src/test/resources/ap-corpus/extract/ap.txt"));
+		// DocumentProvider<String> provider = new Reuters21578(true)
+		// .getCorpusDocumentProvider(new File(
+		// "src/test/resources/reuters21578"),
+		// new String[] { "earn" }, false, true);
+		HoldOutSplitter<String> splitter = new HoldOutSplitter<String>(
+				new Random(42), documentProvider, 0.1, 10);
 		testDocumentProvider = splitter.getHoldOut();
 		return splitter.getRest();
 	}
@@ -54,7 +57,7 @@ public class OptimizedTGTesterOnReuters21578 extends AbstractTGTester<String> {
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
-		new OptimizedTGTesterOnReuters21578(null /*
-				new File("target/ReutersResult.txt")*/).run();
+		new OptimizedTGTesterOnReuters21578(
+				new File("target/TGOnAPExtractMinWordFr10Holdout0.1.csv")).run();
 	}
 }

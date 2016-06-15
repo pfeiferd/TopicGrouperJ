@@ -11,6 +11,7 @@ import org.hhn.topicgrouper.base.DocumentProvider;
 import org.hhn.topicgrouper.base.Solution;
 import org.hhn.topicgrouper.base.Solver;
 import org.hhn.topicgrouper.base.Solver.SolutionListener;
+import org.hhn.topicgrouper.eval.AbstractTGTester;
 import org.hhn.topicgrouper.eval.TWCLDAPaperDocumentGenerator;
 import org.hhn.topicgrouper.tgimpl.OptimizedTopicGrouper;
 
@@ -20,35 +21,41 @@ public class OptimizedTGTester2 extends AbstractTGTester<String> {
 	}
 
 	protected SolutionListener<String> createSolutionListener(PrintStream out) {
-//		return new BasicSolutionReporter<String>(out, 4, true);
-		 return new SolutionListener<String>() {
-		
-		 @Override
-		 public void updatedSolution(int newTopicIndex, int oldTopicIndex,
-		 double improvement, int t1Size, int t2Size,
-		 Solution<String> solution) {
-		 // TODO Auto-generated method stub
-		
-		 }
-		
-		 @Override
-		 public void initialized(Solution<String> initialSolution) {
-		 // TODO Auto-generated method stub
-		
-		 }
-		
-		 @Override
-		 public void initalizing(double percentage) {
-		 // TODO Auto-generated method stub
-		
-		 }
-		
-		 @Override
-		 public void beforeInitialization(int maxTopics, int documents) {
-		 // TODO Auto-generated method stub
-		
-		 }
-		 };
+		// return new BasicSolutionReporter<String>(out, 4, true);
+		return new SolutionListener<String>() {
+
+			@Override
+			public void updatedSolution(int newTopicIndex, int oldTopicIndex,
+					double improvement, int t1Size, int t2Size,
+					Solution<String> solution) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void initialized(Solution<String> initialSolution) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void initalizing(double percentage) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void beforeInitialization(int maxTopics, int documents) {
+				// TODO Auto-generated method stub
+
+			}
+			
+			@Override
+			public void done() {
+				// TODO Auto-generated method stub
+				
+			}
+		};
 	}
 
 	protected DocumentProvider<String> createDocumentProvider() {
@@ -59,9 +66,10 @@ public class OptimizedTGTester2 extends AbstractTGTester<String> {
 	@Override
 	protected Solver<String> createSolver(
 			DocumentProvider<String> documentProvider) {
-//		return new OptimizedTG2WithDocSampling<String>(1, 0, documentProvider,
-//				1, 0.1, new Random(22));
-		 return new OptimizedTopicGrouper<String>(1, 0, documentProvider, 1);
+		// return new OptimizedTG2WithDocSampling<String>(1, 0,
+		// documentProvider,
+		// 1, 0.1, new Random(22));
+		return new OptimizedTopicGrouper<String>(1, 0, documentProvider, 1);
 	}
 
 	public static void main(String[] args) throws IOException {
