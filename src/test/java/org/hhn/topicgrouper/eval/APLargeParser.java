@@ -5,6 +5,7 @@ import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintStream;
 import java.util.Iterator;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -29,14 +30,16 @@ import com.aliasi.tokenizer.Tokenizer;
 import com.aliasi.tokenizer.TokenizerFactory;
 
 public class APLargeParser {
-	private TokenizerFactory factory;
+	private final TokenizerFactory factory;
+	private final PrintStream pw;
 
-	public APLargeParser(boolean removeStopWords) {
+	public APLargeParser(PrintStream pw, boolean removeStopWords) {
 		TokenizerFactory baseFactory = new LowerCaseTokenizerFactory(
 				IndoEuropeanTokenizerFactory.INSTANCE);
 		factory = new PorterStemmerTokenizerFactory(
 				removeStopWords ? new EnglishStopTokenizerFactory(baseFactory)
 						: baseFactory);
+		this.pw = pw;
 	}
 
 	public DocumentProvider<String> getCorpusDocumentProvider(File folder,
@@ -92,14 +95,12 @@ public class APLargeParser {
 				}
 			});
 
-//			boolean afterCriticalFile = false;
 			for (File apFile : files) {
-//				if (apFile.getName().equals("ap900101")) {
-//					afterCriticalFile = true;
-//				}
 				if (documents[0] < maxDocuments /*&& afterCriticalFile*/) {
-//					System.out.println(apFile);
-//					System.out.println(documents[0]);
+					if (pw != null) {
+						pw.println("AP Parser Reading file: " + apFile);
+						pw.println("Total read documents: " + documents[0]);
+					}
 					final FileInputStream inputStream = new FileInputStream(
 							apFile);
 					// Fix the stream by wrapping the file with a root tag
@@ -187,7 +188,7 @@ public class APLargeParser {
 	}
 
 	public static void main(String[] args) {
-		DocumentProvider<String> entryProvider = new APLargeParser(true)
+		DocumentProvider<String> entryProvider = new APLargeParser(System.out, true)
 				.getCorpusDocumentProvider(new File(
 						"src/test/resources/ap-corpus/full"), Integer.MAX_VALUE);
 		System.out.println(entryProvider.getDocuments().size());
