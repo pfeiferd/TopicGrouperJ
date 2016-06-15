@@ -11,6 +11,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.PrintStream;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 
 import javax.swing.BoxLayout;
@@ -144,22 +145,39 @@ public class BasicSolutionReporter<T> implements SolutionListener<T> {
 			}
 			pw.println("*****************************");
 		}
-		if (solution.getNumberOfTopics() == reportDetailsAtTopicSize) {
-			for (TIntCollection topic : solution.getTopicsAlt()) {
-				if (topic != null) {
-					printTopicDetails(solution, topic, pw);
+		if (solution.getNumberOfTopics() <= reportDetailsAtTopicSize) {
+			pw.print("Number of topics: ");
+			pw.println(solution.getNumberOfTopics());
+
+			int[][] sortedByFrequency = new int[solution.getNumberOfTopics()][];
+			TIntCollection[] topics = solution.getTopicsAlt();
+			
+			int k = 0;
+			for (int i = 0; i < topics.length; i++) {
+				if (topics[i] != null) {
+					int fr = solution.getTopicFrequency(i);
+					sortedByFrequency[k++] = new int[] { fr, i };
 				}
 			}
-			pw.print("Topic frequencies: [");
-			int i = 0;
-			for (TIntCollection topic : solution.getTopicsAlt()) {
-				if (topic != null) {
-					pw.print(solution.getTopicFrequency(i));
-					pw.print(" ");
+			Arrays.sort(sortedByFrequency, new Comparator<int[]>() {
+				@Override
+				public int compare(int[] o1, int[] o2) {
+					return o2[0] - o1[0];
 				}
-				i++;
+			});
+			pw.println("Topic frequencies: ");
+			for (int j = 0; j < sortedByFrequency.length
+					&& sortedByFrequency[j] != null; j++) {
+				pw.print(sortedByFrequency[j][0]);
+				pw.print("; ");
 			}
-			pw.println("]");
+			pw.println();
+			pw.println("Topics: ");
+			for (int j = 0; j < sortedByFrequency.length
+					&& sortedByFrequency[j] != null; j++) {
+				printTopicDetails(solution, topics[sortedByFrequency[j][1]], pw);
+			}
+			pw.println("----------------------------");
 		}
 	}
 
@@ -217,7 +235,13 @@ public class BasicSolutionReporter<T> implements SolutionListener<T> {
 		}
 		Arrays.sort(tuples);
 
-		pw.println(Arrays.asList(tuples));
+		for (TopicInfo<T> tuple : tuples) {
+			pw.print(tuple.s);
+			pw.print("; ");
+			pw.print(tuple.a);
+			pw.print(";  ");			
+		}
+		pw.println();
 	}
 
 	private static class TopicInfo<T> implements Comparable<TopicInfo<T>> {
@@ -232,7 +256,7 @@ public class BasicSolutionReporter<T> implements SolutionListener<T> {
 
 		@Override
 		public String toString() {
-			return (s != null ? s.toString() : b) + " (" + a + ")";
+			return (s != null ? s.toString() : b) + "; " + a + ")";
 		}
 	}
 
