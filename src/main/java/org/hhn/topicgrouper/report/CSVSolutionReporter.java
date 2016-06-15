@@ -12,9 +12,9 @@ public class CSVSolutionReporter<T> implements SolutionListener<T> {
 	private final PerplexityCalculator<T> perplexityCalculator;
 	private DocumentProvider<T> testDocumentProvider;
 
-	public CSVSolutionReporter(PrintStream pw) {
+	public CSVSolutionReporter(PrintStream pw, boolean bowFactor) {
 		this.pw = pw;
-		this.perplexityCalculator = new PerplexityCalculator<T>();
+		this.perplexityCalculator = new PerplexityCalculator<T>(bowFactor);
 	}
 
 	public void setTestDocumentProvider(DocumentProvider<T> documentProvider) {

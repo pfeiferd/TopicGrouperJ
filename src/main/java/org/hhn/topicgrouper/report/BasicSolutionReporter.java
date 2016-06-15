@@ -34,16 +34,16 @@ public class BasicSolutionReporter<T> implements SolutionListener<T> {
 
 	public BasicSolutionReporter(PrintStream pw, int reportDetailsAtTopicSize,
 			boolean derive) {
-		this(pw, reportDetailsAtTopicSize, derive, true);
+		this(pw, reportDetailsAtTopicSize, derive, true, true);
 	}
 
 	public BasicSolutionReporter(PrintStream pw, int reportDetailsAtTopicSize,
-			boolean derive, boolean verbose) {
+			boolean derive, boolean verbose, boolean bowFactor) {
 		this.pw = pw;
 		this.derive = derive;
 		this.verbose = verbose;
 
-		this.perplexityCalculator = new PerplexityCalculator<T>();
+		this.perplexityCalculator = new PerplexityCalculator<T>(bowFactor);
 
 		this.reportDetailsAtTopicSize = reportDetailsAtTopicSize;
 
