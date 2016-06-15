@@ -56,7 +56,7 @@ public class GibbsSamplingLDAWithPerplexityAlt extends
 	private double[] ptd = new double[numTopics];
 
 	public double computeLogProbability(Document<String> d, int dSize) {
-		double res = logFakN(dSize);
+		double res = bowFactor ? logFakN(dSize) : 0;
 		DocumentProvider<String> trainingDocumentProvider = getTrainingDocumentProvider();
 
 		// update ptd for d
@@ -83,7 +83,9 @@ public class GibbsSamplingLDAWithPerplexityAlt extends
 			if (tIndex >= 0) {
 				int wordFr = d.getWordFrequency(index);
 				if (wordFr > 0) {
-					res -= logFakN(wordFr);
+					if (bowFactor) {
+						res -= logFakN(wordFr);
+					}
 					res += wordFr
 							* computeWordLogProbability(tIndex, wordFr, d);
 				}

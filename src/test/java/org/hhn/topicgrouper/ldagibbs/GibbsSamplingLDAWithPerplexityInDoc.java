@@ -63,7 +63,9 @@ public class GibbsSamplingLDAWithPerplexityInDoc extends
 					double pw = computeWordProbability(tIndex, wordFr, d,
 							dIndex);
 					if (pw > 0) {
-						res -= logFakN(wordFr);
+						if (bowFactor) {
+							res -= logFakN(wordFr);
+						}
 						res += wordFr * Math.log(pw);
 					} else {
 						// Do nothing: should not happen, but it does.
@@ -74,7 +76,7 @@ public class GibbsSamplingLDAWithPerplexityInDoc extends
 				}
 			}
 		}
-		res += logFakN(dSize[0]);
+		res += bowFactor ? logFakN(dSize[0]) : 0;
 		return res;
 	}
 
