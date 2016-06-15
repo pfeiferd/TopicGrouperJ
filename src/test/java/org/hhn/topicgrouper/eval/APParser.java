@@ -1,7 +1,9 @@
 package org.hhn.topicgrouper.eval;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Iterator;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -13,6 +15,7 @@ import org.hhn.topicgrouper.base.DefaultDocumentProvider.DefaultDocument;
 import org.hhn.topicgrouper.base.Document;
 import org.hhn.topicgrouper.base.DocumentProvider;
 import org.xml.sax.Attributes;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
@@ -42,9 +45,41 @@ public class APParser {
 			SAXParserFactory factory = SAXParserFactory.newInstance();
 			factory.setValidating(false);
 			SAXParser parser = factory.newSAXParser();
-			parser.parse(file, new DefaultHandler() {
+
+			final FileInputStream inputStream = new FileInputStream(file);
+			// Fix the stream by wrapping the file with a root tag
+			// and fixing some unfortunate character sequences.
+			InputStream fixInputStream = new InputStream() {
+				private final String rootOpen = "<root>";
+				private final String rootClose = "</root>";
+
+				int counter = 0;
+				int counter2 = 0;
+
+				@Override
+				public int read() throws IOException {
+					if (counter < rootOpen.length()) {
+						return rootOpen.charAt(counter++);
+					}
+					int res = inputStream.read();
+					if (res != -1) {
+						if (res == '&') {
+							res = ' ';
+						}
+						return res;
+					}
+					if (counter2 < rootClose.length()) {
+						return rootClose.charAt(counter2++);
+					}
+					return -1;
+				}
+			};
+
+			InputSource inputSource = new InputSource(fixInputStream);
+
+			parser.parse(inputSource, new DefaultHandler() {
 				boolean inText = false;
-				
+
 				@Override
 				public void startElement(String uri, String localName,
 						String qName, Attributes attributes)
@@ -53,7 +88,7 @@ public class APParser {
 						inText = true;
 					}
 				}
-				
+
 				@Override
 				public void characters(char[] ch, int start, int length)
 						throws SAXException {
@@ -61,7 +96,7 @@ public class APParser {
 						createDocument(documentProvider, ch, start, length);
 					}
 				}
-				
+
 				@Override
 				public void endElement(String uri, String localName,
 						String qName) throws SAXException {
@@ -82,9 +117,11 @@ public class APParser {
 	}
 
 	protected Document<String> createDocument(
-			DefaultDocumentProvider<String> documentProvider, char[] cs, int start, int length) {
+			DefaultDocumentProvider<String> documentProvider, char[] cs,
+			int start, int length) {
 		DefaultDocument entry = documentProvider.newDocument();
-		Tokenizer t = new PunctuationStopListTokenizer(factory.tokenizer(cs, start, length));
+		Tokenizer t = new PunctuationStopListTokenizer(factory.tokenizer(cs,
+				start, length));
 		Iterator<String> it = t.iterator();
 		while (it.hasNext()) {
 			String word = it.next();
