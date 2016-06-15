@@ -4,6 +4,7 @@ import org.hhn.topicgrouper.base.DocumentProvider;
 
 public abstract class AbstractGibbsSamplingLDAWithPerplexity extends
 		GibbsSamplingLDAAdapt {
+	protected final boolean bowFactor;
 	private final int perplexitySteps;
 	private final DocumentProvider<String> trainingDocumentProvider;
 	private final DocumentProvider<String> testDocumentProvider;
@@ -16,10 +17,23 @@ public abstract class AbstractGibbsSamplingLDAWithPerplexity extends
 			String inExpName, String pathToTAfile, int inSaveStep,
 			DocumentProvider<String> testDocumentProvider, int ppSteps)
 			throws Exception {
+		this(reporter, documentProvider, inAlpha, inBeta, inNumIterations,
+				inTopWords, inExpName, pathToTAfile, inSaveStep,
+				testDocumentProvider, ppSteps, true);
+	}
+
+	public AbstractGibbsSamplingLDAWithPerplexity(
+			BasicGibbsSolutionReporter reporter,
+			DocumentProvider<String> documentProvider, double[] inAlpha,
+			double inBeta, int inNumIterations, int inTopWords,
+			String inExpName, String pathToTAfile, int inSaveStep,
+			DocumentProvider<String> testDocumentProvider, int ppSteps,
+			boolean bowFactor) throws Exception {
 		super(documentProvider, inAlpha, inBeta, inNumIterations, inTopWords,
 				inExpName, pathToTAfile, inSaveStep);
 		this.solutionReporter = reporter;
 		this.perplexitySteps = ppSteps;
+		this.bowFactor = bowFactor;
 		this.trainingDocumentProvider = documentProvider;
 		this.testDocumentProvider = testDocumentProvider;
 	}
