@@ -312,7 +312,7 @@ Using topic modeling the document probability $p(d)$ under a (trained) topic mod
 \[p(d) = (|d|! / \prod_{w \in V, f_d(w) > 0} f_d(w)!) \cdot \prod_{w \in V, f_d(w) > 0} p(w|d)^{f_d(w)},\] 
 \[p(w|d) = (\sum_{t \in T} p(w|t) \cdot p(t|d)).\]
 
-The expression $|d|! / \prod_{w \in V, f_d(w) > 0} f_d(w)!$ accounts for the underlying bag of words model for documents (where word order is ignored).
+The expression $|d|! / \prod_{w \in V, f_d(w) > 0} f_d(w)!$ accounts for the underlying bag of words model for documents (where word order is ignored).\footnote{It is often ignored in publications because if two approaches are compared (with the same holdout data), the expression turns out to be an identical factor both perplexity results.}
 Note that the size of a test document $|d| = \sum_{w \in V} f_d(w)$ is measured by using with words from the training vocabulary $V$.
 
 Regarding Topic Grouper, the probability $p(w|d)$ can be estimated as follows on the basis of a partitioning $T(n)$ and the maximum likelihood estimations for $p(t|d)$ and $p(w|t)$ from equation \ref{sn}:
@@ -371,8 +371,9 @@ We also tested LDA-P-Method 2 and constructed the holdout set and training set a
 \end{figure}
 
 \subsubsection{Results on AP Corpus Extract}
+\label{apextractresults}
 
-We ran Topic Grouper and LDA on an extract of the AP Corpus as available under \href{https://www.cs.princeton.edu/~blei/lda-c/index.html}{https://www.cs.princeton.edu/~blei/lda-c/index.html}. As preprocessing steps we performed stop word filtering, Porter stemming and kept only terms which occur at least ten times in the document collection, which resulted in $|V| = 5575$ and $|C| = 2946$.
+We ran Topic Grouper and LDA on an extract of the AP Corpus as available under \href{https://www.cs.princeton.edu/~blei/lda-c/index.html}{https://www.cs.princeton.edu/~blei/lda-c/index.html}. As preprocessing steps we performed stop word filtering, Porter stemming and kept only terms which occur at least ten times in the document collection, which resulted in $|V| = 5575$ and $|D| = 2946$.
 
 Regarding LDA, we first performed a hyperparameter search for symmetric $\alpha$ and $\beta$ values using a randomized $10\%$ holdout according to
 LDA-P-Method 2. To do so we ran LDA with a fixed number of $n = 50$ topics and 300 iterations using the Gibbs sampler. We searched the area $\alpha \in [0 \ldots 100] / n$, $\beta \in [0 \ldots 5]$. (We first ensured that 300 iterations were sufficient by inspecting respective perplexity convergence.)
@@ -462,10 +463,9 @@ Figure \cite{perf1} confirms the theoretical complexity with respect to a linear
 Figure \cite{perf2} confirms that computation time does not depend on the document size.
 Figures \cite{perf3} and \cite{perf4} confirm that computation time depends on $|V|^2$ -- but note that the constant factor of the quadratic component is small.
 
-The results can be used to roughly calibrate the theoretical complexity from Section \ref{complexity}. This enables to roughly estimate (non-parallelized) runtimes $t$ in seconds for the given Topic Grouper implementation:
-\[ t(|V|,|D|) \approx \gamma \cdot (0.000043 \cdot |V|^2 \cdot |D|)\]
-with $\gamma = 1$ for the above mentioned results. ($\gamma$ may be used to adapt the formula to any other computing environment.)
-Unfortunately the calibration factor is volatile and depends on a number of practical aspects (see \cite{perf3} versus \cite{perf4} for example).
+Running Topic Grouper on the AP Corpus extract from Section \ref{apextractresults} on the above described PC environment took about 0.23 hours.
+We also ran Topic Grouper on $|D| = 16,000$ documents of the (entire) AP Corpus with $|V| = 13383$. This took 4.39 hours and required about 850 MB of memory. Both enables to roughly estimate (non-parallelized) runtimes $t$ in milliseconds for the Topic Grouper implementation on the given PC environment:
+\[ t(|V|,|D|) \approx \gamma \cdot (0.0000055 \cdot |V|^2 \cdot |D|).\]
 
 A direct performance comparison with LDA is difficult because there exist different computational approaches for it. Regarding Gibbs sampling and for a given set of topics $n$, $\alpha$ and $\beta$ the cost of one Gibbs iteration is $O(n \cdot \sum_{d\ \in D} |d|)$. Typically one runs at between 300 and 5000 iterations for convergence. Moreover, the cost must be multiplied with the times the algorithm is run in order to do hyperparameter optimization which in practice, often requires interleaved manual result inspection.
 
