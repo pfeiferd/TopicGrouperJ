@@ -57,14 +57,14 @@ public class MindMapSolutionReporter<T> implements SolutionListener<T> {
 	public void beforeInitialization(int maxTopics, int documents) {
 	}
 
-	private Double lastImprovement = Double.NaN;
+	private Double lastImprovement = Double.MAX_VALUE;
 
 	@Override
 	public void updatedSolution(int newTopicIndex, int oldTopicIndex,
 			double improvement, int t1Size, int t2Size, Solution<T> solution) {
 		boolean mark = false;
 		if (solution.getNumberOfTopics() <= minMarkTopics
-				&& lastImprovement != Double.NaN) {
+				&& lastImprovement != Double.MAX_VALUE) {
 			double ratio = improvement / lastImprovement;
 			if (ratio >= markRatioLevel) {
 				mark = true;

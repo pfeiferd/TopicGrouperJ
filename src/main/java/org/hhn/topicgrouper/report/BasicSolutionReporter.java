@@ -90,7 +90,7 @@ public class BasicSolutionReporter<T> implements SolutionListener<T> {
 		pw.println("Processed documents: " + documents);
 	}
 
-	private Double lastImprovement = Double.NaN;
+	private Double lastImprovement = Double.MAX_VALUE;
 
 	@Override
 	public void updatedSolution(int newTopicIndex, int oldTopicIndex,
@@ -103,7 +103,7 @@ public class BasicSolutionReporter<T> implements SolutionListener<T> {
 			trace.addPoint(solution.getNumberOfTopics(), p);
 		} else {
 			if (derive) {
-				if (lastImprovement != Double.NaN) {
+				if (lastImprovement != Double.MAX_VALUE) {
 					double ratio = improvement / lastImprovement;
 					// Keep the graph in boundaries:
 					if (ratio > 2) {
@@ -221,7 +221,7 @@ public class BasicSolutionReporter<T> implements SolutionListener<T> {
 		pw.println("]");
 	}
 
-	private void printTopicDetails(Solution<T> solution, TIntCollection topic,
+	public static <T> void printTopicDetails(Solution<T> solution, TIntCollection topic,
 			PrintStream pw) {
 		TopicInfo<T>[] tuples = new TopicInfo[topic.size()];
 		int i = 0;
