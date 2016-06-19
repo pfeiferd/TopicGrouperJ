@@ -12,6 +12,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.util.List;
 
 import javax.swing.BoxLayout;
 import javax.swing.DefaultComboBoxModel;
@@ -28,11 +29,15 @@ import javax.swing.JTree;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.event.TableModelListener;
 import javax.swing.event.TreeModelListener;
+import javax.swing.table.TableModel;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 
 import org.hhn.topicgrouper.report.MindMapSolutionReporter;
+import org.hhn.topicgrouper.report.MindMapSolutionReporter.MapNode;
+import org.hhn.topicgrouper.report.MindMapSolutionReporter.WordInfo;
 
 public class HierarchyBrowser {
 	/*
@@ -47,7 +52,8 @@ public class HierarchyBrowser {
 	private final JFrame frame;
 	private final JTree tree;
 
-	private MindMapSolutionReporter.MapNode<String> root;
+	private MapNode<String> root;
+	private List<MapNode<String>> allNodes;
 	private final JTable table;
 
 	public HierarchyBrowser(boolean highDPI) {
@@ -96,7 +102,7 @@ public class HierarchyBrowser {
 		if (highDPI) {
 			table.setRowHeight(2 * table.getRowHeight());
 		}
-		
+
 		scrollPane.setViewportView(table);
 
 		panel.add(scrollPane, BorderLayout.CENTER);
@@ -114,7 +120,8 @@ public class HierarchyBrowser {
 			public void actionPerformed(ActionEvent e) {
 				File file = showOpenFileMenu(frame);
 				if (file != null) {
-					root = loadFile(file);
+					allNodes = loadFile(file);
+					root = allNodes.get(allNodes.size() - 1);
 					tree.setModel(bindToTreeModel());
 				}
 			}
@@ -185,12 +192,11 @@ public class HierarchyBrowser {
 	}
 
 	@SuppressWarnings("unchecked")
-	protected MindMapSolutionReporter.MapNode<String> loadFile(File file) {
+	protected List<MapNode<String>> loadFile(File file) {
 		try {
 			ObjectInputStream oi = new ObjectInputStream(new FileInputStream(
 					file));
-			MindMapSolutionReporter.MapNode<String> res = (MindMapSolutionReporter.MapNode<String>) oi
-					.readObject();
+			List<MapNode<String>> res = (List<MapNode<String>>) oi.readObject();
 			oi.close();
 			return res;
 		} catch (ClassNotFoundException e) {
@@ -199,6 +205,89 @@ public class HierarchyBrowser {
 			throw new RuntimeException(e);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
+		}
+	}
+
+	public static class TGTableModel implements TableModel {
+		private final List<MapNode<String>> nodes;
+		private final int maxWords;
+		private boolean withFrequencies;
+
+		public TGTableModel(List<MapNode<String>> nodes, int maxWords) {
+			this.nodes = nodes;
+			this.maxWords = maxWords;
+			this.withFrequencies = true;
+		}
+
+		public boolean isWithFrequencies() {
+			return withFrequencies;
+		}
+
+		public void setWithFrequencies(boolean withFrequencies) {
+			this.withFrequencies = withFrequencies;
+		}
+
+		@Override
+		public int getRowCount() {
+			return nodes.size();
+		}
+
+		@Override
+		public int getColumnCount() {
+			return maxWords * (isWithFrequencies() ? 2 : 1) + 1;
+		}
+
+		@Override
+		public String getColumnName(int columnIndex) {
+			if (columnIndex == 0) {
+				return "Topic Frequency";
+			}
+			int index = (columnIndex - 1) / (isWithFrequencies() ? 2 : 1);
+			return (columnIndex % 2 == 1 ? "Word " : "Fr ") + index;
+		}
+
+		@Override
+		public Class<?> getColumnClass(int columnIndex) {
+			if (columnIndex == 0) {
+				return Integer.class;
+			}
+			return isWithFrequencies() ? (columnIndex % 2 == 0 ? String.class : Integer.class) : String.class;
+		}
+
+		@Override
+		public boolean isCellEditable(int rowIndex, int columnIndex) {
+			return false;
+		}
+
+		@Override
+		public Object getValueAt(int rowIndex, int columnIndex) {
+			MapNode<String> value = nodes.get(rowIndex);
+			if (columnIndex == 0) {
+				return value.getTopicFrequency();
+			}
+			int index = (columnIndex - 1) / (isWithFrequencies() ? 2 : 1);
+			List<WordInfo<String>> wordInfos = value.getTopTopicWordInfos();
+			if (index < wordInfos.size()) {
+				WordInfo<String> info = wordInfos.get(index);
+				return columnIndex % 2 == 1 ? info.getWord() : info
+						.getFrequency();
+			}
+			return "";
+		}
+
+		@Override
+		public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public void addTableModelListener(TableModelListener l) {
+			// Ignore on purpose.
+		}
+
+		@Override
+		public void removeTableModelListener(TableModelListener l) {
+			// Ignore on purpose.
 		}
 	}
 

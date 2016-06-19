@@ -4,6 +4,7 @@ import gnu.trove.TIntCollection;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,11 +12,14 @@ import org.hhn.topicgrouper.base.Solution;
 import org.hhn.topicgrouper.base.Solver.SolutionListener;
 
 public class MindMapSolutionReporter<T> implements SolutionListener<T> {
+
+	private final List<MapNode<T>> allNodes;
 	private final TIntObjectMap<MapNode<T>> currentNodes;
 	private final int topWords;
 	private final boolean removeWordFromChildAtPull;
 	private final double markRatioLevel;
 	private final double minMarkTopics;
+	private final ImprovementAssessor assessor;
 
 	public MindMapSolutionReporter(int topWords,
 			boolean removeWordFromChildAtPull, double markRatioLevel,
@@ -25,10 +29,16 @@ public class MindMapSolutionReporter<T> implements SolutionListener<T> {
 		this.removeWordFromChildAtPull = removeWordFromChildAtPull;
 		this.markRatioLevel = markRatioLevel;
 		this.minMarkTopics = minMarkTopics;
+		this.assessor = new ImprovementAssessor(5);
+		this.allNodes = new ArrayList<MindMapSolutionReporter.MapNode<T>>();
 	}
 
 	public TIntObjectMap<MapNode<T>> getCurrentNodes() {
 		return currentNodes;
+	}
+
+	public List<MapNode<T>> getAllNodes() {
+		return allNodes;
 	}
 
 	@Override
@@ -47,7 +57,8 @@ public class MindMapSolutionReporter<T> implements SolutionListener<T> {
 						.getGlobalWordFrequency(wordId), initialSolution
 						.getWord(wordId)));
 				MapNode<T> node = new MapNode<T>(-i, null, null, list,
-						initialSolution.getTotalLikelhood(), 0);
+						initialSolution.getTotalLikelhood(), 0,
+						initialSolution.getTopicFrequency(i));
 				currentNodes.put(i, node);
 			}
 		}
@@ -57,20 +68,27 @@ public class MindMapSolutionReporter<T> implements SolutionListener<T> {
 	public void beforeInitialization(int maxTopics, int documents) {
 	}
 
-	private Double lastImprovement = Double.MAX_VALUE;
+	private Double lastImprovement = null;
 
 	@Override
 	public void updatedSolution(int newTopicIndex, int oldTopicIndex,
 			double improvement, int t1Size, int t2Size, Solution<T> solution) {
 		boolean mark = false;
-		if (solution.getNumberOfTopics() <= minMarkTopics
-				&& lastImprovement != Double.MAX_VALUE) {
-			double ratio = improvement / lastImprovement;
-			if (ratio >= markRatioLevel) {
+		// if (solution.getNumberOfTopics() <= minMarkTopics
+		// && lastImprovement != null) {
+		// double ratio = improvement / lastImprovement;
+		// if (ratio >= markRatioLevel) {
+		// mark = true;
+		// }
+		// }
+		// lastImprovement = improvement;
+
+		Double value = assessor.addImprovement(improvement);
+		if (solution.getNumberOfTopics() <= minMarkTopics && value != null) {
+			if (value >= markRatioLevel) {
 				mark = true;
 			}
 		}
-		lastImprovement = improvement;
 
 		MapNode<T> child1 = currentNodes.get(newTopicIndex);
 		currentNodes.remove(newTopicIndex);
@@ -107,9 +125,11 @@ public class MindMapSolutionReporter<T> implements SolutionListener<T> {
 		MapNode<T> parent = new MapNode<T>(solution.getNumberOfTopics(),
 				child1List.isEmpty() ? null : child1,
 				child2List.isEmpty() ? null : child2, topList,
-				solution.getTotalLikelhood(), improvement);
+				solution.getTotalLikelhood(), improvement,
+				solution.getTopicFrequency(newTopicIndex));
 
 		currentNodes.put(newTopicIndex, parent);
+		allNodes.add(parent);
 
 		if (mark) {
 			child1.setMarked(true);
@@ -150,10 +170,12 @@ public class MindMapSolutionReporter<T> implements SolutionListener<T> {
 				child.getRightNode());
 	}
 
-	public static class MapNode<T> {
+	@SuppressWarnings("serial")
+	public static class MapNode<T> implements Serializable {
 		private List<WordInfo<T>> topTopicWordIds;
 
 		private final int id;
+		private final int topicFrequency;
 		private final MapNode<T> leftNode;
 		private final MapNode<T> rightNode;
 		private final double likelihood;
@@ -162,7 +184,7 @@ public class MindMapSolutionReporter<T> implements SolutionListener<T> {
 
 		public MapNode(int id, MapNode<T> leftNode, MapNode<T> rightNode,
 				List<WordInfo<T>> topTopicWordIds, double likelihood,
-				double deltaLikelihood) {
+				double deltaLikelihood, int topicFrequency) {
 			this.id = id;
 			this.leftNode = leftNode;
 			this.rightNode = rightNode;
@@ -170,6 +192,11 @@ public class MindMapSolutionReporter<T> implements SolutionListener<T> {
 			this.marked = false;
 			this.likelihood = likelihood;
 			this.deltaLikelihood = deltaLikelihood;
+			this.topicFrequency = topicFrequency;
+		}
+
+		public int getTopicFrequency() {
+			return topicFrequency;
 		}
 
 		public MapNode<T> getLeftNode() {
@@ -205,7 +232,9 @@ public class MindMapSolutionReporter<T> implements SolutionListener<T> {
 		}
 	}
 
-	public static class WordInfo<T> implements Comparable<WordInfo<T>> {
+	@SuppressWarnings("serial")
+	public static class WordInfo<T> implements Comparable<WordInfo<T>>,
+			Serializable {
 		private final int wordId;
 		private final int frequency;
 		private final T word;
