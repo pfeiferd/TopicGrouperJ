@@ -103,7 +103,6 @@ To maximize $q(n)$ we use the maximum likelihood estimation for $p(t(w) | d)$ an
 \end{itemize}
 
 Unfortunately, constructing the optimal partitionings $\{ S(n)\ |\ n = 1\dots|V| \}$ is computationally hard.
-\textbf{Is this right? Doesn't greedy actually return the optimal solution? \href{http://qpleple.com/greedy-algorithms/}{See optimality argument for greedy...}}
 \emph{We suggest a greedy algorithm that constructs suboptimal partitionings $S'(n)$ instead}, starting with $S'(|V|) := \{ \{ w \}\ |\ w \in V \}$ as step $i = 0$.
 At every step $i = 1\dots|V| - 1$ the algorithm joins two different topics $s,t \in S'(|V| - (i - 1))$ such that
 $q(|V| - i)$ is maximized along $S'(|V| - i) := S'(|V| - (i - 1)) - \{s, t\} \cup \{ s \cup t \}$.
