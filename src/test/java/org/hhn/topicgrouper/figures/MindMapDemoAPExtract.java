@@ -3,6 +3,7 @@ package org.hhn.topicgrouper.figures;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 
@@ -74,6 +75,10 @@ public class MindMapDemoAPExtract extends OptimizedTGTester {
 					true);
 			writer.writeToFile(file, mindMapSolutionReporter.getCurrentNodes()
 					.values());
+			File serializedFile = new File("./target/MindMapDemoAPExtract.ser");
+			ObjectOutputStream objectStream = new ObjectOutputStream(new FileOutputStream(serializedFile));
+			objectStream.writeObject(mindMapSolutionReporter.getAllNodes());
+			objectStream.close();
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
