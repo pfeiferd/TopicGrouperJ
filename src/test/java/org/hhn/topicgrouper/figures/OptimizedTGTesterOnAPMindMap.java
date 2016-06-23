@@ -1,10 +1,10 @@
 package org.hhn.topicgrouper.figures;
 
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintStream;
-import java.io.Writer;
 
 import org.hhn.topicgrouper.base.DocumentProvider;
 import org.hhn.topicgrouper.base.SolutionListenerMultiplexer;
@@ -19,9 +19,9 @@ import org.hhn.topicgrouper.tgimpl.OptimizedTopicGrouper;
 
 public class OptimizedTGTesterOnAPMindMap extends AbstractTGTester<String> {
 	private MindMapSolutionReporter<String> mindMapSolutionReporter;
-	private Writer file;
+	private OutputStream file;
 
-	public OptimizedTGTesterOnAPMindMap(Writer file) throws IOException {
+	public OptimizedTGTesterOnAPMindMap(OutputStream file) throws IOException {
 		super(null);
 		this.file = file;
 	}
@@ -63,7 +63,7 @@ public class OptimizedTGTesterOnAPMindMap extends AbstractTGTester<String> {
 
 	public static void main(String[] args) throws IOException {
 		File file = new File("./target/OptimizedTGTesterOnAPMindMap.mm");
-		FileWriter writer = new FileWriter(file);
+		OutputStream writer = new FileOutputStream(file);
 		new OptimizedTGTesterOnAPMindMap(writer).run();
 		writer.close();
 	}

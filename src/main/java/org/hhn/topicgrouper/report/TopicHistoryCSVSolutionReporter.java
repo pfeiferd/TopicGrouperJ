@@ -24,14 +24,14 @@ public class TopicHistoryCSVSolutionReporter<T> implements SolutionListener<T> {
 		pw.println("number of topics; topic size; topic frequency; total log likelihood; log likelihood delta; delta ratio; topic details");
 	}
 
-	private Double lastImprovement = Double.MAX_VALUE;
+	private Double lastImprovement = null;
 
 	@Override
 	public void updatedSolution(int newTopicIndex, int oldTopicIndex,
 			double improvement, int t1Size, int t2Size, Solution<T> solution) {
 		TIntCollection topic = solution.getTopicsAlt()[newTopicIndex];
 		double ratio = 0;
-		if (lastImprovement != Double.MAX_VALUE && lastImprovement != 0) {
+		if (lastImprovement != null && lastImprovement != 0) {
 			ratio = improvement / lastImprovement;
 		}
 		lastImprovement = improvement;

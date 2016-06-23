@@ -4,12 +4,13 @@ import gnu.trove.TIntCollection;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.hhn.topicgrouper.base.Solution;
 import org.hhn.topicgrouper.base.Solver.SolutionListener;
+import org.hhn.topicgrouper.report.store.MapNode;
+import org.hhn.topicgrouper.report.store.WordInfo;
 
 public class MindMapSolutionReporter<T> implements SolutionListener<T> {
 
@@ -24,13 +25,13 @@ public class MindMapSolutionReporter<T> implements SolutionListener<T> {
 	public MindMapSolutionReporter(int topWords,
 			boolean removeWordFromChildAtPull, double markRatioLevel,
 			int minMarkTopics) {
-		currentNodes = new TIntObjectHashMap<MindMapSolutionReporter.MapNode<T>>();
+		currentNodes = new TIntObjectHashMap<MapNode<T>>();
 		this.topWords = topWords;
 		this.removeWordFromChildAtPull = removeWordFromChildAtPull;
 		this.markRatioLevel = markRatioLevel;
 		this.minMarkTopics = minMarkTopics;
 		this.assessor = new ImprovementAssessor(5);
-		this.allNodes = new ArrayList<MindMapSolutionReporter.MapNode<T>>();
+		this.allNodes = new ArrayList<MapNode<T>>();
 	}
 
 	public TIntObjectMap<MapNode<T>> getCurrentNodes() {
@@ -95,7 +96,7 @@ public class MindMapSolutionReporter<T> implements SolutionListener<T> {
 		MapNode<T> child2 = currentNodes.get(oldTopicIndex);
 		currentNodes.remove(oldTopicIndex);
 
-		List<WordInfo<T>> topList = new ArrayList<MindMapSolutionReporter.WordInfo<T>>();
+		List<WordInfo<T>> topList = new ArrayList<WordInfo<T>>();
 		List<WordInfo<T>> child1List = child1.getTopTopicWordInfos();
 		List<WordInfo<T>> child2List = child2.getTopTopicWordInfos();
 		if (removeWordFromChildAtPull) {
@@ -127,6 +128,8 @@ public class MindMapSolutionReporter<T> implements SolutionListener<T> {
 				child2List.isEmpty() ? null : child2, topList,
 				solution.getTotalLikelhood(), improvement,
 				solution.getTopicFrequency(newTopicIndex));
+		child1.setParent(parent);
+		child2.setParent(parent);
 
 		currentNodes.put(newTopicIndex, parent);
 		allNodes.add(parent);
@@ -168,100 +171,6 @@ public class MindMapSolutionReporter<T> implements SolutionListener<T> {
 		target.add(childList.remove(0));
 		pullFromChildren(child.getTopTopicWordInfos(), child.getLeftNode(),
 				child.getRightNode());
-	}
-
-	@SuppressWarnings("serial")
-	public static class MapNode<T> implements Serializable {
-		private List<WordInfo<T>> topTopicWordIds;
-
-		private final int id;
-		private final int topicFrequency;
-		private final MapNode<T> leftNode;
-		private final MapNode<T> rightNode;
-		private final double likelihood;
-		private final double deltaLikelihood;
-		private boolean marked;
-
-		public MapNode(int id, MapNode<T> leftNode, MapNode<T> rightNode,
-				List<WordInfo<T>> topTopicWordIds, double likelihood,
-				double deltaLikelihood, int topicFrequency) {
-			this.id = id;
-			this.leftNode = leftNode;
-			this.rightNode = rightNode;
-			this.topTopicWordIds = topTopicWordIds;
-			this.marked = false;
-			this.likelihood = likelihood;
-			this.deltaLikelihood = deltaLikelihood;
-			this.topicFrequency = topicFrequency;
-		}
-
-		public int getTopicFrequency() {
-			return topicFrequency;
-		}
-
-		public MapNode<T> getLeftNode() {
-			return leftNode;
-		}
-
-		public MapNode<T> getRightNode() {
-			return rightNode;
-		}
-
-		public List<WordInfo<T>> getTopTopicWordInfos() {
-			return topTopicWordIds;
-		}
-
-		public boolean isMarked() {
-			return marked;
-		}
-
-		public void setMarked(boolean marked) {
-			this.marked = marked;
-		}
-
-		public int getId() {
-			return id;
-		}
-
-		public double getDeltaLikelihood() {
-			return deltaLikelihood;
-		}
-
-		public double getLikelihood() {
-			return likelihood;
-		}
-	}
-
-	@SuppressWarnings("serial")
-	public static class WordInfo<T> implements Comparable<WordInfo<T>>,
-			Serializable {
-		private final int wordId;
-		private final int frequency;
-		private final T word;
-
-		public WordInfo(int wordId, int frequency, T word) {
-			this.word = word;
-			this.wordId = wordId;
-			this.frequency = frequency;
-		}
-
-		@Override
-		public int compareTo(WordInfo<T> o) {
-			return frequency < o.frequency ? 1 : (frequency == o.frequency ? 0
-					: -1);
-		}
-
-		public T getWord() {
-			return word;
-		}
-
-		public int getWordId() {
-			return wordId;
-		}
-
-		public int getFrequency() {
-			return frequency;
-		}
 	}
 
 	@Override

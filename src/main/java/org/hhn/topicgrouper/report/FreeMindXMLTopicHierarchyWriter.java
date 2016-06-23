@@ -1,11 +1,11 @@
 package org.hhn.topicgrouper.report;
 
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.Writer;
+import java.io.OutputStream;
+import java.io.PrintStream;
 
-import org.hhn.topicgrouper.report.MindMapSolutionReporter.MapNode;
-import org.hhn.topicgrouper.report.MindMapSolutionReporter.WordInfo;
+import org.hhn.topicgrouper.report.store.MapNode;
+import org.hhn.topicgrouper.report.store.WordInfo;
 
 public class FreeMindXMLTopicHierarchyWriter<T> {
 	private final boolean withFrColor;
@@ -24,8 +24,8 @@ public class FreeMindXMLTopicHierarchyWriter<T> {
 		this.alphaBase = alphaBase;
 	}
 
-	public void writeToFile(Writer xmlFile, Object[] nodes) throws IOException {
-		PrintWriter pw = new PrintWriter(xmlFile);
+	public void writeToFile(OutputStream xmlFile, Object[] nodes) throws IOException {
+		PrintStream pw = new PrintStream(xmlFile);
 		pw.println("<map version=\"1.0.1\">");
 		double maxFrequency = 0;
 		int c = 0;
@@ -42,7 +42,7 @@ public class FreeMindXMLTopicHierarchyWriter<T> {
 		pw.println("</map>");
 	}
 
-	public void writeNode(PrintWriter pw, MapNode<T> node,
+	public void writeNode(PrintStream pw, MapNode<T> node,
 			double avgMaxFrequency) {
 		if (node.getTopTopicWordInfos().isEmpty()) {
 			return;
@@ -54,9 +54,43 @@ public class FreeMindXMLTopicHierarchyWriter<T> {
 			pw.print("\" ");
 		}
 		pw.print("TEXT=\"");
-		boolean first = true;
+		double avg = printNodeDescription(pw, node);
+
+		pw.print("\"");
+		pw.print(" STYLE=\"bubble\"");
+		if (withFrColor) {
+			pw.print(" BACKGROUND_COLOR=\"");
+			pw.print(computerColorCode(avgMaxFrequency, avg));
+			pw.print("\"");
+		}
+		pw.println(">");
+		if (node.isMarked()
+				&& (node.getLeftNode() != null && node.getRightNode() != null
+						&& !node.getLeftNode().isMarked() && !node
+						.getRightNode().isMarked())) {
+			pw.println("<icon BUILTIN=\"stop-sign\"/>");
+			// Check code
+			printNodeDescription(System.out, node);
+		}
+		if (node.getLeftNode() != null) {
+			writeNode(pw, node.getLeftNode(), avgMaxFrequency);
+		}
+		if (node.getRightNode() != null) {
+			writeNode(pw, node.getRightNode(), avgMaxFrequency);
+		}
+		pw.print("<richcontent TYPE=\"NOTE\">");
+		pw.print(node.getLikelihood());
+		pw.print(", ");
+		pw.print(node.getDeltaLikelihood());
+		pw.println("</richcontent>");
+		pw.println("</node>");
+	}
+	
+	private double printNodeDescription(PrintStream pw, MapNode<T> node) {		
 		double sumFr = 0;
 		int c = 0;
+
+		boolean first = true;
 		for (WordInfo<T> info : node.getTopTopicWordInfos()) {
 			if (!first) {
 				pw.print(", ");
@@ -74,30 +108,7 @@ public class FreeMindXMLTopicHierarchyWriter<T> {
 			sumFr += info.getFrequency();
 			c++;
 		}
-
-		pw.print("\"");
-		pw.print(" STYLE=\"bubble\"");
-		if (withFrColor) {
-			pw.print(" BACKGROUND_COLOR=\"");
-			pw.print(computerColorCode(avgMaxFrequency, sumFr / c));
-			pw.print("\"");
-		}
-		pw.println(">");
-		if (node.isMarked()) {
-			pw.println("<icon BUILTIN=\"stop-sign\"/>");
-		}
-		if (node.getLeftNode() != null) {
-			writeNode(pw, node.getLeftNode(), avgMaxFrequency);
-		}
-		if (node.getRightNode() != null) {
-			writeNode(pw, node.getRightNode(), avgMaxFrequency);
-		}
-		pw.print("<richcontent TYPE=\"NOTE\">");
-		pw.print(node.getLikelihood());
-		pw.print(", ");
-		pw.print(node.getDeltaLikelihood());
-		pw.println("</richcontent>");
-		pw.println("</node>");
+		return sumFr / c;
 	}
 
 	private String computerColorCode(double avgMaxFrequency, double avgFrequency) {

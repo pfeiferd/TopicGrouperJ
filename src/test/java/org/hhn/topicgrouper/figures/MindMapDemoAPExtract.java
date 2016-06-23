@@ -1,10 +1,10 @@
 package org.hhn.topicgrouper.figures;
 
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintStream;
-import java.io.Writer;
 
 import org.hhn.topicgrouper.base.DocumentProvider;
 import org.hhn.topicgrouper.base.SolutionListenerMultiplexer;
@@ -17,11 +17,11 @@ import org.hhn.topicgrouper.report.MindMapSolutionReporter;
 import org.hhn.topicgrouper.tgimpl.OptimizedTopicGrouper;
 
 public class MindMapDemoAPExtract extends OptimizedTGTester {
-	private final Writer file;
+	private final OutputStream file;
 	private MindMapSolutionReporter<String> mindMapSolutionReporter;
 	private PrintStream out;
 
-	public MindMapDemoAPExtract(File textFile, Writer file) throws IOException {
+	public MindMapDemoAPExtract(File textFile, OutputStream file) throws IOException {
 		super(textFile);
 		this.file = file;
 	}
@@ -44,9 +44,18 @@ public class MindMapDemoAPExtract extends OptimizedTGTester {
 		SolutionListenerMultiplexer<String> multiplexer = new SolutionListenerMultiplexer<String>();
 		multiplexer
 				.addSolutionListener(mindMapSolutionReporter = new MindMapSolutionReporter<String>(
-						10, false, 1.01, 200));
+						10, false, 1.002, 200));
 		multiplexer.addSolutionListener(new BasicSolutionReporter<String>(
 				out, 200, true, false, true));
+//		try {
+//			File file = new File("./target/MindMapAPExtractTopicHistory.csv");
+//			PrintStream pw = new PrintStream(file);
+//			multiplexer
+//					.addSolutionListener(new TopicHistoryCSVSolutionReporter<String>(
+//							pw, 10));
+//		} catch (FileNotFoundException e) {
+//			throw new RuntimeException(e);
+//		}
 		return multiplexer;
 	}
 	
@@ -72,7 +81,7 @@ public class MindMapDemoAPExtract extends OptimizedTGTester {
 
 	public static void main(String[] args) throws IOException {
 		File file = new File("./target/MindMapDemoAPExtract.mm");
-		FileWriter writer = new FileWriter(file);
+		OutputStream writer = new FileOutputStream(file);
 		File file2 = new File("./target/MindMapDemoAPExtract.txt");
 		new MindMapDemoAPExtract(file2, writer).run();
 		writer.close();

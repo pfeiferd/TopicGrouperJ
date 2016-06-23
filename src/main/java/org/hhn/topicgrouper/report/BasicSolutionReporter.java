@@ -31,6 +31,7 @@ public class BasicSolutionReporter<T> implements SolutionListener<T> {
 	private DocumentProvider<T> testDocumentProvider;
 	private final boolean derive;
 	private final boolean verbose;
+	private final ImprovementAssessor assessor;
 
 	public BasicSolutionReporter(PrintStream pw, int reportDetailsAtTopicSize,
 			boolean derive) {
@@ -43,6 +44,7 @@ public class BasicSolutionReporter<T> implements SolutionListener<T> {
 		this.derive = derive;
 		this.verbose = verbose;
 
+		this.assessor = new ImprovementAssessor(5);
 		this.perplexityCalculator = new PerplexityCalculator<T>(bowFactor);
 
 		this.reportDetailsAtTopicSize = reportDetailsAtTopicSize;
@@ -90,7 +92,7 @@ public class BasicSolutionReporter<T> implements SolutionListener<T> {
 		pw.println("Processed documents: " + documents);
 	}
 
-	private Double lastImprovement = Double.MAX_VALUE;
+	private Double lastImprovement = null;
 
 	@Override
 	public void updatedSolution(int newTopicIndex, int oldTopicIndex,
@@ -103,15 +105,21 @@ public class BasicSolutionReporter<T> implements SolutionListener<T> {
 			trace.addPoint(solution.getNumberOfTopics(), p);
 		} else {
 			if (derive) {
-				if (lastImprovement != Double.MAX_VALUE) {
-					double ratio = improvement / lastImprovement;
+				if (lastImprovement != null) {
+					// double ratio = improvement / lastImprovement;
 					// Keep the graph in boundaries:
-					if (ratio > 2) {
-						ratio = 2;
-					} else if (ratio < -2) {
-						ratio = -2;
+					Double ratio = assessor.addImprovement(improvement);
+					if (ratio != null && !Double.isInfinite(ratio)
+							&& !Double.isNaN(ratio)) {
+						if (ratio > 1.3) {
+							ratio = 1.3d;
+						} else if (ratio < 0.9) {
+							ratio = 0.9d;
+						}
+						trace.addPoint(
+								solution.getNumberOfTopics()
+										- assessor.getHalf(), ratio);
 					}
-					trace.addPoint(solution.getNumberOfTopics(), ratio);
 				}
 			} else {
 				trace.addPoint(solution.getNumberOfTopics(), improvement);
@@ -151,7 +159,7 @@ public class BasicSolutionReporter<T> implements SolutionListener<T> {
 
 			int[][] sortedByFrequency = new int[solution.getNumberOfTopics()][];
 			TIntCollection[] topics = solution.getTopicsAlt();
-			
+
 			int k = 0;
 			for (int i = 0; i < topics.length; i++) {
 				if (topics[i] != null) {
@@ -221,8 +229,8 @@ public class BasicSolutionReporter<T> implements SolutionListener<T> {
 		pw.println("]");
 	}
 
-	public static <T> void printTopicDetails(Solution<T> solution, TIntCollection topic,
-			PrintStream pw) {
+	public static <T> void printTopicDetails(Solution<T> solution,
+			TIntCollection topic, PrintStream pw) {
 		TopicInfo<T>[] tuples = new TopicInfo[topic.size()];
 		int i = 0;
 		TIntIterator iterator = topic.iterator();
@@ -239,7 +247,7 @@ public class BasicSolutionReporter<T> implements SolutionListener<T> {
 			pw.print(tuple.s);
 			pw.print("; ");
 			pw.print(tuple.a);
-			pw.print(";  ");			
+			pw.print(";  ");
 		}
 		pw.println();
 	}

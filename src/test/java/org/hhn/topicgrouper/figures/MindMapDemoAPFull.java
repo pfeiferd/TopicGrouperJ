@@ -1,29 +1,27 @@
 package org.hhn.topicgrouper.figures;
 
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintStream;
-import java.io.Writer;
-import java.util.Random;
 
 import org.hhn.topicgrouper.base.DocumentProvider;
 import org.hhn.topicgrouper.base.SolutionListenerMultiplexer;
 import org.hhn.topicgrouper.base.Solver;
 import org.hhn.topicgrouper.base.Solver.SolutionListener;
 import org.hhn.topicgrouper.eval.APLargeParser;
-import org.hhn.topicgrouper.eval.TWCLDAPaperDocumentGenerator;
 import org.hhn.topicgrouper.report.BasicSolutionReporter;
 import org.hhn.topicgrouper.report.FreeMindXMLTopicHierarchyWriter;
 import org.hhn.topicgrouper.report.MindMapSolutionReporter;
 import org.hhn.topicgrouper.tgimpl.OptimizedTopicGrouper;
 
 public class MindMapDemoAPFull extends OptimizedTGTester {
-	private final Writer file;
+	private final OutputStream file;
 	private MindMapSolutionReporter<String> mindMapSolutionReporter;
 	private PrintStream out;
 
-	public MindMapDemoAPFull(File textFile, Writer file) throws IOException {
+	public MindMapDemoAPFull(File textFile, OutputStream file) throws IOException {
 		super(textFile);
 		this.file = file;
 	}
@@ -74,7 +72,7 @@ public class MindMapDemoAPFull extends OptimizedTGTester {
 
 	public static void main(String[] args) throws IOException {
 		File file = new File("./target/MindMapDemoAPFull.mm");
-		FileWriter writer = new FileWriter(file);
+		OutputStream writer = new FileOutputStream(file);
 		File file2 = new File("./target/MindMapDemoAPFull.txt");
 		new MindMapDemoAPFull(file2, writer).run();
 		writer.close();
