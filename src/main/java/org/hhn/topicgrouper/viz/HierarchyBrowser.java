@@ -7,7 +7,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Rectangle;
-import java.awt.PageAttributes.OriginType;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -28,17 +27,22 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.JTree;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
@@ -47,10 +51,8 @@ import javax.swing.event.TreeModelListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableModel;
 import javax.swing.tree.DefaultTreeCellRenderer;
-import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 
@@ -64,7 +66,7 @@ public class HierarchyBrowser<T> {
 	 * level, set min history number)
 	 */
 	protected enum TableFilters {
-		TOPIC_SIZE, ALL, HISTORY_NUMBER, HIERARCHY_LEVEL, DELTA_RATIO;
+		ALL, TOPIC_SIZE, HISTORY_NUMBER, HIERARCHY_LEVEL, DELTA_RATIO;
 	};
 
 	private final JFrame frame;
@@ -86,6 +88,8 @@ public class HierarchyBrowser<T> {
 	private final DefaultTableCellRenderer tableCellRenderer;
 	private final Color origTableBackground;
 	private final Color origTreeBackground;
+	private final JComboBox tableFilterComboBox;
+	private final JSpinner minTopicSizeSpinner;
 
 	public HierarchyBrowser(boolean highDPI) {
 		alphaBase = 200;
@@ -179,16 +183,31 @@ public class HierarchyBrowser<T> {
 
 		panel.add(settingsPanel, BorderLayout.NORTH);
 
-		JComboBox comboBox = new JComboBox();
+		tableFilterComboBox = new JComboBox();
 
-		comboBox.setModel(new DefaultComboBoxModel(TableFilters.values()));
-		comboBox.addItemListener(new ItemListener() {
+		tableFilterComboBox.setModel(new DefaultComboBoxModel(TableFilters
+				.values()));
+		tableFilterComboBox.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
-				bindToTable((TableFilters) e.getItem());
+				adjustNodeIndices((TableFilters) e.getItem());
 			}
 		});
-		settingsPanel.add(comboBox);
+		settingsPanel.add(tableFilterComboBox);
+
+		minTopicSizeSpinner = new JSpinner();
+		SpinnerNumberModel spinnerModel = new SpinnerNumberModel();
+		spinnerModel.setMinimum(0);
+		spinnerModel.setStepSize(1);
+		minTopicSizeSpinner.setModel(spinnerModel);
+		settingsPanel.add(new JLabel("Min. Topic Size:"));
+		settingsPanel.add(minTopicSizeSpinner);
+//		spinnerModel.addChangeListener(new ChangeListener() {
+//			@Override
+//			public void stateChanged(ChangeEvent e) {
+//				adjustNodeIndices(filter);
+//			}
+//		});
 
 		JScrollPane scrollPane = new JScrollPane();
 		table = new JTable();
@@ -311,10 +330,8 @@ public class HierarchyBrowser<T> {
 						tree.expandRow(i);
 					}
 					tableModel.setWithFrequencies(showFrCheckBox.isSelected());
-					nodeIndices.clear();
-					for (int i = 0; i < allNodes.size(); i++) {
-						nodeIndices.add(i);
-					}
+					adjustNodeIndices((TableFilters) tableFilterComboBox
+							.getSelectedItem());
 					tableModel.setMaxWords(root.getTopTopicWordInfos().size());
 					tableChanged();
 					frame.pack();
@@ -326,6 +343,47 @@ public class HierarchyBrowser<T> {
 		menuBar.add(menu);
 
 		return menuBar;
+	}
+
+	protected void adjustNodeIndices(TableFilters filter) {
+		switch (filter) {
+		case ALL:
+			adjustNodeIndicesByAll();
+			break;
+		case TOPIC_SIZE:
+			adjustNodeIndicesByTopicSize((Integer) minTopicSizeSpinner.getValue()); 
+		default:
+			throw new IllegalStateException();
+		}
+		tableChanged();
+	}
+
+	protected void adjustNodeIndicesByTopicSize(int minTopicSize) {
+		nodeIndices.clear();
+		for (int i = 0; i < allNodes.size(); i++) {
+			int size = getTopicSize(allNodes.get(i));
+			if (size >= minTopicSize) {
+				nodeIndices.add(i);
+			}
+		}
+	}
+
+	protected int getTopicSize(MapNode<T> node) {
+		if (node == null) {
+			return 0;
+		}
+		if (node.getTopTopicWordInfos().size() == 1) {
+			return 1;
+		}
+		return getTopicSize(node.getLeftNode())
+				+ getTopicSize(node.getRightNode());
+	}
+
+	protected void adjustNodeIndicesByAll() {
+		nodeIndices.clear();
+		for (int i = 0; i < allNodes.size(); i++) {
+			nodeIndices.add(i);
+		}
 	}
 
 	protected TreeModel createTreeModel() {
@@ -387,10 +445,6 @@ public class HierarchyBrowser<T> {
 		}
 		double avg = sum / logDeltaChangeWindow;
 		return allNodes.get(index).getDeltaLikelihood() / avg;
-	}
-
-	protected void bindToTable(TableFilters filter) {
-
 	}
 
 	protected File showOpenFileMenu(JFrame parent) {
