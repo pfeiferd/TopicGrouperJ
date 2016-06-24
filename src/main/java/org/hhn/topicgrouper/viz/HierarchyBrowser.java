@@ -19,8 +19,11 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.List;
 
+import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JCheckBox;
@@ -81,6 +84,8 @@ public class HierarchyBrowser<T> {
 	private final TIntList nodeIndices;
 	private final int alphaBase;
 
+	private final boolean highDPI;
+
 	private boolean inSelection = false;
 	private int logDeltaChangeWindow = 5;
 	private final JCheckBox showFrCheckBox;
@@ -90,8 +95,15 @@ public class HierarchyBrowser<T> {
 	private final Color origTreeBackground;
 	private final JComboBox tableFilterComboBox;
 	private final JSpinner minTopicSizeSpinner;
+	private final JSpinner historySpinner;
+	private final JPanel settingsPanel;
+	private final JPanel topicSizePanel;
+	private final JPanel historyPanel;
+	private final JPanel allTopicsPanel;
+	private final SpinnerNumberModel spinnerModel2;
 
 	public HierarchyBrowser(boolean highDPI) {
+		this.highDPI = highDPI;
 		alphaBase = 200;
 		frame = new JFrame("TG Result Browser");
 		frame.addWindowListener(new WindowAdapter() {
@@ -123,17 +135,18 @@ public class HierarchyBrowser<T> {
 											.getSelectionPath()
 											.getLastPathComponent();
 									int index = allNodes.indexOf(node);
+									int res = -1;
 									for (int i = 0; i < nodeIndices.size(); i++) {
 										if (index == nodeIndices.get(i)) {
-											index = i;
+											res = i;
 											break;
 										}
 									}
-									if (index != -1) {
+									if (res != -1) {
 										table.getSelectionModel()
 												.clearSelection();
 										int viewIndex = table
-												.convertRowIndexToView(index);
+												.convertRowIndexToView(res);
 										table.getSelectionModel()
 												.setSelectionInterval(
 														viewIndex, viewIndex);
@@ -177,9 +190,12 @@ public class HierarchyBrowser<T> {
 
 		splitPane.setBottomComponent(panel);
 
-		JPanel settingsPanel = new JPanel();
+		settingsPanel = new JPanel();
 		BoxLayout boxLayout = new BoxLayout(settingsPanel, BoxLayout.X_AXIS);
 		settingsPanel.setLayout(boxLayout);
+		int bPixel = getPixel(4);
+		settingsPanel.setBorder(BorderFactory.createEmptyBorder(bPixel, bPixel,
+				bPixel, bPixel));
 
 		panel.add(settingsPanel, BorderLayout.NORTH);
 
@@ -190,24 +206,56 @@ public class HierarchyBrowser<T> {
 		tableFilterComboBox.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
-				adjustNodeIndices((TableFilters) e.getItem());
+				adjustNodeIndices();
 			}
 		});
 		settingsPanel.add(tableFilterComboBox);
+		settingsPanel.add(Box.createHorizontalStrut(getPixel(4)));
+
+		allTopicsPanel = new JPanel();
+		settingsPanel.add(allTopicsPanel);
+
+		topicSizePanel = new JPanel();
+		BoxLayout topicSizePanelLayout = new BoxLayout(topicSizePanel,
+				BoxLayout.X_AXIS);
+		topicSizePanel.setLayout(topicSizePanelLayout);
 
 		minTopicSizeSpinner = new JSpinner();
 		SpinnerNumberModel spinnerModel = new SpinnerNumberModel();
 		spinnerModel.setMinimum(0);
 		spinnerModel.setStepSize(1);
 		minTopicSizeSpinner.setModel(spinnerModel);
-		settingsPanel.add(new JLabel("Min. Topic Size:"));
-		settingsPanel.add(minTopicSizeSpinner);
-//		spinnerModel.addChangeListener(new ChangeListener() {
-//			@Override
-//			public void stateChanged(ChangeEvent e) {
-//				adjustNodeIndices(filter);
-//			}
-//		});
+		topicSizePanel.add(new JLabel("Min. Topic Size:"));
+		topicSizePanel.add(Box.createHorizontalStrut(getPixel(2)));
+		topicSizePanel.add(minTopicSizeSpinner);
+		spinnerModel.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				adjustNodeIndices();
+			}
+		});
+
+		historyPanel = new JPanel();
+		BoxLayout historyPanelLayout = new BoxLayout(historyPanel,
+				BoxLayout.X_AXIS);
+		historyPanel.setLayout(historyPanelLayout);
+
+		historySpinner = new JSpinner();
+		spinnerModel2 = new SpinnerNumberModel();
+		spinnerModel2.setMinimum(1);
+		spinnerModel2.setMaximum(1);
+		spinnerModel2.setStepSize(1);
+		spinnerModel2.setValue(1);
+		historySpinner.setModel(spinnerModel2);
+		historyPanel.add(new JLabel("Number of Topics:"));
+		historyPanel.add(Box.createHorizontalStrut(getPixel(2)));
+		historyPanel.add(historySpinner);
+		spinnerModel2.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				adjustNodeIndices();
+			}
+		});
 
 		JScrollPane scrollPane = new JScrollPane();
 		table = new JTable();
@@ -224,20 +272,23 @@ public class HierarchyBrowser<T> {
 							try {
 								inSelection = true;
 								if (!e.getValueIsAdjusting()) {
-									int row = table
-											.convertRowIndexToModel(table
-													.getSelectedRow());
-									MapNode<T> node = allNodes.get(row);
-									List<MapNode<T>> pathList = new ArrayList<MapNode<T>>();
-									while (node != null) {
-										pathList.add(0, node);
-										node = node.getParent();
+									int tableRow = table.getSelectedRow();
+									if (tableRow != -1) {
+										int row = table
+												.convertRowIndexToModel(tableRow);
+										MapNode<T> node = allNodes
+												.get(nodeIndices.get(row));
+										List<MapNode<T>> pathList = new ArrayList<MapNode<T>>();
+										while (node != null) {
+											pathList.add(0, node);
+											node = node.getParent();
+										}
+										TreePath path = new TreePath(pathList
+												.toArray());
+										tree.getSelectionModel()
+												.setSelectionPath(path);
+										tree.scrollPathToVisible(path);
 									}
-									TreePath path = new TreePath(pathList
-											.toArray());
-									tree.getSelectionModel().setSelectionPath(
-											path);
-									tree.scrollPathToVisible(path);
 								}
 							} finally {
 								inSelection = false;
@@ -257,11 +308,13 @@ public class HierarchyBrowser<T> {
 				Component res = super.getTableCellRendererComponent(table,
 						value, isSelected, hasFocus, row, column);
 
-				if (frColorCheckBox.isSelected()) {
-					res.setBackground(computerColor((Integer) value,
-							root.getTopicFrequency()));
-				} else {
-					res.setBackground(origTableBackground);
+				if (!isSelected) {
+					if (frColorCheckBox.isSelected()) {
+						res.setBackground(computerColor((Integer) value,
+								root.getTopicFrequency()));
+					} else {
+						res.setBackground(origTableBackground);
+					}
 				}
 
 				return res;
@@ -276,6 +329,8 @@ public class HierarchyBrowser<T> {
 		JPanel viewPanel = new JPanel();
 		BoxLayout viewBoxLayout = new BoxLayout(viewPanel, BoxLayout.X_AXIS);
 		viewPanel.setLayout(viewBoxLayout);
+		viewPanel.setBorder(BorderFactory.createEmptyBorder(bPixel, bPixel,
+				bPixel, bPixel));
 
 		showFrCheckBox = new JCheckBox("Show Frequencies");
 		showFrCheckBox.addItemListener(new ItemListener() {
@@ -301,6 +356,10 @@ public class HierarchyBrowser<T> {
 
 		frame.pack();
 		frame.setVisible(true);
+	}
+
+	protected int getPixel(int pixel) {
+		return highDPI ? 2 * pixel : pixel;
 	}
 
 	protected void tableChanged() {
@@ -330,9 +389,10 @@ public class HierarchyBrowser<T> {
 						tree.expandRow(i);
 					}
 					tableModel.setWithFrequencies(showFrCheckBox.isSelected());
-					adjustNodeIndices((TableFilters) tableFilterComboBox
-							.getSelectedItem());
+					adjustNodeIndices();
 					tableModel.setMaxWords(root.getTopTopicWordInfos().size());
+					spinnerModel2.setMaximum(allNodes.size());
+					spinnerModel2.setValue(1);
 					tableChanged();
 					frame.pack();
 				}
@@ -345,25 +405,64 @@ public class HierarchyBrowser<T> {
 		return menuBar;
 	}
 
+	protected void adjustNodeIndices() {
+		adjustNodeIndices((TableFilters) tableFilterComboBox.getSelectedItem());
+	}
+
 	protected void adjustNodeIndices(TableFilters filter) {
+		settingsPanel.remove(2);
 		switch (filter) {
 		case ALL:
 			adjustNodeIndicesByAll();
+			settingsPanel.add(allTopicsPanel);
 			break;
 		case TOPIC_SIZE:
-			adjustNodeIndicesByTopicSize((Integer) minTopicSizeSpinner.getValue()); 
+			adjustNodeIndicesByTopicSize((Integer) minTopicSizeSpinner
+					.getValue());
+			settingsPanel.add(topicSizePanel);
+			break;
+		case HISTORY_NUMBER:
+			settingsPanel.add(historyPanel);
+			adjustNodeIndicesByHistory((Integer) spinnerModel2.getValue());
+			break;
 		default:
-			throw new IllegalStateException();
+			// throw new IllegalStateException();
 		}
+		settingsPanel.revalidate();
 		tableChanged();
+	}
+
+	protected void adjustNodeIndicesByHistory(int topicId) {
+		nodeIndices.clear();
+		if (allNodes != null) {
+			BitSet bitSet = new BitSet(allNodes.size() - topicId);
+			for (int i = topicId; i <= allNodes.size(); i++) {
+				if (!bitSet.get(i - topicId)) {
+					int nodeIndex = allNodes.size() - i;
+					nodeIndices.add(nodeIndex);
+					markDeps(allNodes.get(nodeIndex), bitSet, topicId);
+				}
+			}
+		}
+	}
+
+	protected void markDeps(MapNode<T> node, BitSet bitSet, int topicId) {
+		if (node == null || node.getId() < 1) {
+			return;
+		}
+		bitSet.set(node.getId() - topicId);
+		markDeps(node.getLeftNode(), bitSet, topicId);
+		markDeps(node.getRightNode(), bitSet, topicId);
 	}
 
 	protected void adjustNodeIndicesByTopicSize(int minTopicSize) {
 		nodeIndices.clear();
-		for (int i = 0; i < allNodes.size(); i++) {
-			int size = getTopicSize(allNodes.get(i));
-			if (size >= minTopicSize) {
-				nodeIndices.add(i);
+		if (allNodes != null) {
+			for (int i = 0; i < allNodes.size(); i++) {
+				int size = getTopicSize(allNodes.get(i));
+				if (size >= minTopicSize) {
+					nodeIndices.add(i);
+				}
 			}
 		}
 	}
@@ -381,8 +480,10 @@ public class HierarchyBrowser<T> {
 
 	protected void adjustNodeIndicesByAll() {
 		nodeIndices.clear();
-		for (int i = 0; i < allNodes.size(); i++) {
-			nodeIndices.add(i);
+		if (allNodes != null) {
+			for (int i = 0; i < allNodes.size(); i++) {
+				nodeIndices.add(i);
+			}
 		}
 	}
 
@@ -605,7 +706,7 @@ public class HierarchyBrowser<T> {
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
-				new HierarchyBrowser(true);
+				new HierarchyBrowser<String>(true);
 			}
 		});
 	}
