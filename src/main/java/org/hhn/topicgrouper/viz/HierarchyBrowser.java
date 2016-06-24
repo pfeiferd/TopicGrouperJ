@@ -4,7 +4,10 @@ import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
 import java.awt.Rectangle;
+import java.awt.PageAttributes.OriginType;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -30,6 +33,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.JTree;
 import javax.swing.SwingUtilities;
@@ -42,7 +46,11 @@ import javax.swing.event.TableModelListener;
 import javax.swing.event.TreeModelListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableModel;
+import javax.swing.tree.DefaultTreeCellRenderer;
+import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 
@@ -69,13 +77,19 @@ public class HierarchyBrowser<T> {
 	private MapNode<T> root;
 	private List<MapNode<T>> allNodes;
 	private final TIntList nodeIndices;
-	private final JCheckBox showFrCheckBox;
+	private final int alphaBase;
 
 	private boolean inSelection = false;
 	private int logDeltaChangeWindow = 5;
+	private final JCheckBox showFrCheckBox;
+	private final JCheckBox frColorCheckBox;
+	private final DefaultTableCellRenderer tableCellRenderer;
+	private final Color origTableBackground;
+	private final Color origTreeBackground;
 
 	public HierarchyBrowser(boolean highDPI) {
-		frame = new JFrame();
+		alphaBase = 200;
+		frame = new JFrame("TG Result Browser");
 		frame.addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent e) {
 				System.exit(0);
@@ -83,6 +97,9 @@ public class HierarchyBrowser<T> {
 		});
 		frame.setLayout(new BorderLayout());
 		frame.add(createMenu(), BorderLayout.NORTH);
+
+		JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+		frame.add(splitPane, BorderLayout.CENTER);
 
 		tree = new JTree();
 		if (highDPI) {
@@ -97,26 +114,29 @@ public class HierarchyBrowser<T> {
 						if (!inSelection) {
 							try {
 								inSelection = true;
-								MapNode<T> node = (MapNode<T>) tree
-										.getSelectionPath()
-										.getLastPathComponent();
-								int index = allNodes.indexOf(node);
-								for (int i = 0; i < nodeIndices.size(); i++) {
-									if (index == nodeIndices.get(i)) {
-										index = i;
-										break;
+								if (tree.getSelectionPath() != null) {
+									MapNode<T> node = (MapNode<T>) tree
+											.getSelectionPath()
+											.getLastPathComponent();
+									int index = allNodes.indexOf(node);
+									for (int i = 0; i < nodeIndices.size(); i++) {
+										if (index == nodeIndices.get(i)) {
+											index = i;
+											break;
+										}
 									}
-								}
-								if (index != -1) {
-									table.getSelectionModel().clearSelection();
-									int viewIndex = table
-											.convertRowIndexToView(index);
-									table.getSelectionModel()
-											.setSelectionInterval(viewIndex,
-													viewIndex);
-									table.scrollRectToVisible(new Rectangle(
-											table.getCellRect(viewIndex, 0,
-													true)));
+									if (index != -1) {
+										table.getSelectionModel()
+												.clearSelection();
+										int viewIndex = table
+												.convertRowIndexToView(index);
+										table.getSelectionModel()
+												.setSelectionInterval(
+														viewIndex, viewIndex);
+										table.scrollRectToVisible(new Rectangle(
+												table.getCellRect(viewIndex, 0,
+														true)));
+									}
 								}
 							} finally {
 								inSelection = false;
@@ -124,16 +144,34 @@ public class HierarchyBrowser<T> {
 						}
 					}
 				});
+		DefaultTreeCellRenderer treeCellRenderer = new DefaultTreeCellRenderer() {
+			public Component getTreeCellRendererComponent(JTree tree,
+					Object value, boolean sel, boolean expanded, boolean leaf,
+					int row, boolean hasFocus) {
+				Component res = super.getTreeCellRendererComponent(tree, value,
+						sel, expanded, leaf, row, hasFocus);
+				if (frColorCheckBox.isSelected()) {
+					setBackgroundNonSelectionColor(computerColor(
+							((MapNode<T>) value).getTopicFrequency(),
+							root.getTopicFrequency()));
+				} else {
+					setBackgroundNonSelectionColor(origTreeBackground);
+				}
+				return res;
+			};
+		};
+		origTreeBackground = treeCellRenderer.getBackground();
+		tree.setCellRenderer(treeCellRenderer);
 
 		JScrollPane scrollPane1 = new JScrollPane();
 		scrollPane1.setViewportView(tree);
 
-		frame.add(scrollPane1, BorderLayout.CENTER);
+		splitPane.setTopComponent(scrollPane1);
 
 		JPanel panel = new JPanel();
 		panel.setLayout(new BorderLayout());
 
-		frame.add(panel, BorderLayout.SOUTH);
+		splitPane.setBottomComponent(panel);
 
 		JPanel settingsPanel = new JPanel();
 		BoxLayout boxLayout = new BoxLayout(settingsPanel, BoxLayout.X_AXIS);
@@ -192,23 +230,68 @@ public class HierarchyBrowser<T> {
 		tableModel = new TGTableModel();
 		table.setModel(tableModel);
 
+		tableCellRenderer = new DefaultTableCellRenderer() {
+			@Override
+			public Component getTableCellRendererComponent(JTable table,
+					Object value, boolean isSelected, boolean hasFocus,
+					int row, int column) {
+				Component res = super.getTableCellRendererComponent(table,
+						value, isSelected, hasFocus, row, column);
+
+				if (frColorCheckBox.isSelected()) {
+					res.setBackground(computerColor((Integer) value,
+							root.getTopicFrequency()));
+				} else {
+					res.setBackground(origTableBackground);
+				}
+
+				return res;
+			}
+		};
+		origTableBackground = tableCellRenderer.getBackground();
+
 		scrollPane.setViewportView(table);
 
 		panel.add(scrollPane, BorderLayout.CENTER);
+
+		JPanel viewPanel = new JPanel();
+		BoxLayout viewBoxLayout = new BoxLayout(viewPanel, BoxLayout.X_AXIS);
+		viewPanel.setLayout(viewBoxLayout);
 
 		showFrCheckBox = new JCheckBox("Show Frequencies");
 		showFrCheckBox.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				tableModel.setWithFrequencies(showFrCheckBox.isSelected());
-				table.tableChanged(new TableModelEvent(tableModel,
-						TableModelEvent.HEADER_ROW));
+				tableChanged();
 			}
 		});
-		panel.add(showFrCheckBox, BorderLayout.SOUTH);
+		viewPanel.add(showFrCheckBox);
+
+		frColorCheckBox = new JCheckBox("Color by Topic Frequencies");
+		frColorCheckBox.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				table.repaint();
+				tree.repaint();
+			}
+		});
+		viewPanel.add(frColorCheckBox);
+
+		panel.add(viewPanel, BorderLayout.SOUTH);
 
 		frame.pack();
 		frame.setVisible(true);
+	}
+
+	protected void tableChanged() {
+		table.tableChanged(new TableModelEvent(tableModel,
+				TableModelEvent.HEADER_ROW));
+		adjustTableCellRenderers();
+	}
+
+	protected void adjustTableCellRenderers() {
+		table.getColumnModel().getColumn(1).setCellRenderer(tableCellRenderer);
 	}
 
 	protected JMenuBar createMenu() {
@@ -233,8 +316,7 @@ public class HierarchyBrowser<T> {
 						nodeIndices.add(i);
 					}
 					tableModel.setMaxWords(root.getTopTopicWordInfos().size());
-					table.tableChanged(new TableModelEvent(tableModel,
-							TableModelEvent.HEADER_ROW));
+					tableChanged();
 					frame.pack();
 				}
 			}
@@ -294,7 +376,7 @@ public class HierarchyBrowser<T> {
 			}
 		};
 	}
-	
+
 	protected double getLogDeltaChange(int index) {
 		if (index < logDeltaChangeWindow) {
 			return 0;
@@ -443,6 +525,14 @@ public class HierarchyBrowser<T> {
 		public void removeTableModelListener(TableModelListener l) {
 			// Ignore on purpose.
 		}
+	}
+
+	private Color computerColor(int topicFr, int maxFr) {
+		double ratio = Math.log(topicFr) / Math.log(maxFr);
+		int diff = (int) ((ratio > 1 ? 1 : ratio) * (255 - alphaBase));
+		int b = alphaBase + diff;
+		int r = 255 - diff;
+		return new Color(r, alphaBase, b);
 	}
 
 	public static void main(String[] args) {
