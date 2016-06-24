@@ -30,7 +30,7 @@ public class MindMapDemoAPExtract extends OptimizedTGTester {
 	@Override
 	protected Solver<String> createSolver(
 			DocumentProvider<String> documentProvider) {
-		return new OptimizedTopicGrouper<String>(10, 0, documentProvider, 1);
+		return new OptimizedTopicGrouper<String>(10, 1, documentProvider, 1);
 	}
 
 	@Override
@@ -75,7 +75,7 @@ public class MindMapDemoAPExtract extends OptimizedTGTester {
 					true);
 			writer.writeToFile(file, mindMapSolutionReporter.getCurrentNodes()
 					.values());
-			File serializedFile = new File("./target/MindMapDemoAPExtract.ser");
+			File serializedFile = new File("./target/MindMapDemoAPExtractLambda1.ser");
 			ObjectOutputStream objectStream = new ObjectOutputStream(new FileOutputStream(serializedFile));
 			objectStream.writeObject(mindMapSolutionReporter.getAllNodes());
 			objectStream.close();
