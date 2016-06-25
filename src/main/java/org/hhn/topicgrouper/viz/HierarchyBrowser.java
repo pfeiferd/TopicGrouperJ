@@ -18,6 +18,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
@@ -29,6 +30,7 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
+import javax.swing.JFormattedTextField;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -46,6 +48,8 @@ import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
@@ -102,8 +106,13 @@ public class HierarchyBrowser<T> {
 	private final JPanel historyPanel;
 	private final JPanel allTopicsPanel;
 	private final JPanel hierarchyLevelPanel;
+	private final JPanel ratioLevelPanel;
+	private final JFormattedTextField ratioField;
+	private final JSpinner minTopicIdSpinner;
+
 	private final SpinnerNumberModel spinnerModel2;
 	private final SpinnerNumberModel spinnerModel3;
+	private final SpinnerNumberModel spinnerModel4;
 
 	public HierarchyBrowser(boolean highDPI) {
 		this.highDPI = highDPI;
@@ -282,6 +291,54 @@ public class HierarchyBrowser<T> {
 			}
 		});
 
+		ratioLevelPanel = new JPanel();
+		BoxLayout rationLevelPanelLayout = new BoxLayout(ratioLevelPanel,
+				BoxLayout.X_AXIS);
+		ratioLevelPanel.setLayout(rationLevelPanelLayout);
+
+		NumberFormat ratioFormat = NumberFormat.getNumberInstance();
+		ratioFormat.setMinimumFractionDigits(6);
+		ratioField = new JFormattedTextField(ratioFormat);
+		ratioField.setValue(1d);
+		ratioField.setColumns(10);
+		ratioField.getDocument().addDocumentListener(new DocumentListener() {			
+			@Override
+			public void removeUpdate(DocumentEvent e) {
+			}
+			
+			@Override
+			public void insertUpdate(DocumentEvent e) {
+			}
+			
+			@Override
+			public void changedUpdate(DocumentEvent e) {
+				adjustNodeIndices();
+			}
+		});
+
+		ratioLevelPanel.add(new JLabel("LD Change Level:"));
+		ratioLevelPanel.add(Box.createHorizontalStrut(getPixel(2)));
+		ratioLevelPanel.add(ratioField);
+
+		minTopicIdSpinner = new JSpinner();
+		spinnerModel4 = new SpinnerNumberModel();
+		spinnerModel4.setMinimum(1);
+		spinnerModel4.setMaximum(1);
+		spinnerModel4.setStepSize(1);
+		spinnerModel4.setValue(1);
+		spinnerModel4.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				adjustNodeIndices();
+			}
+		});
+
+		minTopicIdSpinner.setModel(spinnerModel4);
+		ratioLevelPanel.add(Box.createHorizontalStrut(getPixel(4)));
+		ratioLevelPanel.add(new JLabel("Max. Topic ID:"));
+		ratioLevelPanel.add(Box.createHorizontalStrut(getPixel(2)));
+		ratioLevelPanel.add(minTopicIdSpinner);
+
 		JScrollPane scrollPane = new JScrollPane();
 		table = new JTable();
 		table.setAutoCreateRowSorter(true);
@@ -420,6 +477,8 @@ public class HierarchyBrowser<T> {
 					spinnerModel2.setValue(1);
 					spinnerModel3.setMaximum(allNodes.size());
 					spinnerModel3.setValue(1);
+					spinnerModel4.setMaximum(allNodes.size());
+					spinnerModel4.setValue(1);
 					tableChanged();
 					frame.pack();
 				}
@@ -457,11 +516,43 @@ public class HierarchyBrowser<T> {
 			adjustNodeIndicesByHierarchyLevel((Integer) spinnerModel3
 					.getValue());
 			break;
+		case DELTA_RATIO:
+			settingsPanel.add(ratioLevelPanel);
+			adjustByRationLevel((Double) ratioField.getValue(),
+					(Integer) spinnerModel4.getValue());
+			break;
 		default:
-			// throw new IllegalStateException();
+			throw new IllegalStateException();
 		}
 		settingsPanel.revalidate();
 		tableChanged();
+	}
+
+	protected void adjustByRationLevel(double ratioLevel, int maxTopic) {
+		nodeIndices.clear();
+		if (allNodes != null) {
+			BitSet bitSet = new BitSet(allNodes.size());
+			for (int i = maxTopic; i < allNodes.size(); i++) {
+				MapNode<T> node = allNodes.get(i);
+				if (!bitSet.get(node.getId())) {
+					double ratio = getLogDeltaChange(i);
+					if (ratio >= ratioLevel) {
+						MapNode<T> left = node.getLeftNode();
+						if (left != null && left.getId() > 0) {
+							nodeIndices.add(left.getId());
+						}
+						MapNode<T> right = node.getRightNode();
+						if (right != null && right.getId() > 0) {
+							nodeIndices.add(right.getId());
+						}
+						while (node != null && node.getId() > 0) {
+							bitSet.set(node.getId());
+							node = node.getParent();
+						}
+					}
+				}
+			}
+		}
 	}
 
 	protected void adjustNodeIndicesByHierarchyLevel(int level) {
