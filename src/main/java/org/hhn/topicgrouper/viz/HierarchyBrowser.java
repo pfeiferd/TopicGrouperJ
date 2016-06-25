@@ -96,11 +96,14 @@ public class HierarchyBrowser<T> {
 	private final JComboBox tableFilterComboBox;
 	private final JSpinner minTopicSizeSpinner;
 	private final JSpinner historySpinner;
+	private final JSpinner hLevelSpinner;
 	private final JPanel settingsPanel;
 	private final JPanel topicSizePanel;
 	private final JPanel historyPanel;
 	private final JPanel allTopicsPanel;
+	private final JPanel hierarchyLevelPanel;
 	private final SpinnerNumberModel spinnerModel2;
+	private final SpinnerNumberModel spinnerModel3;
 
 	public HierarchyBrowser(boolean highDPI) {
 		this.highDPI = highDPI;
@@ -257,6 +260,28 @@ public class HierarchyBrowser<T> {
 			}
 		});
 
+		hierarchyLevelPanel = new JPanel();
+		BoxLayout hierarchyLevelPanelLayout = new BoxLayout(
+				hierarchyLevelPanel, BoxLayout.X_AXIS);
+		hierarchyLevelPanel.setLayout(hierarchyLevelPanelLayout);
+
+		hLevelSpinner = new JSpinner();
+		spinnerModel3 = new SpinnerNumberModel();
+		spinnerModel3.setMinimum(1);
+		spinnerModel3.setMaximum(1);
+		spinnerModel3.setStepSize(1);
+		spinnerModel3.setValue(1);
+		hLevelSpinner.setModel(spinnerModel3);
+		hierarchyLevelPanel.add(new JLabel("Hierarchy Level:"));
+		hierarchyLevelPanel.add(Box.createHorizontalStrut(getPixel(2)));
+		hierarchyLevelPanel.add(hLevelSpinner);
+		spinnerModel3.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				adjustNodeIndices();
+			}
+		});
+
 		JScrollPane scrollPane = new JScrollPane();
 		table = new JTable();
 		table.setAutoCreateRowSorter(true);
@@ -393,6 +418,8 @@ public class HierarchyBrowser<T> {
 					tableModel.setMaxWords(root.getTopTopicWordInfos().size());
 					spinnerModel2.setMaximum(allNodes.size());
 					spinnerModel2.setValue(1);
+					spinnerModel3.setMaximum(allNodes.size());
+					spinnerModel3.setValue(1);
 					tableChanged();
 					frame.pack();
 				}
@@ -425,11 +452,33 @@ public class HierarchyBrowser<T> {
 			settingsPanel.add(historyPanel);
 			adjustNodeIndicesByHistory((Integer) spinnerModel2.getValue());
 			break;
+		case HIERARCHY_LEVEL:
+			settingsPanel.add(hierarchyLevelPanel);
+			adjustNodeIndicesByHierarchyLevel((Integer) spinnerModel3
+					.getValue());
+			break;
 		default:
 			// throw new IllegalStateException();
 		}
 		settingsPanel.revalidate();
 		tableChanged();
+	}
+
+	protected void adjustNodeIndicesByHierarchyLevel(int level) {
+		nodeIndices.clear();
+		collectByLevel(root, 1, level);
+	}
+
+	protected void collectByLevel(MapNode<T> node, int level, int targetLevel) {
+		if (node == null) {
+			return;
+		}
+		if (level == targetLevel && node.getId() > 0) {
+			nodeIndices.add(allNodes.size() - node.getId());
+		} else {
+			collectByLevel(node.getLeftNode(), level + 1, targetLevel);
+			collectByLevel(node.getRightNode(), level + 1, targetLevel);
+		}
 	}
 
 	protected void adjustNodeIndicesByHistory(int topicId) {
