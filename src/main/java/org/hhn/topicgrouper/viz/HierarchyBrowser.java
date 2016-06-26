@@ -6,6 +6,7 @@ import gnu.trove.list.array.TIntArrayList;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -22,6 +23,7 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
+import java.util.Locale;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -48,8 +50,6 @@ import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
@@ -296,25 +296,20 @@ public class HierarchyBrowser<T> {
 				BoxLayout.X_AXIS);
 		ratioLevelPanel.setLayout(rationLevelPanelLayout);
 
-		NumberFormat ratioFormat = NumberFormat.getNumberInstance();
+		NumberFormat ratioFormat = NumberFormat
+				.getNumberInstance(Locale.ENGLISH);
 		ratioFormat.setMinimumFractionDigits(6);
-		ratioField = new JFormattedTextField(ratioFormat);
-		ratioField.setValue(1d);
-		ratioField.setColumns(10);
-		ratioField.getDocument().addDocumentListener(new DocumentListener() {			
-			@Override
-			public void removeUpdate(DocumentEvent e) {
-			}
-			
-			@Override
-			public void insertUpdate(DocumentEvent e) {
-			}
-			
-			@Override
-			public void changedUpdate(DocumentEvent e) {
+		ratioField = new JFormattedTextField(ratioFormat) {
+			public void commitEdit() throws java.text.ParseException {
+				super.commitEdit();
 				adjustNodeIndices();
 			}
-		});
+		};
+
+		ratioField.setValue(1d);
+		ratioField.setColumns(10);
+		Dimension d = ratioField.getPreferredSize();
+		ratioField.setMaximumSize(d);
 
 		ratioLevelPanel.add(new JLabel("LD Change Level:"));
 		ratioLevelPanel.add(Box.createHorizontalStrut(getPixel(2)));
@@ -518,7 +513,8 @@ public class HierarchyBrowser<T> {
 			break;
 		case DELTA_RATIO:
 			settingsPanel.add(ratioLevelPanel);
-			adjustByRationLevel((Double) ratioField.getValue(),
+			Number number = (Number) ratioField.getValue();
+			adjustByRatioLevel(number.doubleValue(),
 					(Integer) spinnerModel4.getValue());
 			break;
 		default:
@@ -528,23 +524,24 @@ public class HierarchyBrowser<T> {
 		tableChanged();
 	}
 
-	protected void adjustByRationLevel(double ratioLevel, int maxTopic) {
+	protected void adjustByRatioLevel(double ratioLevel, int maxTopic) {
 		nodeIndices.clear();
 		if (allNodes != null) {
 			BitSet bitSet = new BitSet(allNodes.size());
-			for (int i = maxTopic; i < allNodes.size(); i++) {
+			for (int i = allNodes.size() - maxTopic; i < allNodes.size(); i++) {
 				MapNode<T> node = allNodes.get(i);
 				if (!bitSet.get(node.getId())) {
 					double ratio = getLogDeltaChange(i);
 					if (ratio >= ratioLevel) {
 						MapNode<T> left = node.getLeftNode();
 						if (left != null && left.getId() > 0) {
-							nodeIndices.add(left.getId());
+							nodeIndices.add(allNodes.size() - left.getId());
 						}
 						MapNode<T> right = node.getRightNode();
 						if (right != null && right.getId() > 0) {
-							nodeIndices.add(right.getId());
+							nodeIndices.add(allNodes.size() - right.getId());
 						}
+						//nodeIndices.add(i);
 						while (node != null && node.getId() > 0) {
 							bitSet.set(node.getId());
 							node = node.getParent();
