@@ -41,6 +41,10 @@ public class OptimizedTopicGrouper<T> extends AbstractTopicGrouper<T> {
 	protected final int minTopics;
 	protected final DocIndexAndWordFr searchDummy = new DocIndexAndWordFr();
 
+	private final int coM = 4;
+	private final double[] coherenceByTopic;
+	
+
 	public OptimizedTopicGrouper(int minWordFrequency, double lambda,
 			DocumentProvider<T> documentProvider, int minTopics) {
 		super(minWordFrequency, lambda, documentProvider);
@@ -59,6 +63,8 @@ public class OptimizedTopicGrouper<T> extends AbstractTopicGrouper<T> {
 			}
 		}
 		maxTopics = counter;
+		
+		coherenceByTopic = new double[maxTopics];
 
 		topicUnionFind = new UnionFind(maxTopics);
 		topics = new TIntList[maxTopics];
@@ -165,7 +171,7 @@ public class OptimizedTopicGrouper<T> extends AbstractTopicGrouper<T> {
 	}
 
 	protected double computeOneWordTopicLogLikelihood(int wordIndex) {
-		double sum = 0;
+		double sum = 0; // Coherence weight log(1).
 		for (int i = 0; i < documents.size(); i++) {
 			Document<T> d = documents.get(i);
 			double wordFrPerDoc = d.getWordFrequency(wordIndex);
@@ -178,7 +184,7 @@ public class OptimizedTopicGrouper<T> extends AbstractTopicGrouper<T> {
 	}
 
 	protected double computeTwoWordLogLikelihood(int i, int j, int word1,
-			int word2) {
+			int word2, double[] coherence) {
 		double sum = 0;
 		List<DocIndexAndWordFr> l1 = invertedIndex.get(word1);
 		List<DocIndexAndWordFr> l2 = invertedIndex.get(word2);
@@ -193,13 +199,23 @@ public class OptimizedTopicGrouper<T> extends AbstractTopicGrouper<T> {
 						sum += onePlusLambdaDivDocSizes[entry1.docIndex]
 								* fr
 								* (Math.log(fr) - logDocumentSizes[entry1.docIndex]);
+						// Coherence:
+						if (coM > 1) {
+							coherence[0] += Math.log(Math.min(entry1.wordFr,
+									entry2.wordFr) + 1)
+									- Math.log(Math.max(entry1.wordFr,
+											entry2.wordFr) + 1);
+						}
 					}
-
 				} else {
 					if (documentSizes[entry1.docIndex] > 0) {
 						sum += onePlusLambdaDivDocSizes[entry1.docIndex]
 								* entry1.wordFr
 								* (Math.log(entry1.wordFr) - logDocumentSizes[entry1.docIndex]);
+						// Coherence:
+						if (coM > 1) {
+							coherence[0] = -Math.log(entry1.wordFr + 1);
+						}
 					}
 				}
 			}
@@ -211,6 +227,10 @@ public class OptimizedTopicGrouper<T> extends AbstractTopicGrouper<T> {
 						sum += onePlusLambdaDivDocSizes[entry2.docIndex]
 								* entry2.wordFr
 								* (Math.log(entry2.wordFr) - logDocumentSizes[entry2.docIndex]);
+						// Coherence:
+						if (coM > 1) {
+							coherence[0] = -Math.log(entry2.wordFr + 1);
+						}
 					}
 				}
 			}
@@ -243,6 +263,41 @@ public class OptimizedTopicGrouper<T> extends AbstractTopicGrouper<T> {
 		sum -= (sizeSum) * Math.log(sizeSum);
 
 		return sum;
+	}
+
+	protected double computeTwoTopicCoherence(int topic1, int topic2) {
+		if (topicSizes[topic1] + topicSizes[topic2] <= coM) {
+			double sum = 0;
+			TIntList c2 = topics[topic2];
+			TIntList c1 = topics[topic1];
+			for (int i = 0; i < documents.size(); i++) {
+				int min = Integer.MAX_VALUE;
+				int max = 0;
+				Document<T> d = documents.get(i);
+				for (int j = 0; j < c1.size(); j++) {
+					int fr = d.getWordFrequency(c1.get(j));
+					if (fr < min) {
+						min = fr;
+					}
+					if (fr > max) {
+						max = fr;
+					}
+				}
+				for (int j = 0; j < c2.size(); j++) {
+					int fr = d.getWordFrequency(c2.get(j));
+					if (fr < min) {
+						min = fr;
+					}
+					if (fr > max) {
+						max = fr;
+					}
+				}
+				sum += Math.log(min + 1) - Math.log(max + 1);
+			}
+			return sum;
+		} else {
+			return Math.min(coherenceByTopic[topic1], coherenceByTopic[topic2]);
+		}
 	}
 
 	protected void createInitialTopics() {
@@ -279,21 +334,29 @@ public class OptimizedTopicGrouper<T> extends AbstractTopicGrouper<T> {
 			SolutionListener<T> solutionListener) {
 		int initMax = maxTopics * (maxTopics - 1) / 2;
 		int initCounter = 0;
-
+		double[] coherence = new double[1];
+		
 		for (int i = 0; i < maxTopics; i++) {
 			// topics[i] may be null if the element's frequency is below
 			// frThreshold
 			double bestImprovement = Double.NEGATIVE_INFINITY;
 			double bestLikelihood = 0;
+			double bestCoherence = 0;
 			int bestJ = -1;
+
 			for (int j = i + 1; j < maxTopics; j++) {
 				double newLikelihood = computeTwoWordLogLikelihood(i, j,
-						topics[i].get(0), topics[j].get(0));
+						topics[i].get(0), topics[j].get(0), coherence);
+				if (coM > 1) {
+					newLikelihood += coherence[0];
+				}
+				
 				double newImprovement = newLikelihood - topicLikelihoods[i]
 						- topicLikelihoods[j];
 				if (newImprovement > bestImprovement) {
 					bestImprovement = newImprovement;
 					bestLikelihood = newLikelihood;
+					bestCoherence = coherence[0];
 					bestJ = j;
 				}
 				initCounter++;
@@ -302,14 +365,13 @@ public class OptimizedTopicGrouper<T> extends AbstractTopicGrouper<T> {
 							/ initMax);
 				}
 			}
-			// Invariant: topic[j] is the best join partner for topic[i]
-			// with j > i!
 			if (bestJ != -1) {
 				JoinCandidate jc = new JoinCandidate();
 				jc.improvement = bestImprovement;
 				jc.likelihood = bestLikelihood;
 				jc.i = i;
 				jc.j = bestJ;
+				jc.coherence = bestCoherence;
 				addToJoinCandiates(i, jc);
 			}
 		}
@@ -380,6 +442,12 @@ public class OptimizedTopicGrouper<T> extends AbstractTopicGrouper<T> {
 					} else {
 						double newLikelihood = computeTwoTopicLogLikelihood(
 								jc2.i, jc.i);
+						double coherence = 0;
+						if (coM > 2) {
+							coherence = computeTwoTopicCoherence(jc2.i, jc.i);
+						}
+						newLikelihood += coherence;
+												
 						double newImprovement = newLikelihood
 								- topicLikelihoods[jc2.i]
 								- topicLikelihoods[jc.i];
@@ -387,6 +455,7 @@ public class OptimizedTopicGrouper<T> extends AbstractTopicGrouper<T> {
 							it.remove();
 							jc2.improvement = newImprovement;
 							jc2.likelihood = newLikelihood;
+							jc2.coherence = coherence;
 							jc2.j = jc.i;
 							addLaterCache.add(jc2);
 						}
@@ -423,6 +492,7 @@ public class OptimizedTopicGrouper<T> extends AbstractTopicGrouper<T> {
 						topics[jc.i].addAll(topics[jc.j]);
 						topicUnionFind.union(jc.j, jc.i);
 						topicSizes[jc.i] += t2Size;
+						coherenceByTopic[jc.i] = jc.coherence;
 						sumWordFrTimesLogWordFrByTopic[jc.i] += sumWordFrTimesLogWordFrByTopic[jc.j];
 						// Compute likelihood for joined topic
 						totalLikelihood -= topicLikelihoods[jc.i];
@@ -468,15 +538,23 @@ public class OptimizedTopicGrouper<T> extends AbstractTopicGrouper<T> {
 		// Recompute the best join partner for joined topic
 		double bestImprovement = Double.NEGATIVE_INFINITY;
 		double bestLikelihood = 0;
+		double bestCoherence = 0;
 		int bestJ = -1;
 		for (int j = jc.i + 1; j < maxTopics; j++) {
 			if (topics[j] != null) {
 				double newLikelihood = computeTwoTopicLogLikelihood(jc.i, j);
+				double coherence = 0;
+				if (coM > 2) {
+					coherence = computeTwoTopicCoherence(jc.i, j);
+				}
+				newLikelihood += coherence;
+
 				double newImprovement = newLikelihood - topicLikelihoods[jc.i]
 						- topicLikelihoods[j];
 				if (newImprovement > bestImprovement) {
 					bestImprovement = newImprovement;
 					bestLikelihood = newLikelihood;
+					bestCoherence = coherence;
 					bestJ = j;
 				}
 			}
@@ -484,6 +562,7 @@ public class OptimizedTopicGrouper<T> extends AbstractTopicGrouper<T> {
 		if (bestJ != -1) {
 			jc.improvement = bestImprovement;
 			jc.likelihood = bestLikelihood;
+			jc.coherence = bestCoherence;
 			jc.j = bestJ;
 			return true;
 		}
@@ -493,6 +572,7 @@ public class OptimizedTopicGrouper<T> extends AbstractTopicGrouper<T> {
 	protected static class JoinCandidate implements Comparable<JoinCandidate> {
 		public double likelihood;
 		public double improvement;
+		public double coherence;
 		public int i;
 		public int j;
 
@@ -527,8 +607,8 @@ public class OptimizedTopicGrouper<T> extends AbstractTopicGrouper<T> {
 
 	protected static class DocIndexAndWordFr implements
 			Comparable<DocIndexAndWordFr> {
-		protected int docIndex;
-		protected int wordFr;
+		public int docIndex;
+		public int wordFr;
 
 		public int compareTo(DocIndexAndWordFr o) {
 			return docIndex - o.docIndex;
