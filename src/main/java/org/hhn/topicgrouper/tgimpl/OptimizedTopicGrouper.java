@@ -183,6 +183,16 @@ public class OptimizedTopicGrouper<T> extends AbstractTopicGrouper<T> {
 
 	protected double computeTwoWordLogLikelihood(int i, int j, int word1,
 			int word2) {
+		double sum = computeTwoWordLogLikelihoodHelp(word1, word2);
+		sum += sumWordFrTimesLogWordFrByTopic[i];
+		sum += sumWordFrTimesLogWordFrByTopic[j];
+		int sizeSum = topicSizes[i] + topicSizes[j];
+		sum -= (sizeSum) * Math.log(sizeSum);
+
+		return sum;
+	}
+
+	protected double computeTwoWordLogLikelihoodHelp(int word1, int word2) {
 		double sum = 0;
 		List<DocIndexAndWordFr> l1 = invertedIndex.get(word1);
 		List<DocIndexAndWordFr> l2 = invertedIndex.get(word2);
@@ -218,12 +228,6 @@ public class OptimizedTopicGrouper<T> extends AbstractTopicGrouper<T> {
 				}
 			}
 		}
-
-		sum += sumWordFrTimesLogWordFrByTopic[i];
-		sum += sumWordFrTimesLogWordFrByTopic[j];
-		int sizeSum = topicSizes[i] + topicSizes[j];
-		sum -= (sizeSum) * Math.log(sizeSum);
-
 		return sum;
 	}
 

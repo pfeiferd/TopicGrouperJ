@@ -113,42 +113,7 @@ public class TopicGrouperWithHomonyms<T> extends OptimizedTopicGrouper<T> {
 	}
 
 	protected double computeTwoWordLogLikelihoodAlt(int word1, int word2) {
-		double sum = 0;
-		List<DocIndexAndWordFr> l1 = invertedIndex.get(word1);
-		List<DocIndexAndWordFr> l2 = invertedIndex.get(word2);
-		if (l1 != null && l2 != null) {
-			for (DocIndexAndWordFr entry1 : l1) {
-				searchDummy.docIndex = entry1.docIndex;
-				int posEntry2 = Collections.binarySearch(l2, searchDummy);
-				if (posEntry2 >= 0) {
-					DocIndexAndWordFr entry2 = l2.get(posEntry2);
-					if (documentSizes[entry1.docIndex] > 0) {
-						int fr = entry1.wordFr + entry2.wordFr;
-						sum += onePlusLambdaDivDocSizes[entry1.docIndex]
-								* fr
-								* (Math.log(fr) - logDocumentSizes[entry1.docIndex]);
-					}
-
-				} else {
-					if (documentSizes[entry1.docIndex] > 0) {
-						sum += onePlusLambdaDivDocSizes[entry1.docIndex]
-								* entry1.wordFr
-								* (Math.log(entry1.wordFr) - logDocumentSizes[entry1.docIndex]);
-					}
-				}
-			}
-			for (DocIndexAndWordFr entry2 : l2) {
-				searchDummy.docIndex = entry2.docIndex;
-				int posEntry1 = Collections.binarySearch(l1, searchDummy);
-				if (posEntry1 < 0) {
-					if (documentSizes[entry2.docIndex] > 0) {
-						sum += onePlusLambdaDivDocSizes[entry2.docIndex]
-								* entry2.wordFr
-								* (Math.log(entry2.wordFr) - logDocumentSizes[entry2.docIndex]);
-					}
-				}
-			}
-		}
+		double sum = computeTwoWordLogLikelihoodHelp(word1, word2);
 
 		int fr1 = documentProvider.getWordFrequency(word1);
 		int fr2 = documentProvider.getWordFrequency(word2);
