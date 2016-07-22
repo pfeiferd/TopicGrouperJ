@@ -26,7 +26,8 @@ public class DefaultDocumentProvider<T> extends WordMapDocumentProvider<T> {
 		TIntIterator it = d.getWordIndices().iterator();
 		while (it.hasNext()) {
 			int index = it.next();
-			if (d.getProvider().getWordFrequency(index) >= minFrequency) {
+			if (minFrequency == 0
+					|| d.getProvider().getWordFrequency(index) >= minFrequency) {
 				r.addWord(d.getProvider().getWord(index),
 						d.getWordFrequency(index));
 			}
