@@ -176,7 +176,7 @@ public class LDAGibbsSampler<T> {
 					topicFrCountCopy[topic]--;
 					for (int k = 0; k < alpha.length; k++) {
 						samplingRatios[k] = (documentTopicAssignmentCount[h2][k] + alpha[k])
-								* (dWordOccurrenceLastTopicAssignment[h2][k] + beta)
+								* (wordTopicAssignmentCountCopy[wordIndex][k] + beta)
 								/ (topicFrCountCopy[k] + betaSum);
 					}
 					topic = nextDiscrete(samplingRatios);
