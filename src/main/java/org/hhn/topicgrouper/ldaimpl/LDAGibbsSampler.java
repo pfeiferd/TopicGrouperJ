@@ -25,6 +25,11 @@ public class LDAGibbsSampler<T> {
 	private double samplingRatios[];
 
 	public LDAGibbsSampler(DocumentProvider<T> documentProvider,
+			int topics, double alpha, double beta, Random random) {
+		this(documentProvider, symmetricAlpha(alpha, topics), beta, random);
+	}
+	
+	public LDAGibbsSampler(DocumentProvider<T> documentProvider,
 			double[] alpha, double beta, Random random) {
 		this.alpha = alpha;
 		this.beta = beta;
@@ -53,6 +58,12 @@ public class LDAGibbsSampler<T> {
 		samplingRatios = new double[alpha.length];
 	}
 
+	public static double[] symmetricAlpha(double alpha, int topics) {
+		double[] v = new double[topics];
+		Arrays.fill(v, alpha);
+		return v;
+	}
+	
 	public void train(int iterations) {
 		initialize();
 
@@ -71,7 +82,7 @@ public class LDAGibbsSampler<T> {
 						topicFrCount[topic]--;
 						for (int k = 0; k < alpha.length; k++) {
 							samplingRatios[k] = (documentTopicAssignmentCount[h2][k] + alpha[k])
-									* (documentWordOccurrenceLastTopicAssignment[h][h2][k] + beta)
+									* (wordTopicAssignmentCount[wordIndex][k] + beta)
 									/ (topicFrCount[k] + betaSum);
 						}
 						topic = nextDiscrete(samplingRatios);
@@ -196,5 +207,12 @@ public class LDAGibbsSampler<T> {
 		}
 		return probs.length - 1;
 	}
-
+	
+	public int[] getTopicFrCount() {
+		return topicFrCount;
+	}
+	
+	public int[][] getWordTopicAssignmentCount() {
+		return wordTopicAssignmentCount;
+	}
 }
