@@ -52,7 +52,7 @@ public class LDAGibbsSampler<T> {
 		}
 		samplingRatios = new double[alpha.length];
 	}
-	
+
 	public void train(int iterations) {
 		initialize();
 
@@ -88,7 +88,29 @@ public class LDAGibbsSampler<T> {
 	}
 
 	protected void initialize() {
-		// TODO
+		int h = 0;
+		for (Document<T> d : documents) {
+			initializeDocument(d, h);
+			h++;
+		}
+	}
+
+	protected void initializeDocument(Document<T> d, int index) {
+		int h2 = 0;
+		TIntIterator it = d.getWordIndices().iterator();
+		while (it.hasNext()) {
+			int wordIndex = it.next();
+			int fr = d.getWordFrequency(wordIndex);
+			for (int j = 0; j < fr; j++) {
+				int topic = documentWordOccurrenceLastTopicAssignment[index][h2][j] = random
+						.nextInt(alpha.length);
+				documentWordOccurrenceLastTopicAssignment[index][h2][j] = topic;
+				documentTopicAssignmentCount[index][topic]++;
+				wordTopicAssignmentCount[wordIndex][topic]++;
+				topicFrCount[topic]++;
+			}
+			h2++;
+		}
 	}
 
 	public int[] foldIn(int iterations, Document<T> d) {
@@ -103,15 +125,32 @@ public class LDAGibbsSampler<T> {
 			h2++;
 		}
 		int[] dTopicAssignmentCount = new int[alpha.length];
-		// TODO: Initialize
 
 		int[][] wordTopicAssignmentCountCopy = new int[wordTopicAssignmentCount.length][];
 		for (int i = 0; i < wordTopicAssignmentCount.length; i++) {
 			wordTopicAssignmentCountCopy[i] = Arrays.copyOf(
-					wordTopicAssignmentCount[i], wordTopicAssignmentCount[i].length);
+					wordTopicAssignmentCount[i],
+					wordTopicAssignmentCount[i].length);
 
 		}
-		int[] topicFrCountCopy = Arrays.copyOf(topicFrCount, topicFrCount.length);
+		int[] topicFrCountCopy = Arrays.copyOf(topicFrCount,
+				topicFrCount.length);
+
+		// Initialize topics randomly
+		it = d.getWordIndices().iterator();
+		while (it.hasNext()) {
+			int wordIndex = it.next();
+			int fr = d.getWordFrequency(wordIndex);
+			for (int j = 0; j < fr; j++) {
+				int topic = dWordOccurrenceLastTopicAssignment[h2][j] = random
+						.nextInt(alpha.length);
+				dWordOccurrenceLastTopicAssignment[h2][j] = topic;
+				dTopicAssignmentCount[topic]++;
+				wordTopicAssignmentCountCopy[wordIndex][topic]++;
+				topicFrCountCopy[topic]++;
+			}
+			h2++;
+		}
 
 		for (int i = 0; i < iterations; i++) {
 			TIntIterator it2 = d.getWordIndices().iterator();
@@ -138,7 +177,7 @@ public class LDAGibbsSampler<T> {
 				h2++;
 			}
 		}
-		
+
 		return dTopicAssignmentCount;
 	}
 
