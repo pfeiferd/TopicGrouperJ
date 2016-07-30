@@ -8,6 +8,7 @@ import java.util.Random;
 
 import org.hhn.topicgrouper.base.Document;
 import org.hhn.topicgrouper.base.DocumentProvider;
+import org.hhn.topicgrouper.base.Solver.SolutionListener;
 
 public class LDAGibbsSampler<T> {
 	private final Random random;
@@ -64,8 +65,10 @@ public class LDAGibbsSampler<T> {
 		return v;
 	}
 	
-	public void train(int iterations) {
-		initialize();
+	public void solve(int iterations, LDASolutionListener solutionListener) {
+		solutionListener.beforeInitialization();
+		initialize(solutionListener);
+		solutionListener.initialized();
 
 		for (int i = 0; i < iterations; i++) {
 			int h = 0;
@@ -95,12 +98,15 @@ public class LDAGibbsSampler<T> {
 				}
 				h++;
 			}
+			solutionListener.updatedSolution(i);
 		}
+		solutionListener.done();
 	}
 
-	protected void initialize() {
+	protected void initialize(LDASolutionListener listener) {
 		int h = 0;
 		for (Document<T> d : documents) {
+			listener.initalizing(h);
 			initializeDocument(d, h);
 			h++;
 		}
