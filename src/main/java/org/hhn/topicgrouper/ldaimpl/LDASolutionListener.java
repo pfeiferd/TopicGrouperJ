@@ -1,15 +1,14 @@
 package org.hhn.topicgrouper.ldaimpl;
 
 
-public interface LDASolutionListener {
-	public void beforeInitialization();
+public interface LDASolutionListener<T> {
+	public void beforeInitialization(LDAGibbsSampler<T> sampler);
 
-	public void initalizing(int document);
+	public void initalizing(LDAGibbsSampler<T> sampler, int document);
 
-	public void initialized();
+	public void initialized(LDAGibbsSampler<T> sampler);
 
-	public void updatedSolution(int iteration);
+	public void updatedSolution(LDAGibbsSampler<T> sampler, int iteration);
 	
-	public void done();
-	
+	public void done(LDAGibbsSampler<T> sampler);
 }

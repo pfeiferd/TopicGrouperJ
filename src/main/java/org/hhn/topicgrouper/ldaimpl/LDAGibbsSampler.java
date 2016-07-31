@@ -65,10 +65,10 @@ public class LDAGibbsSampler<T> {
 		return v;
 	}
 	
-	public void solve(int iterations, LDASolutionListener solutionListener) {
-		solutionListener.beforeInitialization();
+	public void solve(int iterations, LDASolutionListener<T> solutionListener) {
+		solutionListener.beforeInitialization(this);
 		initialize(solutionListener);
-		solutionListener.initialized();
+		solutionListener.initialized(this);
 
 		for (int i = 0; i < iterations; i++) {
 			int h = 0;
@@ -98,15 +98,15 @@ public class LDAGibbsSampler<T> {
 				}
 				h++;
 			}
-			solutionListener.updatedSolution(i);
+			solutionListener.updatedSolution(this, i);
 		}
-		solutionListener.done();
+		solutionListener.done(this);
 	}
 
-	protected void initialize(LDASolutionListener listener) {
+	protected void initialize(LDASolutionListener<T> listener) {
 		int h = 0;
 		for (Document<T> d : documents) {
-			listener.initalizing(h);
+			listener.initalizing(this, h);
 			initializeDocument(d, h);
 			h++;
 		}
