@@ -13,21 +13,27 @@ public class MapNode<T> implements Serializable {
 	private final MapNode<T> leftNode;
 	private final MapNode<T> rightNode;
 	private MapNode<T> parent;
+	private final double totalLikelihood;
 	private final double likelihood;
 	private final double deltaLikelihood;
 	private boolean marked;
 
 	public MapNode(int id, MapNode<T> leftNode, MapNode<T> rightNode,
-			List<WordInfo<T>> topTopicWordIds, double likelihood,
+			List<WordInfo<T>> topTopicWordIds, double totalLikelihood, double likelihood,
 			double deltaLikelihood, int topicFrequency) {
 		this.id = id;
 		this.leftNode = leftNode;
 		this.rightNode = rightNode;
 		this.topTopicWordIds = topTopicWordIds;
 		this.marked = false;
+		this.totalLikelihood = totalLikelihood;
 		this.likelihood = likelihood;
 		this.deltaLikelihood = deltaLikelihood;
 		this.topicFrequency = topicFrequency;
+	}
+	
+	public double getTotalLikelihood() {
+		return totalLikelihood;
 	}
 	
 	public void setParent(MapNode<T> parent) {
