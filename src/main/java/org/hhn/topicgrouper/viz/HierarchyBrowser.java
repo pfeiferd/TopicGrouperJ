@@ -63,6 +63,7 @@ import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 
+import org.hhn.topicgrouper.report.TopTopicSearcher;
 import org.hhn.topicgrouper.report.store.MapNode;
 import org.hhn.topicgrouper.report.store.WordInfo;
 
@@ -113,10 +114,13 @@ public class HierarchyBrowser<T> {
 	private final SpinnerNumberModel spinnerModel2;
 	private final SpinnerNumberModel spinnerModel3;
 	private final SpinnerNumberModel spinnerModel4;
+	
+	private final TopTopicSearcher<T> topicSearcher;
 
 	public HierarchyBrowser(boolean highDPI) {
 		this.highDPI = highDPI;
 		alphaBase = 200;
+		topicSearcher = new TopTopicSearcher<T>();
 		frame = new JFrame("TG Result Browser");
 		frame.addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent e) {
@@ -180,9 +184,9 @@ public class HierarchyBrowser<T> {
 				Component res = super.getTreeCellRendererComponent(tree, value,
 						sel, expanded, leaf, row, hasFocus);
 				if (frColorCheckBox.isSelected()) {
-					setBackgroundNonSelectionColor(computerColor(
-							((MapNode<T>) value).getTopicFrequency(),
-							root.getTopicFrequency()));
+					MapNode<T> node = (MapNode<T>) value;
+					setBackgroundNonSelectionColor(computerColor(-node
+							.getLikelihood() / node.getTopicFrequency()));
 				} else {
 					setBackgroundNonSelectionColor(origTreeBackground);
 				}
@@ -541,7 +545,7 @@ public class HierarchyBrowser<T> {
 						if (right != null && right.getId() > 0) {
 							nodeIndices.add(allNodes.size() - right.getId());
 						}
-						//nodeIndices.add(i);
+						// nodeIndices.add(i);
 						while (node != null && node.getId() > 0) {
 							bitSet.set(node.getId());
 							node = node.getParent();
@@ -554,7 +558,11 @@ public class HierarchyBrowser<T> {
 
 	protected void adjustNodeIndicesByHierarchyLevel(int level) {
 		nodeIndices.clear();
-		collectByLevel(root, 1, level);
+		List<MapNode<T>> res = topicSearcher.getBestTopics(level, root);
+		for (MapNode<T> node : res) {
+			nodeIndices.add(allNodes.size() - node.getId());
+		}
+		//collectByLevel(root, 1, level);
 	}
 
 	protected void collectByLevel(MapNode<T> node, int level, int targetLevel) {
@@ -739,8 +747,10 @@ public class HierarchyBrowser<T> {
 
 		@Override
 		public int getColumnCount() {
-			return maxWords * (isWithFrequencies() ? 2 : 1) + 4;
+			return maxWords * (isWithFrequencies() ? 2 : 1) + firstColumns;
 		}
+
+		private int firstColumns = 5;
 
 		@Override
 		public String getColumnName(int columnIndex) {
@@ -756,9 +766,14 @@ public class HierarchyBrowser<T> {
 			if (columnIndex == 3) {
 				return "LD Change";
 			}
-			int index = (columnIndex - 4) / (isWithFrequencies() ? 2 : 1);
-			return ((!isWithFrequencies() || columnIndex % 2 == 0) ? "Word "
-					: "Fr ") + index;
+			if (columnIndex == 4) {
+				return "Topic Likelihood";
+			}
+			int index = (columnIndex - firstColumns)
+					/ (isWithFrequencies() ? 2 : 1);
+			return ((!isWithFrequencies() || (columnIndex + firstColumns) % 2 == 0) ? "Word "
+					: "Fr ")
+					+ index;
 		}
 
 		@Override
@@ -766,11 +781,12 @@ public class HierarchyBrowser<T> {
 			if (columnIndex == 0 || columnIndex == 1) {
 				return Integer.class;
 			}
-			if (columnIndex == 2 || columnIndex == 3) {
+			if (columnIndex == 2 || columnIndex == 3 || columnIndex == 4) {
 				return Double.class;
 			}
-			return isWithFrequencies() ? (columnIndex % 2 == 0 ? String.class
-					: Integer.class) : String.class;
+			return isWithFrequencies() ? ((columnIndex + firstColumns) % 2 == 0 ? String.class
+					: Integer.class)
+					: String.class;
 		}
 
 		@Override
@@ -793,11 +809,15 @@ public class HierarchyBrowser<T> {
 			if (columnIndex == 3) {
 				return getLogDeltaChange(nodeIndices.get(rowIndex));
 			}
-			int index = (columnIndex - 4) / (isWithFrequencies() ? 2 : 1);
+			if (columnIndex == 4) {
+				return value.getLikelihood() / value.getTopicFrequency();
+			}
+			int index = (columnIndex - firstColumns)
+					/ (isWithFrequencies() ? 2 : 1);
 			List<WordInfo<T>> wordInfos = value.getTopTopicWordInfos();
 			if (index < wordInfos.size()) {
 				WordInfo<T> info = wordInfos.get(index);
-				return (!isWithFrequencies() || columnIndex % 2 == 0) ? info
+				return (!isWithFrequencies() || (columnIndex + firstColumns) % 2 == 0) ? info
 						.getWord() : info.getFrequency();
 			}
 			return "";
@@ -820,7 +840,11 @@ public class HierarchyBrowser<T> {
 	}
 
 	private Color computerColor(int topicFr, int maxFr) {
-		double ratio = Math.log(topicFr) / Math.log(maxFr);
+		return computerColor(Math.log(topicFr) / Math.log(maxFr));
+	}
+
+	private Color computerColor(double ratio /* int topicFr, int maxFr */) {
+		// double ratio = Math.log(topicFr) / Math.log(maxFr);
 		int diff = (int) ((ratio > 1 ? 1 : ratio) * (255 - alphaBase));
 		int b = alphaBase + diff;
 		int r = 255 - diff;
