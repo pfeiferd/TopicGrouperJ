@@ -40,6 +40,7 @@ public class BasicLDAResultReporter<T> implements LDASolutionListener<T> {
 		Arrays.sort(vi);
 		
 		DocumentProvider<T> provider = sampler.getDocumentProvider();
+		ValueAndIndex[] viWords = new ValueAndIndex[sampler.getNWords()];
 		
 		for (int i = 0; i < vi.length; i++) {
 			pw.print("Topic ");
@@ -47,7 +48,6 @@ public class BasicLDAResultReporter<T> implements LDASolutionListener<T> {
 			pw.print(" (");
 			pw.print(vi[i].getValue());
 			pw.println("):");
-			ValueAndIndex[] viWords = new ValueAndIndex[sampler.getNWords()];
 			for (int j = 0; j < viWords.length; j++) {
 				viWords[j] = new ValueAndIndex(sampler.getTopicWordAssignmentCount(vi[i].getIndex(), j), j);
 			}
@@ -62,15 +62,6 @@ public class BasicLDAResultReporter<T> implements LDASolutionListener<T> {
 		}
 	}
 	
-	protected ValueAndIndex[] fillVI(int[] values) {
-		ValueAndIndex[] result = new ValueAndIndex[values.length];
-		for (int i = 0; i < values.length; i++) {
-			result[i] = new ValueAndIndex(values[i], i);
-		}
-		Arrays.sort(result);
-		return result;
-	}
-
 	@Override
 	public void initalizing(LDAGibbsSampler<T> sampler, int document) {
 	}
