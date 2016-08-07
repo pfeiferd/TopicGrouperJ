@@ -17,6 +17,7 @@ public class LDAGibbsSampler<T> {
 	private final DocumentProvider<T> provider;
 
 	private final int[][] documentTopicAssignmentCount;
+	private final int[] documentSumTopicAssignmentCount;
 	private final int[][] topicWordAssignmentCount;
 	private final int[] topicFrCount;
 	private final int[][][] documentWordOccurrenceLastTopicAssignment;
@@ -38,6 +39,7 @@ public class LDAGibbsSampler<T> {
 		this.random = random;
 		documents = provider.getDocuments();
 		documentTopicAssignmentCount = new int[documents.size()][alpha.length];
+		documentSumTopicAssignmentCount = new int[documents.size()];
 		topicWordAssignmentCount = new int[alpha.length][provider
 				.getNumberOfWords()];
 		topicFrCount = new int[alpha.length];
@@ -100,6 +102,11 @@ public class LDAGibbsSampler<T> {
 			}
 			afterSampling(i, iterations);
 			solutionListener.updatedSolution(this, i);
+		}
+		for (int i = 0; i < documentSumTopicAssignmentCount.length; i++) {
+			for (int j = 0; j < documentTopicAssignmentCount[i].length; j++) {
+				documentSumTopicAssignmentCount[i] += documentTopicAssignmentCount[i][j];
+			}
 		}
 		solutionListener.done(this);
 	}
@@ -220,15 +227,27 @@ public class LDAGibbsSampler<T> {
 		return probs.length - 1;
 	}
 
-	public int[] getTopicFrCount() {
-		return topicFrCount;
+	public int getTopicFrCount(int i) {
+		return topicFrCount[i];
 	}
 
-	public int[][] getTopicWordAssignmentCount() {
-		return topicWordAssignmentCount;
+	public int getTopicWordAssignmentCount(int i, int j) {
+		return topicWordAssignmentCount[i][j];
 	}
 
 	public DocumentProvider<T> getDocumentProvider() {
 		return provider;
+	}
+	
+	public int getDocumentTopicAssignmentCount(int i, int j) {
+		return documentTopicAssignmentCount[i][j];
+	}
+	
+	public int getNTopics() {
+		return topicFrCount.length;
+	}
+	
+	public int getDocumentSumTopicAssignmentCount(int i) {
+		return documentSumTopicAssignmentCount[i];
 	}
 }
