@@ -39,7 +39,7 @@ public class PerplexityCalculator<T> {
 	}
 
 	public double computeLogProbability(Document<T> d, int dSize, Solution<T> s) {
-		double res = bowFactor ? logFakN(dSize) : 0;
+		double res = bowFactor ? logFacN(dSize) : 0;
 
 		TIntIterator it = d.getWordIndices().iterator();
 		while (it.hasNext()) {
@@ -52,7 +52,7 @@ public class PerplexityCalculator<T> {
 				TIntCollection words = s.getTopicsAlt()[topicIndex];
 				if (wordFr > 0 && words != null) {
 					if (bowFactor) {
-						res -= logFakN(wordFr);
+						res -= logFacN(wordFr);
 					}
 					res += wordFr
 							* computeWordLogProbability(sIndex, d, dSize, s,
@@ -79,7 +79,7 @@ public class PerplexityCalculator<T> {
 				- Math.log(s.getTopicFrequency(topicIndex));
 	}
 
-	public static double logFakN(int n) {
+	public static double logFacN(int n) {
 		double sum = 0;
 		for (int i = 1; i <= n; i++) {
 			sum += Math.log(i);

@@ -15,10 +15,10 @@ public class LDAPerplixityCalculatorAlt<T> implements AbstractLDAPerplixityCalcu
 	}
 
 	public double computePerplexity(
-			DocumentProvider<T> trainingDocumentProvider,
+			DocumentProvider<T> testDocumentProvider,
 			LDAGibbsSampler<T> sampler) {
-		if (ptd == null || ptd.length != sampler.getTopicFrCount().length) {
-			ptd = new double[sampler.getTopicFrCount().length];
+		if (ptd == null || ptd.length != sampler.getNTopics()) {
+			ptd = new double[sampler.getNTopics()];
 		}
 		DocumentProvider<T> provider = sampler.getDocumentProvider();
 		double sumA = 0;
@@ -26,16 +26,16 @@ public class LDAPerplixityCalculatorAlt<T> implements AbstractLDAPerplixityCalcu
 		// Compute the document size excluding words not in the training
 		// vocabulary.
 		// (Therefore cannot use d.size() ...)
-		for (Document<T> d : provider.getDocuments()) {
+		for (Document<T> d : testDocumentProvider.getDocuments()) {
 			int dSize = 0;
-			for (int j = 0; j < trainingDocumentProvider.getNumberOfWords(); j++) {
-				T word = trainingDocumentProvider.getWord(j);
+			for (int j = 0; j < provider.getNumberOfWords(); j++) {
+				T word = provider.getWord(j);
 				int index = provider.getIndex(word);
 				if (index >= 0) {
 					dSize += d.getWordFrequency(index);
 				}
 			}
-			sumA += computeLogProbability(sampler, trainingDocumentProvider, d,
+			sumA += computeLogProbability(sampler, provider, d,
 					dSize);
 			sumB += dSize;
 		}
@@ -45,7 +45,7 @@ public class LDAPerplixityCalculatorAlt<T> implements AbstractLDAPerplixityCalcu
 	public double computeLogProbability(LDAGibbsSampler<T> sampler,
 			DocumentProvider<T> trainingDocumentProvider, Document<T> d,
 			int dSize) {
-		double res = bowFactor ? PerplexityCalculator.logFakN(dSize) : 0;
+		double res = bowFactor ? PerplexityCalculator.logFacN(dSize) : 0;
 
 		// update ptd for d
 		for (int i = 0; i < ptd.length; i++) {
@@ -55,7 +55,7 @@ public class LDAPerplixityCalculatorAlt<T> implements AbstractLDAPerplixityCalcu
 				int index = d.getProvider().getIndex(word);
 				if (index >= 0) {
 					ptd[i] += ((double) d.getWordFrequency(index))
-							* sampler.getTopicWordAssignmentCount()[i][j]
+							* sampler.getTopicWordAssignmentCount(i,j)
 							/ trainingDocumentProvider.getWordFrequency(j);
 				}
 			}
@@ -72,7 +72,7 @@ public class LDAPerplixityCalculatorAlt<T> implements AbstractLDAPerplixityCalcu
 				int wordFr = d.getWordFrequency(index);
 				if (wordFr > 0) {
 					if (bowFactor) {
-						res -= PerplexityCalculator.logFakN(wordFr);
+						res -= PerplexityCalculator.logFacN(wordFr);
 					}
 					res += wordFr
 							* computeWordLogProbability(sampler, tIndex,
@@ -87,10 +87,9 @@ public class LDAPerplixityCalculatorAlt<T> implements AbstractLDAPerplixityCalcu
 			int tIndex, int fr, Document<T> d) {
 		double sum = 0;
 		for (int i = 0; i < ptd.length; i++) {
-			sum += ((double) sampler.getTopicWordAssignmentCount()[i][tIndex])
-					/ sampler.getTopicFrCount()[i] * ptd[i];
+			sum += ((double) sampler.getTopicWordAssignmentCount(i,tIndex))
+					/ sampler.getTopicFrCount(i) * ptd[i];
 		}
 		return Math.log(sum);
 	}
-
 }
