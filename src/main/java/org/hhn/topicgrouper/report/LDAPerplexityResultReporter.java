@@ -97,7 +97,7 @@ public abstract class LDAPerplexityResultReporter<T> implements
 			double result = calculator.computePerplexity(
 					trainingDocumentProvider, sampler);
 			perplexityComputed(iteration, result,
-					sampler.getTopicFrCount().length);
+					sampler.getNTopics());
 		}
 	}
 
