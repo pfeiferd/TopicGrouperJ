@@ -4,7 +4,7 @@ import org.hhn.topicgrouper.base.DocumentProvider;
 import org.hhn.topicgrouper.ldaimpl.LDAGibbsSampler;
 import org.hhn.topicgrouper.report.LDAPerplexityResultReporter;
 import org.hhn.topicgrouper.util.TwoParameterSearcher;
-import org.hhn.topicgrouper.validation.AbstractLDAPerplixityCalculator;
+import org.hhn.topicgrouper.validation.AbstractLDAPerplexityCalculator;
 
 public abstract class AbstractHyperparamOptGibbsLDA<T> {
 	private final DocumentProvider<T> trainingDocumentProvider;
@@ -91,5 +91,5 @@ public abstract class AbstractHyperparamOptGibbsLDA<T> {
 	protected abstract LDAGibbsSampler<T> createSampler(int topics,
 			double[] alpha, double beta, int iterations);
 
-	protected abstract AbstractLDAPerplixityCalculator<T> createPerplexityCalculator();
+	protected abstract AbstractLDAPerplexityCalculator<T> createPerplexityCalculator();
 }

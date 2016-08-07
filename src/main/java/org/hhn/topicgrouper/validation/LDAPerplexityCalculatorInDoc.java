@@ -7,7 +7,7 @@ import org.hhn.topicgrouper.base.DocumentProvider;
 import org.hhn.topicgrouper.ldaimpl.LDAGibbsSampler;
 
 public class LDAPerplexityCalculatorInDoc<T> implements
-		AbstractLDAPerplixityCalculator<T> {
+		AbstractLDAPerplexityCalculator<T> {
 	private final boolean bowFactor;
 
 	public LDAPerplexityCalculatorInDoc(boolean bowFactor) {
@@ -74,8 +74,7 @@ public class LDAPerplexityCalculatorInDoc<T> implements
 			sum += ((double) sampler.getTopicWordAssignmentCount(i, tIndex) / sampler
 					.getTopicFrCount(i))
 					* (((double) sampler.getDocumentTopicAssignmentCount(
-							dIndex, i) / sampler
-							.getDocumentSumTopicAssignmentCount(dIndex)));
+							dIndex, i) / sampler.getDocumentSize(dIndex)));
 		}
 		return sum;
 	}

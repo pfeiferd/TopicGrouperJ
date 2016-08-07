@@ -6,11 +6,11 @@ import org.hhn.topicgrouper.base.Document;
 import org.hhn.topicgrouper.base.DocumentProvider;
 import org.hhn.topicgrouper.ldaimpl.LDAGibbsSampler;
 
-public class LDAPerplixityCalculatorAlt<T> implements AbstractLDAPerplixityCalculator<T> {
+public class LDAPerplexityCalculatorAlt<T> implements AbstractLDAPerplexityCalculator<T> {
 	private final boolean bowFactor;
 	private double[] ptd;
 
-	public LDAPerplixityCalculatorAlt(boolean bowFactor) {
+	public LDAPerplexityCalculatorAlt(boolean bowFactor) {
 		this.bowFactor = bowFactor;
 	}
 
