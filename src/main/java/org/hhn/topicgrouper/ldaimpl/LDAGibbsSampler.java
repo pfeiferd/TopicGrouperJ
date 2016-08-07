@@ -250,4 +250,13 @@ public class LDAGibbsSampler<T> {
 	public int getDocumentSumTopicAssignmentCount(int i) {
 		return documentSumTopicAssignmentCount[i];
 	}
+	
+	public int getNDocuments() {
+		return documentSumTopicAssignmentCount.length;
+	}
+	
+	public int getNWords() {
+		return provider
+				.getNumberOfWords();
+	}
 }
