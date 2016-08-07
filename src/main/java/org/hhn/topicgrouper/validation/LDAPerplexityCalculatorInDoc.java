@@ -47,11 +47,11 @@ public class LDAPerplexityCalculatorInDoc<T> implements
 			if (tIndex >= 0) {
 				int wordFr = d.getWordFrequency(index);
 				if (wordFr > 0) {
-					double pw = computeWordProbability(sampler, tIndex, wordFr, d,
-							dIndex);
+					double pw = computeWordProbability(sampler, tIndex, wordFr,
+							d, dIndex);
 					if (pw > 0) {
 						if (bowFactor) {
-							res -= PerplexityCalculator.logFakN(wordFr);
+							res -= PerplexityCalculator.logFacN(wordFr);
 						}
 						res += wordFr * Math.log(pw);
 					} else {
@@ -67,12 +67,15 @@ public class LDAPerplexityCalculatorInDoc<T> implements
 		return res;
 	}
 
-	private double computeWordProbability(LDAGibbsSampler<T> sampler, int tIndex, int fr,
-			Document<T> d, int dIndex) {
+	private double computeWordProbability(LDAGibbsSampler<T> sampler,
+			int tIndex, int fr, Document<T> d, int dIndex) {
 		double sum = 0;
 		for (int i = 0; i < sampler.getNTopics(); i++) {
-			sum += (((double) sampler.getTopicWordAssignmentCount(i,tIndex) / sampler.getTopicFrCount(i))
-					* (((double) sampler.getDocumentTopicAssignmentCount(dIndex,i) / sumDocTopicCount[dIndex]);
+			sum += ((double) sampler.getTopicWordAssignmentCount(i, tIndex) / sampler
+					.getTopicFrCount(i))
+					* (((double) sampler.getDocumentTopicAssignmentCount(
+							dIndex, i) / sampler
+							.getDocumentSumTopicAssignmentCount(dIndex)));
 		}
 		return sum;
 	}
