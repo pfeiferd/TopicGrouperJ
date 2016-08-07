@@ -4,10 +4,10 @@ import java.util.Random;
 
 import org.hhn.topicgrouper.base.DocumentProvider;
 import org.hhn.topicgrouper.eval.TWCLDAPaperDocumentGenerator;
-import org.hhn.topicgrouper.ldagibbs.BasicGibbsSolutionReporter;
-import org.hhn.topicgrouper.ldagibbs.GibbsSamplingLDAAdapt;
-import org.hhn.topicgrouper.ldagibbs.GibbsSamplingLDAWithPerplexityInDoc;
+import org.hhn.topicgrouper.ldaimpl.LDAGibbsSampler;
+import org.hhn.topicgrouper.report.LDAPerplexityResultReporter;
 import org.hhn.topicgrouper.validation.InDocumentHoldOutSplitter;
+import org.hhn.topicgrouper.validation.LDAPerplexityCalculatorInDoc;
 
 public class AsymmetricLDAGibbsTesterPM2 {
 	public static void main(String[] args) throws Exception {
@@ -18,11 +18,11 @@ public class AsymmetricLDAGibbsTesterPM2 {
 		InDocumentHoldOutSplitter<String> splitter = new InDocumentHoldOutSplitter<String>(
 				new Random(42), documentProvider, 0.1, 0);
 
-		GibbsSamplingLDAAdapt gibbsSampler = new GibbsSamplingLDAWithPerplexityInDoc(
-				new BasicGibbsSolutionReporter(System.out), splitter.getRest(),
-				new double[] { 5, 0.5, 0.5, 0.5 }, 0.5, 400, 10,
-				"AsymmetricLDAGibbsTesterPM2", "", 0, splitter.getHoldOut(), 2);
-		gibbsSampler.folderPath = "target/";
-		gibbsSampler.inference();
+		LDAGibbsSampler<String> gibbsSampler = new LDAGibbsSampler<String>(
+				splitter.getRest(), new double[] { 5, .5, .5, .5 }, 0.5,
+				new Random());
+		gibbsSampler.solve(1000, new LDAPerplexityResultReporter<String>(
+				splitter.getHoldOut(), System.out, 10,
+				new LDAPerplexityCalculatorInDoc<String>(false)));
 	}
 }
