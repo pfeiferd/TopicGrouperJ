@@ -33,18 +33,25 @@ public class BasicLDAResultReporter<T> implements LDASolutionListener<T> {
 	}
 	
 	protected void printTopics(LDAGibbsSampler<T> sampler) {
-		ValueAndIndex[] vi = fillVI(sampler.getTopicFrCount());
+		ValueAndIndex[] vi = new ValueAndIndex[sampler.getNTopics()];
+		for (int i = 0; i < vi.length; i++) {
+			vi[i] = new ValueAndIndex(sampler.getTopicFrCount(i), i);
+		}
+		Arrays.sort(vi);
+		
 		DocumentProvider<T> provider = sampler.getDocumentProvider();
 		
-		int[][] topicWordCounts = sampler.getTopicWordAssignmentCount();
 		for (int i = 0; i < vi.length; i++) {
 			pw.print("Topic ");
 			pw.print(i);
 			pw.print(" (");
 			pw.print(vi[i].getValue());
 			pw.println("):");
-			int[] wordCounts = topicWordCounts[vi[i].getIndex()];
-			ValueAndIndex[] viWords = fillVI(wordCounts);
+			ValueAndIndex[] viWords = new ValueAndIndex[sampler.getNWords()];
+			for (int j = 0; j < viWords.length; j++) {
+				viWords[j] = new ValueAndIndex(sampler.getTopicWordAssignmentCount(vi[i].getIndex(), j), j);
+			}
+			Arrays.sort(viWords);
 			for (int j = 0; j < topWords; j++) {
 				pw.print(provider.getWord(viWords[j].getIndex()));
 				pw.print(" (");
