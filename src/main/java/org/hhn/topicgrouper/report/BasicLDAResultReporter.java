@@ -8,7 +8,7 @@ import org.hhn.topicgrouper.ldaimpl.LDAGibbsSampler;
 import org.hhn.topicgrouper.ldaimpl.LDASolutionListener;
 
 public class BasicLDAResultReporter<T> implements LDASolutionListener<T> {
-	private final PrintStream pw;
+	protected final PrintStream pw;
 	private long startTime;
 	private int topWords;
 
