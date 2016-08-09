@@ -1,7 +1,5 @@
 package org.hhn.topicgrouper.validation;
 
-import java.util.Arrays;
-
 import org.hhn.topicgrouper.base.Document;
 import org.hhn.topicgrouper.ldaimpl.LDAGibbsSampler;
 
