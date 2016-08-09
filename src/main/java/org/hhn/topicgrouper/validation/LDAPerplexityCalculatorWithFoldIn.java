@@ -3,6 +3,7 @@ package org.hhn.topicgrouper.validation;
 import org.hhn.topicgrouper.base.Document;
 import org.hhn.topicgrouper.ldaimpl.LDAGibbsSampler;
 
+
 public class LDAPerplexityCalculatorWithFoldIn<T> extends
 		AbstractLDAPerplexityCalculator<T> {
 	private final int foldInIterations;
@@ -20,7 +21,7 @@ public class LDAPerplexityCalculatorWithFoldIn<T> extends
 
 		for (int i = 0; i < ptd.length; i++) {
 			ptd[i] = ((double) (topicAssignmentCount[i] + 1))
-					/ (d.getSize() + topicAssignmentCount.length);
+					/ (dSize + topicAssignmentCount.length);
 		}
 	}
 }
