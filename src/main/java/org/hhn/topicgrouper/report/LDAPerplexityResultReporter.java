@@ -15,23 +15,20 @@ import javax.swing.JPanel;
 
 import org.hhn.topicgrouper.base.DocumentProvider;
 import org.hhn.topicgrouper.ldaimpl.LDAGibbsSampler;
-import org.hhn.topicgrouper.ldaimpl.LDASolutionListener;
-import org.hhn.topicgrouper.validation.AbstractLDAPerplixityCalculator;
+import org.hhn.topicgrouper.validation.AbstractLDAPerplexityCalculator;
 
-public abstract class LDAPerplexityResultReporter<T> implements
-		LDASolutionListener<T> {
+public class LDAPerplexityResultReporter<T> extends BasicLDAResultReporter<T> {
 	private final ITrace2D trace;
-	private final PrintStream pw;
-	private final AbstractLDAPerplixityCalculator<T> calculator;
-	private final DocumentProvider<T> trainingDocumentProvider;
+	private final AbstractLDAPerplexityCalculator<T> calculator;
+	private final DocumentProvider<T> testDocumentProvider;
 	private final int perplexitySteps;
 
 	public LDAPerplexityResultReporter(
-			DocumentProvider<T> trainingDocumentProvider, PrintStream pw,
-			int perplexitySteps, AbstractLDAPerplixityCalculator<T> calculator) {
-		this.pw = pw;
+			DocumentProvider<T> testDocumentProvider, PrintStream pw,
+			int perplexitySteps, AbstractLDAPerplexityCalculator<T> calculator) {
+		super(pw, 10);
 		this.calculator = calculator;
-		this.trainingDocumentProvider = trainingDocumentProvider;
+		this.testDocumentProvider = testDocumentProvider;
 		this.perplexitySteps = perplexitySteps;
 
 		// Create a chart:
@@ -94,8 +91,9 @@ public abstract class LDAPerplexityResultReporter<T> implements
 	@Override
 	public void updatedSolution(LDAGibbsSampler<T> sampler, int iteration) {
 		if (iteration > 0 && iteration % perplexitySteps == 0) {
+			printTopics(sampler);
 			double result = calculator.computePerplexity(
-					trainingDocumentProvider, sampler);
+					testDocumentProvider, sampler);
 			perplexityComputed(iteration, result,
 					sampler.getNTopics());
 		}

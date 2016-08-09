@@ -166,12 +166,18 @@ public class LDAGibbsSampler<T> {
 		while (it.hasNext()) {
 			int wordIndex = it.next();
 			int fr = d.getWordFrequency(wordIndex);
-			for (int j = 0; j < fr; j++) {
-				int topic = random.nextInt(alpha.length);
-				dWordOccurrenceLastTopicAssignment[h2][j] = topic;
-				dTopicAssignmentCount[topic]++;
-				topicWordAssignmentCountCopy[topic][wordIndex]++;
-				topicFrCountCopy[topic]++;
+
+			T word = d.getProvider().getWord(wordIndex);
+			int tIndex = provider.getIndex(word);
+			// Ensure the word is in the training vocabulary.
+			if (tIndex >= 0) {
+				for (int j = 0; j < fr; j++) {
+					int topic = random.nextInt(alpha.length);
+					dWordOccurrenceLastTopicAssignment[h2][j] = topic;
+					dTopicAssignmentCount[topic]++;
+					topicWordAssignmentCountCopy[topic][tIndex]++;
+					topicFrCountCopy[topic]++;
+				}
 			}
 			h2++;
 		}
@@ -182,21 +188,27 @@ public class LDAGibbsSampler<T> {
 			while (it2.hasNext()) {
 				int wordIndex = it2.next();
 				int fr = d.getWordFrequency(wordIndex);
-				for (int j = 0; j < fr; j++) {
-					int topic = dWordOccurrenceLastTopicAssignment[h2][j];
-					dTopicAssignmentCount[topic]--;
-					topicWordAssignmentCountCopy[topic][wordIndex]--;
-					topicFrCountCopy[topic]--;
-					for (int k = 0; k < alpha.length; k++) {
-						samplingRatios[k] = (dTopicAssignmentCount[k] + alpha[k])
-								* (topicWordAssignmentCountCopy[k][wordIndex] + beta)
-								/ (topicFrCountCopy[k] + betaSum);
+
+				T word = d.getProvider().getWord(wordIndex);
+				int tIndex = provider.getIndex(word);
+				// Ensure the word is in the training vocabulary.
+				if (tIndex >= 0) {
+					for (int j = 0; j < fr; j++) {
+						int topic = dWordOccurrenceLastTopicAssignment[h2][j];
+						dTopicAssignmentCount[topic]--;
+						topicWordAssignmentCountCopy[topic][tIndex]--;
+						topicFrCountCopy[topic]--;
+						for (int k = 0; k < alpha.length; k++) {
+							samplingRatios[k] = (dTopicAssignmentCount[k] + alpha[k])
+									* (topicWordAssignmentCountCopy[k][tIndex] + beta)
+									/ (topicFrCountCopy[k] + betaSum);
+						}
+						topic = nextDiscrete(samplingRatios);
+						dWordOccurrenceLastTopicAssignment[h2][j] = topic;
+						dTopicAssignmentCount[topic]++;
+						topicWordAssignmentCountCopy[topic][tIndex]++;
+						topicFrCountCopy[topic]++;
 					}
-					topic = nextDiscrete(samplingRatios);
-					dWordOccurrenceLastTopicAssignment[h2][j] = topic;
-					dTopicAssignmentCount[topic]++;
-					topicWordAssignmentCountCopy[topic][wordIndex]++;
-					topicFrCountCopy[topic]++;
 				}
 				h2++;
 			}
