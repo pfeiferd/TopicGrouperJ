@@ -1,5 +1,7 @@
 package org.hhn.topicgrouper.validation;
 
+import java.util.Arrays;
+
 import org.hhn.topicgrouper.base.Document;
 import org.hhn.topicgrouper.ldaimpl.LDAGibbsSampler;
 
@@ -14,6 +16,6 @@ public class LDAPerplexityCalculatorInDoc<T> extends
 		for (int i = 0; i < ptd.length; i++) {
 			ptd[i] = (((double) sampler.getDocumentTopicAssignmentCount(
 					dIndex, i) / sampler.getDocumentSize(dIndex)));
-		}		
+		}
 	}
 }
