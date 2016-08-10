@@ -68,7 +68,7 @@ public class LDAPerplexityResultReporter<T> extends BasicLDAResultReporter<T> {
 		return trace;
 	}
 
-	protected void perplexityComputed(int step, double value, int topics) {
+	protected void perplexityComputed(int step, double value) {
 		if (pw != null) {
 			pw.print("Perplexity: ");
 			pw.println(value);
@@ -92,7 +92,7 @@ public class LDAPerplexityResultReporter<T> extends BasicLDAResultReporter<T> {
 	public void updatedSolution(LDAGibbsSampler<T> sampler, int iteration) {
 		if (iteration > 0 && iteration % perplexitySteps == 0) {
 			double result = computePerplexity(sampler);
-			perplexityComputed(iteration, result, sampler.getNTopics());
+			perplexityComputed(iteration, result);
 		}
 	}
 
