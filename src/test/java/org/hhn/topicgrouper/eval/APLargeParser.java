@@ -13,7 +13,6 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 import org.hhn.topicgrouper.base.DefaultDocumentProvider;
-import org.hhn.topicgrouper.base.DefaultDocumentProvider.DefaultDocument;
 import org.hhn.topicgrouper.base.DocumentProvider;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
@@ -32,13 +31,22 @@ import com.aliasi.tokenizer.TokenizerFactory;
 public class APLargeParser {
 	private final TokenizerFactory factory;
 	private final PrintStream pw;
-
+	
 	public APLargeParser(PrintStream pw, boolean removeStopWords) {
+		this(pw, removeStopWords, true);
+	}
+
+	public APLargeParser(PrintStream pw, boolean removeStopWords,
+			boolean stemming) {
 		TokenizerFactory baseFactory = new LowerCaseTokenizerFactory(
 				IndoEuropeanTokenizerFactory.INSTANCE);
-		factory = new PorterStemmerTokenizerFactory(
-				removeStopWords ? new EnglishStopTokenizerFactory(baseFactory)
-						: baseFactory);
+		if (removeStopWords) {
+			baseFactory = new EnglishStopTokenizerFactory(baseFactory);
+		}
+		if (stemming) {
+			baseFactory = new PorterStemmerTokenizerFactory(baseFactory);
+		}
+		factory = baseFactory;
 		this.pw = pw;
 	}
 
@@ -59,7 +67,7 @@ public class APLargeParser {
 			SAXParser parser = factory.newSAXParser();
 			XMLReader xmlReader = parser.getXMLReader();
 			xmlReader.setContentHandler(new DefaultHandler() {
-				DefaultDocument entry = null;
+				DefaultDocumentProvider<String>.DefaultDocument entry = null;
 
 				@Override
 				public void startElement(String uri, String localName,
@@ -96,7 +104,7 @@ public class APLargeParser {
 			});
 
 			for (File apFile : files) {
-				if (documents[0] < maxDocuments /*&& afterCriticalFile*/) {
+				if (documents[0] < maxDocuments /* && afterCriticalFile */) {
 					if (pw != null) {
 						pw.println("AP Parser Reading file: " + apFile);
 						pw.println("Total read documents: " + documents[0]);
@@ -169,7 +177,7 @@ public class APLargeParser {
 		}
 	}
 
-	protected void extendDocument(DefaultDocument entry,
+	protected void extendDocument(DefaultDocumentProvider<String>.DefaultDocument entry,
 			DefaultDocumentProvider<String> documentProvider, char[] cs,
 			int start, int length) {
 		Tokenizer t = new PunctuationStopListTokenizer(factory.tokenizer(cs,
@@ -188,9 +196,9 @@ public class APLargeParser {
 	}
 
 	public static void main(String[] args) {
-		DocumentProvider<String> entryProvider = new APLargeParser(System.out, true)
-				.getCorpusDocumentProvider(new File(
-						"src/test/resources/ap-corpus/full"), Integer.MAX_VALUE);
+		DocumentProvider<String> entryProvider = new APLargeParser(System.out,
+				true).getCorpusDocumentProvider(new File(
+				"src/test/resources/ap-corpus/full"), Integer.MAX_VALUE);
 		System.out.println(entryProvider.getDocuments().size());
 		System.out.println(entryProvider.getNumberOfWords());
 	}
