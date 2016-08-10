@@ -28,14 +28,22 @@ import com.aliasi.tokenizer.Tokenizer;
 import com.aliasi.tokenizer.TokenizerFactory;
 
 public class APParser {
-	private TokenizerFactory factory;
-
+	private final TokenizerFactory factory;
+	
 	public APParser(boolean removeStopWords) {
+		this(removeStopWords, true);
+	}
+
+	public APParser(boolean removeStopWords, boolean stemming) {
 		TokenizerFactory baseFactory = new LowerCaseTokenizerFactory(
 				IndoEuropeanTokenizerFactory.INSTANCE);
-		factory = new PorterStemmerTokenizerFactory(
-				removeStopWords ? new EnglishStopTokenizerFactory(baseFactory)
-						: baseFactory);
+		if (removeStopWords) {
+			baseFactory = new EnglishStopTokenizerFactory(baseFactory);
+		}
+		if (stemming) {
+			baseFactory = new PorterStemmerTokenizerFactory(baseFactory);
+		}
+		factory = baseFactory;
 	}
 
 	public DocumentProvider<String> getCorpusDocumentProvider(File file) {
@@ -105,6 +113,7 @@ public class APParser {
 					}
 				}
 			});
+			inputStream.close();
 
 			return documentProvider;
 		} catch (SAXException e) {
@@ -119,7 +128,7 @@ public class APParser {
 	protected Document<String> createDocument(
 			DefaultDocumentProvider<String> documentProvider, char[] cs,
 			int start, int length) {
-		DefaultDocument entry = documentProvider.newDocument();
+		DefaultDocumentProvider<String>.DefaultDocument entry = documentProvider.newDocument();
 		Tokenizer t = new PunctuationStopListTokenizer(factory.tokenizer(cs,
 				start, length));
 		Iterator<String> it = t.iterator();
