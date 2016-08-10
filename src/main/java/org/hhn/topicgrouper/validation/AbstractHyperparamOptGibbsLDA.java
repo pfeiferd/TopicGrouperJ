@@ -1,24 +1,29 @@
 package org.hhn.topicgrouper.validation;
 
+import java.io.PrintStream;
+import java.util.Random;
+
 import org.hhn.topicgrouper.base.DocumentProvider;
 import org.hhn.topicgrouper.ldaimpl.LDAGibbsSampler;
 import org.hhn.topicgrouper.report.LDAPerplexityResultReporter;
 import org.hhn.topicgrouper.util.TwoParameterSearcher;
-import org.hhn.topicgrouper.validation.AbstractLDAPerplexityCalculator;
 
 public abstract class AbstractHyperparamOptGibbsLDA<T> {
-	private final DocumentProvider<T> trainingDocumentProvider;
-	private final DocumentProvider<T> testDocumentProvider;
-	private final LDAPerplexityResultReporter<T> solutionReporter;
-	private final TwoParameterSearcher twoParameterSearcher;
-	private final int topics;
-	private final int iterations;
-	private final double[][] xyArea;
+	protected final PrintStream pw;
+	protected final DocumentProvider<T> trainingDocumentProvider;
+	protected final DocumentProvider<T> testDocumentProvider;
+	protected final LDAPerplexityResultReporter<T> solutionReporter;
+	protected final TwoParameterSearcher twoParameterSearcher;
+	protected final int topics;
+	protected final int iterations;
+	protected final double[][] xyArea;
+	protected final Random random;
 
-	public AbstractHyperparamOptGibbsLDA(
+	public AbstractHyperparamOptGibbsLDA(PrintStream pw,
 			DocumentProvider<T> trainingDocumentProvider,
 			DocumentProvider<T> testDocumentProvider, int topics,
-			int iterations, double[][] xyArea) {
+			int iterations, double[][] xyArea, Random random) {
+		this.pw = pw;
 		this.trainingDocumentProvider = trainingDocumentProvider;
 		this.testDocumentProvider = testDocumentProvider;
 		this.iterations = iterations;
@@ -26,6 +31,7 @@ public abstract class AbstractHyperparamOptGibbsLDA<T> {
 		this.xyArea = xyArea;
 		this.twoParameterSearcher = createParameterSearcher();
 		this.solutionReporter = createSolutionReporter();
+		this.random = random;
 	}
 
 	public void run() {
@@ -39,27 +45,35 @@ public abstract class AbstractHyperparamOptGibbsLDA<T> {
 			@Override
 			protected double optFunction(double x, double y) {
 				checkFor(x, y);
-				try {
-					LDAGibbsSampler<T> sampler = createSampler(topics,
-							createAlpha(x, topics), createBeta(y, topics),
-							iterations);
-					sampler.solve(iterations, solutionReporter);
-					return perplexityStore;
-				} catch (Exception e) {
-					throw new RuntimeException(e);
-				}
+				LDAGibbsSampler<T> sampler = createSampler(
+						createAlpha(x, topics), createBeta(y, topics),
+						iterations);
+				sampler.solve(iterations, solutionReporter);
+				return perplexityStore;
 			}
 		};
 	}
 
 	protected void checkFor(double alpha, double beta) {
-		System.out.println("alpha: " + alpha);
-		System.out.println("beta: " + beta);
+		pw.println("alpha: " + alpha);
+		pw.println("beta: " + beta);
 	}
 
 	protected LDAPerplexityResultReporter<T> createSolutionReporter() {
-		return new LDAPerplexityResultReporter<T>(trainingDocumentProvider,
-				System.out, iterations, createPerplexityCalculator()) {
+		return new LDAPerplexityResultReporter<T>(testDocumentProvider, pw,
+				iterations, createPerplexityCalculator()) {
+			@Override
+			public void updatedSolution(LDAGibbsSampler<T> sampler,
+					int iteration) {
+				// Do nothing on purpose.
+			}
+
+			@Override
+			public void done(LDAGibbsSampler<T> sampler) {
+				double value = computePerplexity(sampler);
+				perplexityComputed(-1, value, topics);
+			}
+
 			@Override
 			protected void perplexityComputed(int step, double value, int topics) {
 				super.perplexityComputed(step, value, topics);
@@ -76,20 +90,11 @@ public abstract class AbstractHyperparamOptGibbsLDA<T> {
 		return base;
 	}
 
-	protected DocumentProvider<T> getTestDocumentProvider() {
-		return testDocumentProvider;
+	protected LDAGibbsSampler<T> createSampler(double[] alpha, double beta,
+			int iterations) {
+		return new LDAGibbsSampler<T>(trainingDocumentProvider, alpha, beta,
+				random);
 	}
-
-	protected DocumentProvider<T> getTrainingDocumentProvider() {
-		return trainingDocumentProvider;
-	}
-
-	public LDAPerplexityResultReporter<T> getSolutionReporter() {
-		return solutionReporter;
-	}
-
-	protected abstract LDAGibbsSampler<T> createSampler(int topics,
-			double[] alpha, double beta, int iterations);
 
 	protected abstract AbstractLDAPerplexityCalculator<T> createPerplexityCalculator();
 }
