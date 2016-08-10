@@ -91,12 +91,14 @@ public class LDAPerplexityResultReporter<T> extends BasicLDAResultReporter<T> {
 	@Override
 	public void updatedSolution(LDAGibbsSampler<T> sampler, int iteration) {
 		if (iteration > 0 && iteration % perplexitySteps == 0) {
-			printTopics(sampler);
-			double result = calculator.computePerplexity(
-					testDocumentProvider, sampler);
-			perplexityComputed(iteration, result,
-					sampler.getNTopics());
+			double result = computePerplexity(sampler);
+			perplexityComputed(iteration, result, sampler.getNTopics());
 		}
+	}
+
+	protected double computePerplexity(LDAGibbsSampler<T> sampler) {
+		printTopics(sampler);
+		return calculator.computePerplexity(testDocumentProvider, sampler);
 	}
 
 	@Override
