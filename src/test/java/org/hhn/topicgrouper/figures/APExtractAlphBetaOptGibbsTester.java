@@ -6,11 +6,11 @@ import java.util.Random;
 
 import org.hhn.topicgrouper.base.DocumentProvider;
 import org.hhn.topicgrouper.eval.APParser;
-import org.hhn.topicgrouper.ldagibbs.AbstractGibbsSamplingLDAWithPerplexity;
-import org.hhn.topicgrouper.ldagibbs.AbstractHyperparamOptGibbsLDA;
-import org.hhn.topicgrouper.ldagibbs.BasicGibbsSolutionReporter;
-import org.hhn.topicgrouper.ldagibbs.GibbsSamplingLDAWithPerplexityInDoc;
+import org.hhn.topicgrouper.report.LDAPerplexityResultReporter;
+import org.hhn.topicgrouper.validation.AbstractHyperparamOptGibbsLDA;
+import org.hhn.topicgrouper.validation.AbstractLDAPerplexityCalculator;
 import org.hhn.topicgrouper.validation.InDocumentHoldOutSplitter;
+import org.hhn.topicgrouper.validation.LDAPerplexityCalculatorAlt;
 
 public class APExtractAlphBetaOptGibbsTester {
 	public static void main(String[] args) throws Exception {
@@ -25,43 +25,29 @@ public class APExtractAlphBetaOptGibbsTester {
 		InDocumentHoldOutSplitter<String> splitter = new InDocumentHoldOutSplitter<String>(
 				new Random(42), documentProvider, 0.1, 10);
 
-		final PrintStream pw = new PrintStream(new File(
-				"./target/APExtractAlphBetaOptGibbsTester.csv"));
+		final PrintStream pw = System.out; // new PrintStream(new File(
+		// "./target/APExtractAlphBetaOptGibbsTester.csv"));
 
-		AbstractHyperparamOptGibbsLDA optimizer = new AbstractHyperparamOptGibbsLDA(
-				splitter.getRest(), splitter.getHoldOut(), 50, 300,
-				new double[][] { { 0d, 100d }, { 0d, 5d } }) {
-			protected BasicGibbsSolutionReporter createSolutionReporter() {
-				return new BasicGibbsSolutionReporter(System.out) {
-					@Override
-					public void perplexityComputed(int step, double value,
-							int topics) {
-						super.perplexityComputed(step, value, topics);
-						pw.print(topics);
-						pw.print("; ");
-						pw.print(value);
-						pw.println();
-					}
-				};
-			}
+		AbstractHyperparamOptGibbsLDA<String> optimizer = new AbstractHyperparamOptGibbsLDA<String>(
+				pw, splitter.getRest(), splitter.getHoldOut(), 50, 300,
+				new double[][] { { 0d, 100d }, { 0d, 5d } }, new Random()) {
+//			@Override
+//			protected LDAPerplexityResultReporter<String> createSolutionReporter() {
+//				return new LDAPerplexityResultReporter<String>(
+//						testDocumentProvider, pw, iterations,
+//						createPerplexityCalculator()) {
+//					@Override
+//					protected void perplexityComputed(int step, double value,
+//							int topics) {
+//						super.perplexityComputed(step, value, topics);
+//						pw.println(value);
+//					}
+//				};
+//			}
 
-			protected void checkFor(double alpha, double beta) {
-				super.checkFor(alpha, beta);
-				pw.print(alpha);
-				pw.print("; ");
-				pw.print(beta);
-				pw.print("; ");
-			}
-			
 			@Override
-			protected AbstractGibbsSamplingLDAWithPerplexity createSampler(
-					int topics, double[] alpha, double beta, int iterations)
-					throws Exception {
-				return new GibbsSamplingLDAWithPerplexityInDoc(
-						getSolutionReporter(), getTrainingDocumentProvider(),
-						alpha, beta, iterations, 10, createFileName(topics,
-								alpha, beta, iterations), "", 0,
-						getTestDocumentProvider(), iterations);
+			protected AbstractLDAPerplexityCalculator<String> createPerplexityCalculator() {
+				return new LDAPerplexityCalculatorAlt<String>(false);
 			}
 		};
 		optimizer.run();
