@@ -42,9 +42,11 @@ public class TWCAccuracyCalculator<T> {
 		int count = 0;
 
 		for (int j = 0; j < documentProvider.getNumberOfWords(); j++) {
-			for (int i = 0; i < topicAssignments.length; i++) {
-				if (provider.isCorrectTopic(topicAssignments[i], j)) {
-					count += provider.getFrequency(i, j);
+			if (documentProvider.getWordFrequency(j) > 0) {
+				for (int i = 0; i < topicAssignments.length; i++) {
+					if (provider.isCorrectTopic(topicAssignments[i], j)) {
+						count += provider.getFrequency(i, j);
+					}
 				}
 			}
 		}
@@ -54,6 +56,7 @@ public class TWCAccuracyCalculator<T> {
 
 	public interface FrequencyProvider {
 		public int getFrequency(int topic, int wordIndex);
+
 		public boolean isCorrectTopic(int topic, int index);
 	}
 }
