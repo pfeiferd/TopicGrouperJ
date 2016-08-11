@@ -24,6 +24,7 @@ public class OptimizedTopicGrouper<T> extends AbstractTopicGrouper<T> {
 
 	protected final TIntList[] topics;
 	protected final UnionFind topicUnionFind;
+	protected final int[] wordToInitialTopic;
 	protected final int[] topicSizes;
 	protected final TreeSet<JoinCandidate> joinCandidates;
 	protected final double[] topicLikelihoods;
@@ -52,10 +53,15 @@ public class OptimizedTopicGrouper<T> extends AbstractTopicGrouper<T> {
 		this.minTopics = Math.max(1, minTopics);
 		nWords = documentProvider.getNumberOfWords();
 
+		wordToInitialTopic = new int[nWords];
 		int counter = 0;
 		for (int i = 0; i < nWords; i++) {
 			if (documentProvider.getWordFrequency(i) >= minWordFrequency) {
+				wordToInitialTopic[i] = counter;
 				counter++;
+			}
+			else {
+				wordToInitialTopic[i] = -1;
 			}
 		}
 		maxTopics = counter;
@@ -111,7 +117,7 @@ public class OptimizedTopicGrouper<T> extends AbstractTopicGrouper<T> {
 
 			@Override
 			public int getTopicForWord(int wordIndex) {
-				return topicUnionFind.find(wordIndex);
+				return topicUnionFind.find(wordToInitialTopic[wordIndex]);
 			}
 
 			@Override
