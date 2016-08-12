@@ -49,7 +49,7 @@ public class PerplexityCalculator<T> {
 			if (sIndex >= 0) {
 				int wordFr = d.getWordFrequency(index);
 				int topicIndex = s.getTopicForWord(sIndex);
-				TIntCollection words = s.getTopicsAlt()[topicIndex];
+				TIntCollection words = s.getTopics()[topicIndex];
 				if (wordFr > 0 && words != null) {
 					if (bowFactor) {
 						res -= logFacN(wordFr);
