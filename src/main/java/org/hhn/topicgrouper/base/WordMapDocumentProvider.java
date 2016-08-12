@@ -1,6 +1,5 @@
 package org.hhn.topicgrouper.base;
 
-import gnu.trove.function.TIntFunction;
 import gnu.trove.list.TIntList;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.TObjectIntMap;
