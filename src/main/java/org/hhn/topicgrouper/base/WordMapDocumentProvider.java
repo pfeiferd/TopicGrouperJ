@@ -1,5 +1,6 @@
 package org.hhn.topicgrouper.base;
 
+import gnu.trove.function.TIntFunction;
 import gnu.trove.list.TIntList;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.TObjectIntMap;
@@ -13,6 +14,7 @@ public class WordMapDocumentProvider<T> implements DocumentProvider<T> {
 	private final List<Document<T>> immutableList;
 	protected final List<Document<T>> entries;
 	protected final TIntList indexToFr;
+	protected int size;
 
 	public WordMapDocumentProvider(TObjectIntMap<T> wordToIndex,
 			TIntObjectMap<T> indexToWord, List<Document<T>> entries,
@@ -22,6 +24,7 @@ public class WordMapDocumentProvider<T> implements DocumentProvider<T> {
 		this.entries = entries;
 		this.immutableList = Collections.unmodifiableList(entries);
 		this.indexToFr = indexToFr;
+		this.size = 0;
 	}
 
 	@Override
@@ -47,5 +50,10 @@ public class WordMapDocumentProvider<T> implements DocumentProvider<T> {
 	@Override
 	public int getWordFrequency(int index) {
 		return indexToFr.get(index);
+	}
+	
+	@Override
+	public int getSize() {
+		return size;
 	}
 }
