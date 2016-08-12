@@ -46,6 +46,7 @@ public class DefaultDocumentProvider<T> extends WordMapDocumentProvider<T> {
 				int index = it.next();
 				int fr = d.getWordFrequency(index);
 				indexToFr.set(index, indexToFr.get(index) - fr);
+				size -= fr;
 				d.removed = true;
 			}
 		}
@@ -76,6 +77,7 @@ public class DefaultDocumentProvider<T> extends WordMapDocumentProvider<T> {
 			}
 			addWordOccurrence(index, times);
 			indexToFr.set(index, indexToFr.get(index) + times);
+			size += times;
 		}
 
 		@Override

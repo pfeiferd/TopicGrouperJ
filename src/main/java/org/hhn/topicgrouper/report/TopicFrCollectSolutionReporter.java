@@ -40,7 +40,7 @@ public class TopicFrCollectSolutionReporter<T> implements SolutionListener<T> {
 			double improvement, int t1Size, int t2Size, Solution<T> solution) {
 		int[] frs = new int[solution.getNumberOfTopics()];
 		int i = 0;
-		for (TIntCollection t : solution.getTopicsAlt()) {
+		for (TIntCollection t : solution.getTopics()) {
 			if (t != null) {
 				int sum = 0;
 				TIntIterator it = t.iterator();

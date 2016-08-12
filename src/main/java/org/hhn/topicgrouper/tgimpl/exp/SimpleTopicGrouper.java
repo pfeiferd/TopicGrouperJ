@@ -87,11 +87,6 @@ public class SimpleTopicGrouper<T> extends AbstractTopicGrouper<T> {
 		final List<Integer> topicSizes = new ArrayList<Integer>();
 		Solution<T> solution = new Solution<T>() {
 			@Override
-			public List<TIntList> getTopics() {
-				return topics;
-			}
-			
-			@Override
 			public int getTopicForWord(int wordIndex) {
 				throw new UnsupportedOperationException("not yet implemented");
 			}
@@ -133,8 +128,8 @@ public class SimpleTopicGrouper<T> extends AbstractTopicGrouper<T> {
 			}
 
 			@Override
-			public TIntCollection[] getTopicsAlt() {
-				return null;
+			public TIntCollection[] getTopics() {
+				return topics.toArray(new TIntCollection[topics.size()]);
 			}
 
 			@Override

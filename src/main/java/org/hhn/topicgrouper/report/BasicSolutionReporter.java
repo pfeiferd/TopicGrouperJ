@@ -122,7 +122,9 @@ public class BasicSolutionReporter<T> implements SolutionListener<T> {
 					}
 				}
 			} else {
-				trace.addPoint(solution.getNumberOfTopics(), improvement);
+				trace.addPoint(solution.getNumberOfTopics(),
+						solution.getTopicLikelihoods()[newTopicIndex]
+								/ solution.getTopicFrequency(newTopicIndex));
 			}
 		}
 		lastImprovement = improvement;
@@ -131,24 +133,17 @@ public class BasicSolutionReporter<T> implements SolutionListener<T> {
 			pw.println(improvement);
 			pw.print("Likelihood: ");
 			pw.println(solution.getTotalLikelhood());
-			List<? extends TIntCollection> topics = solution.getTopics();
 			pw.print("Number of topics: ");
 			pw.println(solution.getNumberOfTopics());
 			pw.println("New topic: ");
-			if (topics != null) {
-				printTopic(solution, topics.get(newTopicIndex), pw);
-			} else {
-				printTopic(solution, solution.getTopicsAlt()[newTopicIndex], pw);
-			}
+			printTopic(solution, solution.getTopics()[newTopicIndex], pw);
 			pw.println("All topics: ");
-			if (topics != null) {
-				printTopics(solution, pw);
-			} else {
-				printTopics2(solution, pw);
-			}
+			printTopics(solution, pw);
 			TIntCollection homonyms = solution.getHomonymns();
 			if (homonyms != null) {
-				pw.print("Homonyms: ");
+				pw.print("Homonyms (");
+				pw.print(homonyms.size());
+				pw.print("): ");
 				printTopic(solution, homonyms, pw);
 			}
 			pw.println("*****************************");
@@ -158,7 +153,7 @@ public class BasicSolutionReporter<T> implements SolutionListener<T> {
 			pw.println(solution.getNumberOfTopics());
 
 			int[][] sortedByFrequency = new int[solution.getNumberOfTopics()][];
-			TIntCollection[] topics = solution.getTopicsAlt();
+			TIntCollection[] topics = solution.getTopics();
 
 			int k = 0;
 			for (int i = 0; i < topics.length; i++) {
@@ -206,12 +201,6 @@ public class BasicSolutionReporter<T> implements SolutionListener<T> {
 
 	private void printTopics(Solution<T> solution, PrintStream pw) {
 		for (TIntCollection topic : solution.getTopics()) {
-			printTopic(solution, topic, pw);
-		}
-	}
-
-	private void printTopics2(Solution<T> solution, PrintStream pw) {
-		for (TIntCollection topic : solution.getTopicsAlt()) {
 			if (topic != null) {
 				printTopic(solution, topic, pw);
 			}

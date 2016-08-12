@@ -110,7 +110,7 @@ public class OptimizedTopicGrouper4<T> extends AbstractTopicGrouper<T> {
 	protected Solution<T> createSolution() {
 		return new Solution<T>() {
 			@Override
-			public TIntCollection[] getTopicsAlt() {
+			public TIntCollection[] getTopics() {
 				return topics;
 			}
 
@@ -140,11 +140,6 @@ public class OptimizedTopicGrouper4<T> extends AbstractTopicGrouper<T> {
 			@Override
 			public int getTopicFrequency(int topicIndex) {
 				return topicSizes[topicIndex];
-			}
-
-			@Override
-			public List<TIntCollection> getTopics() {
-				return null;
 			}
 
 			@Override

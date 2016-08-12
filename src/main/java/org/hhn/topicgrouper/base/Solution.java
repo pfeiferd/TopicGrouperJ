@@ -2,14 +2,10 @@ package org.hhn.topicgrouper.base;
 
 import gnu.trove.TIntCollection;
 
-import java.util.List;
-
 public interface Solution<T> {
 	public int getNumberOfTopics();
 	
-	public List<? extends TIntCollection> getTopics();
-	
-	public TIntCollection[] getTopicsAlt();
+	public TIntCollection[] getTopics();
 		
 	public int getTopicFrequency(int topicIndex);
 	

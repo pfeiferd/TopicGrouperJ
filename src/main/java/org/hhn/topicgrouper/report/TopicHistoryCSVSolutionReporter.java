@@ -29,7 +29,7 @@ public class TopicHistoryCSVSolutionReporter<T> implements SolutionListener<T> {
 	@Override
 	public void updatedSolution(int newTopicIndex, int oldTopicIndex,
 			double improvement, int t1Size, int t2Size, Solution<T> solution) {
-		TIntCollection topic = solution.getTopicsAlt()[newTopicIndex];
+		TIntCollection topic = solution.getTopics()[newTopicIndex];
 		double ratio = 0;
 		if (lastImprovement != null && lastImprovement != 0) {
 			ratio = improvement / lastImprovement;
