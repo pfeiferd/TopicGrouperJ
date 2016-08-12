@@ -1,10 +1,11 @@
 package org.hhn.topicgrouper.figures;
 
+import java.io.File;
 import java.io.PrintStream;
 import java.util.Random;
 
 import org.hhn.topicgrouper.base.DocumentProvider;
-import org.hhn.topicgrouper.eval.TWCLDAPaperDocumentGenerator;
+import org.hhn.topicgrouper.eval.APLargeParser;
 import org.hhn.topicgrouper.validation.AbstractLDAPerplexityCalculator;
 import org.hhn.topicgrouper.validation.AbstractMultiTopicLDAGibbs;
 import org.hhn.topicgrouper.validation.HoldOutSplitter;
@@ -15,20 +16,20 @@ public class APExtractMutliTopicTester {
 		final PrintStream pw = System.out; // new PrintStream(new File(
 		// "./target/APExtractAlphBetaOptGibbsTester.csv"));
 
-//		DocumentProvider<String> documentProvider = new APLargeParser(pw, true,
-//				false).getCorpusDocumentProvider(new File(
-//				"src/test/resources/ap-corpus/full"), 16333);
-//		pw.println("Number of words: " + documentProvider.getNumberOfWords());
+		DocumentProvider<String> documentProvider = new APLargeParser(pw, true,
+				true).getCorpusDocumentProvider(new File(
+				"src/test/resources/ap-corpus/full"), 16333);
 		// DocumentProvider<String> documentProvider = new APParser(true, false)
 		// .getCorpusDocumentProvider(new File(
 		// "src/test/resources/ap-corpus/extract/ap.txt"));
-		 DocumentProvider<String> documentProvider = new
-		 TWCLDAPaperDocumentGenerator(
-		 new Random(45), new double[] { 5, 0.5, 0.5, 0.5 }, 6000, 100,
-		 100, 30, 30, 0, null, 0.5, 0.8);
+//		 DocumentProvider<String> documentProvider = new
+//		 TWCLDAPaperDocumentGenerator(
+//		 new Random(45), new double[] { 5, 0.5, 0.5, 0.5 }, 6000, 100,
+//		 100, 30, 30, 0, null, 0.5, 0.8);
 
 		HoldOutSplitter<String> splitter = new HoldOutSplitter<String>(
-				new Random(42), documentProvider, 0.1, 2);
+				new Random(42), documentProvider, 0.1, 3);
+		pw.println("Number of words: " + splitter.getRest().getNumberOfWords());
 
 		AbstractMultiTopicLDAGibbs<String> optimizer = new AbstractMultiTopicLDAGibbs<String>(
 				pw, splitter.getRest(), splitter.getHoldOut(), 300,
