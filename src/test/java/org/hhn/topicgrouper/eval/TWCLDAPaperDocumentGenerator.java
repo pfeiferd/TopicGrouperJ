@@ -19,6 +19,7 @@ public class TWCLDAPaperDocumentGenerator implements DocumentProvider<String> {
 	private final List<Document<String>> documentsImmutable;
 	private final Dirichlet dirichlet;
 	private final int[] indexToFr;
+	private int size;
 
 	public TWCLDAPaperDocumentGenerator() {
 		this(new Random(45), new double[] { 5, 0.5, 0.5, 0.5 }, 6000, 100, 100,
@@ -97,8 +98,7 @@ public class TWCLDAPaperDocumentGenerator implements DocumentProvider<String> {
 				drawn.add(allTopics.remove(topicIndex));
 			}
 			for (int topicIndex : drawn) {
-				int wordInTopicIndex = random
-						.nextInt(wordsPerTopic[topicIndex]);
+				int wordInTopicIndex = i; // random.nextInt(wordsPerTopic[topicIndex]);
 				int wordIndex = wordInTopicIndex
 						+ (topicIndex == 0 ? 0
 								: sumWordsUpToTopic[topicIndex - 1]);
@@ -129,12 +129,14 @@ public class TWCLDAPaperDocumentGenerator implements DocumentProvider<String> {
 								: sumWordsUpToTopic[topicIndex - 1]);
 				document.addWordOccurrence(wordIndex);
 				indexToFr[wordIndex]++;
+				size++;
 				Object[] homonymInfo = wordToHomonym.get(wordIndex);
 				if (homonymInfo != null) {
 					if (random.nextDouble() >= (Double) homonymInfo[1]) {
 						int homonym = (Integer) homonymInfo[0];
 						document.addWordOccurrence(homonym);
 						indexToFr[homonym]++;
+						size++;
 					}
 				}
 			}
@@ -176,6 +178,11 @@ public class TWCLDAPaperDocumentGenerator implements DocumentProvider<String> {
 	@Override
 	public int getWordFrequency(int index) {
 		return indexToFr[index];
+	}
+	
+	@Override
+	public int getSize() {
+		return size;
 	}
 
 	public static int nextDiscrete(double[] probs, Random random) {
