@@ -22,10 +22,14 @@ public class TWCLDAPaperDocumentGenerator implements DocumentProvider<String> {
 	private int size;
 
 	public TWCLDAPaperDocumentGenerator() {
-		this(new Random(45), new double[] { 5, 0.5, 0.5, 0.5 }, 6000, 100, 100,
-				30, 30, 0, null, 0.5, 0.8);
+		this(new Random(45));
 	}
 
+	public TWCLDAPaperDocumentGenerator(Random random) {
+		this(random, new double[] { 5, 0.5, 0.5, 0.5 }, 6000, 100, 100,
+				30, 30, 0, null, 0.5, 0.8);
+	}
+	
 	public TWCLDAPaperDocumentGenerator(Random random, double[] dirichletAlpha,
 			int docs, int minWordsPerTopic, int maxWordsPerTopic,
 			int minWordsPerDoc, int maxWordsPerDoc, int homonyms,
