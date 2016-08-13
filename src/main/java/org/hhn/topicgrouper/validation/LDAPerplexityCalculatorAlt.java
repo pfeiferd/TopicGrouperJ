@@ -21,8 +21,8 @@ public class LDAPerplexityCalculatorAlt<T> extends
 				int index = d.getProvider().getIndex(word);
 				if (index >= 0) {
 					ptd[i] += ((double) d.getWordFrequency(index))
-							* sampler.getTopicWordAssignmentCount(i, j)
-							/ provider.getWordFrequency(j);
+							* (sampler.getTopicWordAssignmentCount(i, j) + 1) // + 1 --> Laplace smoothing.
+							/ (provider.getWordFrequency(j) + ptd.length); // Laplace smoothing to avoid division by zero.
 				}
 			}
 			ptd[i] /= dSize;

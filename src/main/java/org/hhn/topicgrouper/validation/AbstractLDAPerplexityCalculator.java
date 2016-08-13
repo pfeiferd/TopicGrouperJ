@@ -78,8 +78,8 @@ public abstract class AbstractLDAPerplexityCalculator<T> {
 			int tIndex, Document<T> d) {
 		double sum = 0;
 		for (int i = 0; i < ptd.length; i++) {
-			sum += ((double) sampler.getTopicWordAssignmentCount(i, tIndex) + 1)
-					/ (sampler.getTopicFrCount(i) + ptd.length) * ptd[i];
+			sum += ((double) sampler.getTopicWordAssignmentCount(i, tIndex) + 1) // + 1 --> Laplace smoothing.
+					/ (sampler.getTopicFrCount(i) + ptd.length) * ptd[i]; // Laplace smoothing to avoid division by zero.
 		}
 		return Math.log(sum);
 	}
