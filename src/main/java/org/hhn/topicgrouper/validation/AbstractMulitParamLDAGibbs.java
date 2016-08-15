@@ -42,6 +42,4 @@ public abstract class AbstractMulitParamLDAGibbs<T> {
 		return new LDAGibbsSampler<T>(trainingDocumentProvider, createAlpha(
 				baseAlpha, topics), createBeta(baseBeta, topics), random);
 	}
-
-	protected abstract AbstractLDAPerplexityCalculator<T> createPerplexityCalculator();
 }

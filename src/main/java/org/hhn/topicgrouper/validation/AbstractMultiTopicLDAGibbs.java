@@ -36,6 +36,8 @@ public abstract class AbstractMultiTopicLDAGibbs<T> extends
 		};
 	}
 
+	protected abstract AbstractLDAPerplexityCalculator<T> createPerplexityCalculator();
+	
 	public void solve(int minTopic, int stepSize, int steps, double baseAlpha,
 			double baseBeta) {
 		for (int i = 0; i < steps; i++) {

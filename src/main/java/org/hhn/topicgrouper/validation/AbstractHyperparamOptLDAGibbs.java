@@ -11,8 +11,6 @@ import org.hhn.topicgrouper.util.TwoParameterSearcher;
 public abstract class AbstractHyperparamOptLDAGibbs<T> extends
 		AbstractMulitParamLDAGibbs<T> {
 	protected final TwoParameterSearcher twoParameterSearcher;
-	protected final int topics;
-	protected final double[][] xyArea;
 	private double perplexityStore;
 
 	public AbstractHyperparamOptLDAGibbs(PrintStream pw,
@@ -21,16 +19,15 @@ public abstract class AbstractHyperparamOptLDAGibbs<T> extends
 			Random random, int topics, double[][] xyArea) {
 		super(pw, trainingDocumentProvider, testDocumentProvider, iterations,
 				random);
-		this.topics = topics;
-		this.xyArea = xyArea;
-		this.twoParameterSearcher = createParameterSearcher();
+		this.twoParameterSearcher = createParameterSearcher(xyArea, topics);
 	}
 
 	public void run() {
 		twoParameterSearcher.search();
 	}
 
-	protected TwoParameterSearcher createParameterSearcher() {
+	protected TwoParameterSearcher createParameterSearcher(double[][] xyArea,
+			final int topics) {
 		return new TwoParameterSearcher(xyArea, 10) {
 			@Override
 			protected double optFunction(double x, double y) {
@@ -46,6 +43,8 @@ public abstract class AbstractHyperparamOptLDAGibbs<T> extends
 		pw.println("alpha: " + alpha);
 		pw.println("beta: " + beta);
 	}
+
+	protected abstract AbstractLDAPerplexityCalculator<T> createPerplexityCalculator();
 
 	protected LDAPerplexityResultReporter<T> createSolutionReporter() {
 		return new LDAPerplexityResultReporter<T>(testDocumentProvider, pw,
