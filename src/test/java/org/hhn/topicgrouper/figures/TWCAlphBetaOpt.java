@@ -51,7 +51,7 @@ public class TWCAlphBetaOpt {
 		};
 
 		TwoParameterSearcher twoParameterSearcher = new TwoParameterSearcher(
-				new double[][] { { 0d, 100d }, { 0d, 5d } }, 100) {
+				new double[][] { { 0d, 20d }, { 0d, 5d } }, 100) {
 			@Override
 			protected double optFunction(double x, double y) {
 				double accuracy = 0;
