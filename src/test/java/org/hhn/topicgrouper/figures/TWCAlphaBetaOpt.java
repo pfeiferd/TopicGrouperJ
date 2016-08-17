@@ -16,16 +16,17 @@ import org.hhn.topicgrouper.validation.LDAPerplexityCalculatorAlt;
 import org.hhn.topicgrouper.validation.TrueTopicAccuracyCalculator;
 import org.hhn.topicgrouper.validation.TrueTopicAccuracyCalculator.FrequencyProvider;
 
-public class TWCAlphBetaOpt {
-	public TWCAlphBetaOpt() {
+public class TWCAlphaBetaOpt {
+	public TWCAlphaBetaOpt() {
 	}
 
-	public void run(String fileName, final boolean optByAcc) throws IOException {
-		final PrintStream pw = new PrintStream(new File(
-				"./target/" + fileName + ".csv"));
+	public void run(String fileName, final boolean optByAcc,
+			final boolean symmetric) throws IOException {
+		final PrintStream pw = new PrintStream(new File("./target/" + fileName
+				+ ".csv"));
 
 		final int nTopics = 4;
-		final int iterations = 100;
+		final int iterations = 20;
 		final int avgC = 10;
 
 		final Random random = new Random(11);
@@ -64,8 +65,9 @@ public class TWCAlphBetaOpt {
 
 					gibbsSampler[0] = new LDAGibbsSampler<String>(
 							holdOutSplitter[0].getRest(),
-							LDAGibbsSampler.symmetricAlpha(y, nTopics), y,
-							random);
+							symmetric ? LDAGibbsSampler.symmetricAlpha(x,
+									nTopics) : new double[] { x, x / 10,
+									x / 10, x / 10 }, y, random);
 					gibbsSampler[0].solve(iterations,
 							new BasicLDAResultReporter<String>(System.out, 10));
 
@@ -101,7 +103,12 @@ public class TWCAlphBetaOpt {
 	}
 
 	public static void main(String[] args) throws IOException {
-//		new TWCErrorRateAlphBetaOpt().run("TWCAccuracyAlphBetaOpt", true);
-		new TWCAlphBetaOpt().run("TWCPerplexityAlphBetaOpt", false);
+		new TWCAlphaBetaOpt().run("TWCAccuracySymmetricAlphaBetaOpt", true, true);
+		new TWCAlphaBetaOpt().run("TWCAccuracyAsymmetricAlphaBetaOpt", true,
+				false);
+		new TWCAlphaBetaOpt().run("TWCPerplexitySymmetricAlphaBetaOpt", false,
+				true);
+		new TWCAlphaBetaOpt().run("TWCPerplexityAsymmetricAlphaBetaOpt", false,
+				false);
 	}
 }

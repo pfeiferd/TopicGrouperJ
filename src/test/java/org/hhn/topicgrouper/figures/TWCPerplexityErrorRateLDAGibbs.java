@@ -67,28 +67,36 @@ public class TWCPerplexityErrorRateLDAGibbs {
 
 		pw.print("alpha1;");
 		pw.print("perplexity;");
+		pw.print("perplexity_err;");
 		pw.print("perplexityFoldIn;");
-		pw.println("err;");
+		pw.print("perplexityFoldIn_err;");
+		pw.print("err;");
+		pw.println("err_err;");
 
 		pw2.print("x;");
 		pw2.print("perplexity;");
-		pw2.println("err;");
+		pw2.print("perplexity_err;");
+		pw2.print("err;");
+		pw2.println("err_err;");
 
 		pw3.print("ntopics;");
 		pw3.print("improvement;");
 		pw3.println("improvementratio;");
 
-		int avgC = 1;
+		int avgC = 5;
+		double[] perplexity1 = new double[avgC];
+		double[] perplexity2 = new double[avgC];
+		double[] acc = new double[avgC];
 		for (int i = 1; i <= 10; i++) {
 			double alpha1 = i * 0.5;
 			double rest = 0.5;
-			double perplexity1 = 0;
-			double perplexity2 = 0;
-			double acc = 0;
 
-			final double[] tgAcc = new double[1];
-			final double[] tgPerplexity = new double[1];
+			final double[] tgAcc = new double[avgC];
+			final double[] tgPerplexity = new double[avgC];
+			final int[] counter = new int[1];
+
 			for (int j = 0; j < avgC; j++) {
+				counter[0] = j;
 				DocumentProvider<String> documentProvider = new TWCLDAPaperDocumentGenerator(
 						random);
 				holdOutSplitter[0] = new HoldOutSplitter<String>(random,
@@ -96,15 +104,17 @@ public class TWCPerplexityErrorRateLDAGibbs {
 
 				gibbsSampler[0] = new LDAGibbsSampler<String>(
 						holdOutSplitter[0].getRest(), new double[] { alpha1,
-								rest, rest, rest }, 0.1, random);
+								rest, rest, rest }, 0.5, random);
 				gibbsSampler[0].solve(iterations,
 						new BasicLDAResultReporter<String>(System.out, 10));
 
-				perplexity1 += calc1.computePerplexity(
+				perplexity1[j] = calc1.computePerplexity(
 						holdOutSplitter[0].getHoldOut(), gibbsSampler[0]);
-				perplexity2 += calc2.computePerplexity(
+
+				perplexity2[j] = calc2.computePerplexity(
 						holdOutSplitter[0].getHoldOut(), gibbsSampler[0]);
-				acc += accuracyCalculator.computeAccuracy(
+
+				acc[j] = accuracyCalculator.computeAccuracy(
 						holdOutSplitter[0].getRest(),
 						gibbsSampler[0].getNTopics(), ldaFrequencyProvider);
 
@@ -124,8 +134,7 @@ public class TWCPerplexityErrorRateLDAGibbs {
 								pw3.print(improvement);
 								pw3.print(";");
 								if (lastImprovement[0] != 0) {
-									pw3.print(improvement
-											/ lastImprovement[0]);
+									pw3.print(improvement / lastImprovement[0]);
 									pw3.print(";");
 								}
 								lastImprovement[0] = improvement;
@@ -141,30 +150,33 @@ public class TWCPerplexityErrorRateLDAGibbs {
 									}
 								}
 
-								tgAcc[0] += accuracyCalculator.computeAccuracy(
-										holdOutSplitter[0].getRest(), 4,
-										new FrequencyProvider() {
-											@Override
-											public int getFrequency(int topic,
-													int wordIndex) {
-												return solution
-														.getTopicForWord(wordIndex) == topicIds[topic] ? solution
-														.getGlobalWordFrequency(wordIndex)
-														: 0;
-											}
+								tgAcc[counter[0]] = accuracyCalculator
+										.computeAccuracy(
+												holdOutSplitter[0].getRest(),
+												4, new FrequencyProvider() {
+													@Override
+													public int getFrequency(
+															int topic,
+															int wordIndex) {
+														return solution
+																.getTopicForWord(wordIndex) == topicIds[topic] ? solution
+																.getGlobalWordFrequency(wordIndex)
+																: 0;
+													}
 
-											@Override
-											public boolean isCorrectTopic(
-													int topic, int index) {
-												Integer w = Integer
-														.valueOf(holdOutSplitter[0]
-																.getRest()
-																.getWord(index));
-												return topic == w / 100;
-											}
-										});
+													@Override
+													public boolean isCorrectTopic(
+															int topic, int index) {
+														Integer w = Integer
+																.valueOf(holdOutSplitter[0]
+																		.getRest()
+																		.getWord(
+																				index));
+														return topic == w / 100;
+													}
+												});
 
-								tgPerplexity[0] += perplexityCalculator.computePerplexity(
+								tgPerplexity[counter[0]] = perplexityCalculator.computePerplexity(
 										holdOutSplitter[0].getHoldOut(),
 										solution);
 							}
@@ -190,32 +202,61 @@ public class TWCPerplexityErrorRateLDAGibbs {
 				}
 			}
 			if (i == 1) {
-				pw2.print("0.5");
-				pw2.print("; ");
-				pw2.print(tgPerplexity[0] / avgC);
-				pw2.print("; ");
-				pw2.print(1.0 - (tgAcc[0] / avgC));
-				pw2.println("; ");
+				double tgPerplexityAvg = avg(tgPerplexity);
+				double tgAccAvg = avg(tgAcc);
 
-				pw2.print("5");
-				pw2.print("; ");
-				pw2.print(tgPerplexity[0] / avgC);
-				pw2.print("; ");
-				pw2.print(1.0 - (tgAcc[0] / avgC));
-				pw2.println("; ");
+				for (int h = 0; h < 2; h++) {
+					pw2.print(0.5 + (4.5 * h));
+					pw2.print("; ");
+					pw2.print(tgPerplexityAvg);
+					pw2.print("; ");
+					pw2.print(sampleStdDev(tgPerplexity));
+					pw2.print("; ");
+					pw2.print(1.0 - tgAccAvg);
+					pw2.print("; ");
+					pw2.print(sampleStdDev(tgAcc));
+					pw2.println("; ");
+				}
 			}
+
 			pw.print(alpha1);
 			pw.print("; ");
-			pw.print(perplexity1 / avgC);
+			pw.print(avg(perplexity1));
 			pw.print("; ");
-			pw.print(perplexity2 / avgC);
+			pw.print(sampleStdDev(perplexity1));
 			pw.print("; ");
-			pw.print(1.0 - (acc / avgC));
+			pw.print(avg(perplexity2));
+			pw.print("; ");
+			pw.print(sampleStdDev(perplexity2));
+			pw.print("; ");
+			pw.print(1 - avg(acc));
+			pw.print("; ");
+			pw.print(sampleStdDev(acc));
 			pw.println("; ");
 		}
 		pw.close();
 		pw2.close();
 		pw3.close();
+	}
+	
+	private double avg(double[] values) {
+		double sum1 = 0;
+		for (int j = 0; j < values.length; j++) {
+			sum1 += values[j];
+		}
+		
+		return sum1 / values.length;		
+	}
+	
+	private double sampleStdDev(double[] values) {
+		double avg = avg(values);
+		
+		double sum = 0;
+		for (int j = 0; j < values.length; j++) {
+			sum += (values[j] - avg)
+					* (values[j] - avg);
+		}
+		return Math.sqrt(sum / (values.length - 1));
 	}
 
 	public static void main(String[] args) throws IOException {
