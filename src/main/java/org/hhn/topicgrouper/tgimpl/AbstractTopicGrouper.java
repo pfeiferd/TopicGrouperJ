@@ -10,16 +10,13 @@ import org.hhn.topicgrouper.base.Solver;
 
 public abstract class AbstractTopicGrouper<T> implements Solver<T> {
 	protected final int minWordFrequency;
-	protected final double lambda;
 	protected final DocumentProvider<T> documentProvider;
 	protected final int[] documentSizes;
 	protected final double[] logDocumentSizes;
 	protected final List<Document<T>> documents;
 
-	public AbstractTopicGrouper(int minWordFrequency, double lambda,
-			DocumentProvider<T> documentProvider) {
+	public AbstractTopicGrouper(int minWordFrequency, DocumentProvider<T> documentProvider) {
 		this.minWordFrequency = minWordFrequency;
-		this.lambda = lambda;
 		this.documentProvider = documentProvider;
 		this.documents = documentProvider.getDocuments();
 		this.documentSizes = getDocumentSizes();
