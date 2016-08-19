@@ -124,7 +124,7 @@ public class JMLRTopicGrouper<T> extends AbstractTopicGrouper<T> {
 				int topic = wordToInitialTopic[wordIndex];
 				return topic == -1 ? -1 : topicUnionFind.find(topic);
 			}
-			
+
 			@Override
 			public int[] getTopicIds() {
 				return JMLRTopicGrouper.this.getTopicIds();
@@ -357,10 +357,9 @@ public class JMLRTopicGrouper<T> extends AbstractTopicGrouper<T> {
 		return jc;
 	}
 
-	private final List<JoinCandidate> addLaterCache = new ArrayList<JoinCandidate>();
-
 	protected void updateJoinCandidates(JoinCandidate jc) {
-		int i = jc.i;
+		// Save old j-index of jc, cause the join candidate with jc.i == j must be deleted still.
+		// jc.i does not need to be saved cause it does not change under the following method call.
 		int j = jc.j;
 		// Recompute the best join partner for joined topic
 		updateJoinCandidateForTopic(jc);
@@ -368,21 +367,15 @@ public class JMLRTopicGrouper<T> extends AbstractTopicGrouper<T> {
 		joinCandidates.add(jc);
 
 		Iterator<JoinCandidate> it = joinCandidates.iterator();
-		addLaterCache.clear();
 		while (it.hasNext()) {
 			JoinCandidate jc2 = it.next();
 			if (jc2.i == j) {
 				it.remove();
+			} else if (jc2 != jc && (jc2.j == jc.i || jc2.j == j)) {
+				// Do not recompute the best joint partner now but mark jc2 as invalid.
+				// (The recomputation might be wasted efforts.)
+				jc2.j = -1;
 			}
-			else if (jc2 != jc && (jc2.j == i || jc2.j == j)) {
-				it.remove();
-				updateJoinCandidateForTopic(jc2);
-				addLaterCache.add(jc2);
-			}
-		}
-		System.out.println("Cache size: " + addLaterCache.size());
-		if (!addLaterCache.isEmpty()) {
-			joinCandidates.addAll(addLaterCache);
 		}
 	}
 
@@ -391,36 +384,43 @@ public class JMLRTopicGrouper<T> extends AbstractTopicGrouper<T> {
 		while (nTopics[0] > minTopics) {
 			// Get the best join candidate
 			JoinCandidate jc = getBestJoinCandidate();
-			int t1Size = 0, t2Size = 0;
-			if (!handleHomonymicTopic(jc)) {
-				t1Size = topicSizes[jc.i];
-				t2Size = topicSizes[jc.j];
-				// Join the topics at position jc.i
-				topics[jc.i].addAll(topics[jc.j]);
-				topicUnionFind.union(jc.j, jc.i);
-				topicSizes[jc.i] += t2Size;
-				sumWordFrTimesLogWordFrByTopic[jc.i] += sumWordFrTimesLogWordFrByTopic[jc.j];
-				// Compute likelihood for joined topic
-				totalLikelihood -= topicLikelihoods[jc.i];
-				topicLikelihoods[jc.i] = jc.likelihood;
-				totalLikelihood += topicLikelihoods[jc.i];
-				int[] a = topicFrequencyPerDocuments[jc.i];
-				int[] b = topicFrequencyPerDocuments[jc.j];
-				for (int i = 0; i < a.length; i++) {
-					a[i] += b[i];
+			// Check if jc is invalid
+			if (jc.j == -1) {
+				// Recompute the best join candidate for jc and sort it in in the right place.
+				updateJoinCandidateForTopic(jc);
+				joinCandidates.add(jc);
+			} else {
+				int t1Size = 0, t2Size = 0;
+				if (!handleHomonymicTopic(jc)) {
+					t1Size = topicSizes[jc.i];
+					t2Size = topicSizes[jc.j];
+					// Join the topics at position jc.i
+					topics[jc.i].addAll(topics[jc.j]);
+					topicUnionFind.union(jc.j, jc.i);
+					topicSizes[jc.i] += t2Size;
+					sumWordFrTimesLogWordFrByTopic[jc.i] += sumWordFrTimesLogWordFrByTopic[jc.j];
+					// Compute likelihood for joined topic
+					totalLikelihood -= topicLikelihoods[jc.i];
+					topicLikelihoods[jc.i] = jc.likelihood;
+					totalLikelihood += topicLikelihoods[jc.i];
+					int[] a = topicFrequencyPerDocuments[jc.i];
+					int[] b = topicFrequencyPerDocuments[jc.j];
+					for (int i = 0; i < a.length; i++) {
+						a[i] += b[i];
+					}
+					// Topic at position jc.j is gone
+					topics[jc.j] = null;
+					totalLikelihood -= topicLikelihoods[jc.j];
+					topicLikelihoods[jc.j] = 0;
+					topicSizes[jc.j] = 0;
+
+					nTopics[0]--;
+
+					solutionListener.updatedSolution(jc.i, jc.j,
+							jc.improvement, t1Size, t2Size, solution);
 				}
-				// Topic at position jc.j is gone
-				topics[jc.j] = null;
-				totalLikelihood -= topicLikelihoods[jc.j];
-				topicLikelihoods[jc.j] = 0;
-				topicSizes[jc.j] = 0;
-
-				nTopics[0]--;
-
-				solutionListener.updatedSolution(jc.i, jc.j, jc.improvement,
-						t1Size, t2Size, solution);
+				updateJoinCandidates(jc);
 			}
-			updateJoinCandidates(jc);
 		}
 	}
 
@@ -429,7 +429,6 @@ public class JMLRTopicGrouper<T> extends AbstractTopicGrouper<T> {
 	}
 
 	protected void updateJoinCandidateForTopic(JoinCandidate jc) {
-		// Recompute the best join partner for joined topic
 		double bestImprovement = Double.NEGATIVE_INFINITY;
 		double bestLikelihood = 0;
 		int bestJ = -1;
