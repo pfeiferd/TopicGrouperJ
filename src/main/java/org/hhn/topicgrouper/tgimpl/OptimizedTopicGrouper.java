@@ -417,7 +417,7 @@ public class OptimizedTopicGrouper<T> extends AbstractTopicGrouper<T> {
 		}
 	}
 
-	public void groupTopics(SolutionListener<T> solutionListener) {
+	protected void groupTopics(SolutionListener<T> solutionListener) {
 		nTopics[0] = maxTopics;
 		while (nTopics[0] > minTopics) {
 			// Get the best join candidate
