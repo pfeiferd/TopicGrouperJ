@@ -356,6 +356,8 @@ public class JMLRTopicGrouper<T> extends AbstractTopicGrouper<T> {
 		joinCandidates.remove(jc);
 		return jc;
 	}
+	
+	private final List<JoinCandidate> addLaterCache = new ArrayList<JMLRTopicGrouper.JoinCandidate>();
 
 	protected void updateJoinCandidates(JoinCandidate jc) {
 		// Save old j-index of jc, cause the join candidate with jc.i == j must be deleted still.
@@ -367,16 +369,30 @@ public class JMLRTopicGrouper<T> extends AbstractTopicGrouper<T> {
 		joinCandidates.add(jc);
 
 		Iterator<JoinCandidate> it = joinCandidates.iterator();
+		addLaterCache.clear();
 		while (it.hasNext()) {
 			JoinCandidate jc2 = it.next();
 			if (jc2.i == j) {
 				it.remove();
-			} else if (jc2 != jc && (jc2.j == jc.i || jc2.j == j)) {
+			} else if (jc2 != jc && (jc2.j == jc.i || jc2.j == j || jc2.j == -1)) {
 				// Do not recompute the best joint partner now but mark jc2 as invalid.
 				// (The recomputation might be wasted efforts.)
-				jc2.j = -1;
+				double newLikelihood = computeTwoTopicLogLikelihood(jc2.i, jc.i);
+				double newImprovement = newLikelihood - topicLikelihoods[jc2.i]
+						- topicLikelihoods[jc.i];
+				if (newImprovement > jc2.improvement) {
+					it.remove();
+					jc2.improvement = newImprovement;
+					jc2.likelihood = newLikelihood;
+					jc2.j = jc.i;
+					addLaterCache.add(jc2);
+				}
+				else {
+					jc2.j = -1;
+				}
 			}
 		}
+		joinCandidates.addAll(addLaterCache);
 	}
 
 	protected void groupTopics(SolutionListener<T> solutionListener) {
