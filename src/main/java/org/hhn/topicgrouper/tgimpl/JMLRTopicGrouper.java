@@ -26,6 +26,7 @@ public class JMLRTopicGrouper<T> extends AbstractTopicGrouper<T> {
 	protected final UnionFind topicUnionFind;
 	protected final int[] wordToInitialTopic;
 	protected final int[] topicSizes;
+	protected final int[] topicAges;
 	protected final TreeSet<JoinCandidate> joinCandidates;
 	protected final double[] topicLikelihoods;
 	protected double totalLikelihood;
@@ -67,6 +68,7 @@ public class JMLRTopicGrouper<T> extends AbstractTopicGrouper<T> {
 		topicUnionFind = new UnionFind(maxTopics);
 		topics = new TIntList[maxTopics];
 		topicSizes = new int[maxTopics];
+		topicAges = new int[maxTopics];
 		joinCandidates = new TreeSet<JoinCandidate>();
 		topicLikelihoods = new double[maxTopics];
 		nTopics = new int[1];
@@ -273,6 +275,7 @@ public class JMLRTopicGrouper<T> extends AbstractTopicGrouper<T> {
 				topicSizes[counter] = documentProvider.getWordFrequency(i);
 				topicLikelihoods[counter] = computeOneWordTopicLogLikelihood(i);
 				totalLikelihood += topicLikelihoods[counter];
+				topicAges[counter] = maxTopics;
 
 				topicFrequencyPerDocuments[counter] = new int[documents.size()];
 				for (int j = 0; j < documents.size(); j++) {
@@ -375,8 +378,6 @@ public class JMLRTopicGrouper<T> extends AbstractTopicGrouper<T> {
 			if (jc2.i == j) {
 				it.remove();
 			} else if (jc2 != jc && (jc2.j == jc.i || jc2.j == j || jc2.j == -1)) {
-				// Do not recompute the best joint partner now but mark jc2 as invalid.
-				// (The recomputation might be wasted efforts.)
 				double newLikelihood = computeTwoTopicLogLikelihood(jc2.i, jc.i);
 				double newImprovement = newLikelihood - topicLikelihoods[jc2.i]
 						- topicLikelihoods[jc.i];
@@ -431,6 +432,7 @@ public class JMLRTopicGrouper<T> extends AbstractTopicGrouper<T> {
 					topicSizes[jc.j] = 0;
 
 					nTopics[0]--;
+					topicAges[jc.i] = nTopics[0];
 
 					solutionListener.updatedSolution(jc.i, jc.j,
 							jc.improvement, t1Size, t2Size, solution);
@@ -449,7 +451,7 @@ public class JMLRTopicGrouper<T> extends AbstractTopicGrouper<T> {
 		double bestLikelihood = 0;
 		int bestJ = -1;
 		for (int j = 0; j < maxTopics; j++) {
-			if (j != jc.i && topics[j] != null) {
+			if (j != jc.i && topics[j] != null && (jc.j != -1 || topicAges[jc.i] < topicAges[j] || topicAges[jc.i] == maxTopics)) {
 				double newLikelihood = computeTwoTopicLogLikelihood(jc.i, j);
 				double newImprovement = newLikelihood - topicLikelihoods[jc.i]
 						- topicLikelihoods[j];
