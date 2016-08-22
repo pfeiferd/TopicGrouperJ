@@ -380,7 +380,7 @@ public class JMLRTopicGrouper<T> extends AbstractTopicGrouper<T> {
 			if (jc2.i == j) {
 				it.remove();
 			} else if (jc2 != jc
-					&& (jc2.j == jc.i || jc2.j == j || jc2.j == -1)) {
+					/*&& (jc2.j == jc.i || jc2.j == j || jc2.j == -1)*/) {
 				double newLikelihood = computeTwoTopicLogLikelihood(jc2.i, jc.i);
 				double newImprovement = newLikelihood - topicLikelihoods[jc2.i]
 						- topicLikelihoods[jc.i];
@@ -393,7 +393,7 @@ public class JMLRTopicGrouper<T> extends AbstractTopicGrouper<T> {
 						System.out.println("Stop!");
 					}
 					addLaterCache.add(jc2);
-				} else /* if (jc2.j == jc.i || jc2.j == j) */ {
+				} else if (jc2.j == jc.i || jc2.j == j) {
 					jc2.j = -1;
 				}
 			}
