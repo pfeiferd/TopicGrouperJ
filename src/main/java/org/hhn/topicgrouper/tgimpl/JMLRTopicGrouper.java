@@ -359,12 +359,14 @@ public class JMLRTopicGrouper<T> extends AbstractTopicGrouper<T> {
 		joinCandidates.remove(jc);
 		return jc;
 	}
-	
+
 	private final List<JoinCandidate> addLaterCache = new ArrayList<JMLRTopicGrouper.JoinCandidate>();
 
 	protected void updateJoinCandidates(JoinCandidate jc) {
-		// Save old j-index of jc, cause the join candidate with jc.i == j must be deleted still.
-		// jc.i does not need to be saved cause it does not change under the following method call.
+		// Save old j-index of jc, cause the join candidate with jc.i == j must
+		// be deleted still.
+		// jc.i does not need to be saved cause it does not change under the
+		// following method call.
 		int j = jc.j;
 		// Recompute the best join partner for joined topic
 		updateJoinCandidateForTopic(jc);
@@ -377,18 +379,21 @@ public class JMLRTopicGrouper<T> extends AbstractTopicGrouper<T> {
 			JoinCandidate jc2 = it.next();
 			if (jc2.i == j) {
 				it.remove();
-			} else if (jc2 != jc && (jc2.j == jc.i || jc2.j == j || jc2.j == -1)) {
+			} else if (jc2 != jc
+					&& (jc2.j == jc.i || jc2.j == j || jc2.j == -1)) {
 				double newLikelihood = computeTwoTopicLogLikelihood(jc2.i, jc.i);
 				double newImprovement = newLikelihood - topicLikelihoods[jc2.i]
 						- topicLikelihoods[jc.i];
-				if (newImprovement > jc2.improvement) {
+				if (newImprovement >= jc2.improvement) {
 					it.remove();
 					jc2.improvement = newImprovement;
 					jc2.likelihood = newLikelihood;
 					jc2.j = jc.i;
+					if (jc2.j != jc.i && jc2.j != j) {
+						System.out.println("Stop!");
+					}
 					addLaterCache.add(jc2);
-				}
-				else {
+				} else /* if (jc2.j == jc.i || jc2.j == j) */ {
 					jc2.j = -1;
 				}
 			}
@@ -403,7 +408,8 @@ public class JMLRTopicGrouper<T> extends AbstractTopicGrouper<T> {
 			JoinCandidate jc = getBestJoinCandidate();
 			// Check if jc is invalid
 			if (jc.j == -1) {
-				// Recompute the best join candidate for jc and sort it in in the right place.
+				// Recompute the best join candidate for jc and sort it in in
+				// the right place.
 				updateJoinCandidateForTopic(jc);
 				joinCandidates.add(jc);
 			} else {
@@ -451,11 +457,15 @@ public class JMLRTopicGrouper<T> extends AbstractTopicGrouper<T> {
 		double bestLikelihood = 0;
 		int bestJ = -1;
 		for (int j = 0; j < maxTopics; j++) {
-			if (j != jc.i && topics[j] != null && (jc.j != -1 || topicAges[jc.i] < topicAges[j] || topicAges[jc.i] == maxTopics)) {
+			if (j != jc.i && topics[j] != null && 
+					(jc.j != -1 || topicAges[jc.i] <= topicAges[j])) {
 				double newLikelihood = computeTwoTopicLogLikelihood(jc.i, j);
 				double newImprovement = newLikelihood - topicLikelihoods[jc.i]
 						- topicLikelihoods[j];
 				if (newImprovement > bestImprovement) {
+//					if (jc.j == -1 && topicAges[jc.i] > topicAges[j] && newImprovement > jc.improvement) {
+//						System.out.println("stop!");
+//					}
 					bestImprovement = newImprovement;
 					bestLikelihood = newLikelihood;
 					bestJ = j;
