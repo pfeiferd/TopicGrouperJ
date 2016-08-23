@@ -380,6 +380,11 @@ public class JMLRTopicGrouper<T> extends AbstractTopicGrouper<T> {
 			if (jc2.i == j) {
 				it.remove();
 			} else if (jc2 != jc
+					// The following commented out optimization would require to show that
+					// 
+					// dh(s, t) < x, dh(s, w) < x ==> dh(s, t \cup {w}) < x
+					//
+					// Judging by the algorithm, the criterion is not violated. But proving it seems hard.
 					/*&& (jc2.j == jc.i || jc2.j == j || jc2.j == -1)*/) {
 				double newLikelihood = computeTwoTopicLogLikelihood(jc2.i, jc.i);
 				double newImprovement = newLikelihood - topicLikelihoods[jc2.i]
@@ -389,9 +394,10 @@ public class JMLRTopicGrouper<T> extends AbstractTopicGrouper<T> {
 					jc2.improvement = newImprovement;
 					jc2.likelihood = newLikelihood;
 					jc2.j = jc.i;
-					if (jc2.j != jc.i && jc2.j != j) {
-						System.out.println("Stop!");
-					}
+// Show me where the criterion from above is violated:					
+//					if (jc2.j != jc.i && jc2.j != j) {
+//						System.out.println("Stop!");
+//					}
 					addLaterCache.add(jc2);
 				} else if (jc2.j == jc.i || jc2.j == j) {
 					jc2.j = -1;
@@ -403,6 +409,7 @@ public class JMLRTopicGrouper<T> extends AbstractTopicGrouper<T> {
 
 	protected void groupTopics(SolutionListener<T> solutionListener) {
 		nTopics[0] = maxTopics;
+		int deferredJCRecomputations = 0;
 		while (nTopics[0] > minTopics) {
 			// Get the best join candidate
 			JoinCandidate jc = getBestJoinCandidate();
@@ -412,6 +419,7 @@ public class JMLRTopicGrouper<T> extends AbstractTopicGrouper<T> {
 				// the right place.
 				updateJoinCandidateForTopic(jc);
 				joinCandidates.add(jc);
+				deferredJCRecomputations++;
 			} else {
 				int t1Size = 0, t2Size = 0;
 				if (!handleHomonymicTopic(jc)) {
@@ -446,6 +454,7 @@ public class JMLRTopicGrouper<T> extends AbstractTopicGrouper<T> {
 				updateJoinCandidates(jc);
 			}
 		}
+		System.out.println("Deferred recomps: " + deferredJCRecomputations);
 	}
 
 	protected boolean handleHomonymicTopic(JoinCandidate jc) {
