@@ -48,7 +48,7 @@ public class MindMapSolutionReporter<T> implements SolutionListener<T> {
 
 	@Override
 	public void initialized(Solution<T> initialSolution) {
-		TIntCollection[] t = initialSolution.getTopicsAlt();
+		TIntCollection[] t = initialSolution.getTopics();
 		for (int i = 0; i < t.length; i++) {
 			if (t[i] != null) {
 				int wordId = t[i].iterator().next();
@@ -58,7 +58,7 @@ public class MindMapSolutionReporter<T> implements SolutionListener<T> {
 						.getGlobalWordFrequency(wordId), initialSolution
 						.getWord(wordId)));
 				MapNode<T> node = new MapNode<T>(-i, null, null, list,
-						initialSolution.getTotalLikelhood(), 0,
+						initialSolution.getTotalLikelhood(), 0, 0,
 						initialSolution.getTopicFrequency(i));
 				currentNodes.put(i, node);
 			}
@@ -126,7 +126,8 @@ public class MindMapSolutionReporter<T> implements SolutionListener<T> {
 		MapNode<T> parent = new MapNode<T>(solution.getNumberOfTopics(),
 				child1List.isEmpty() ? null : child1,
 				child2List.isEmpty() ? null : child2, topList,
-				solution.getTotalLikelhood(), improvement,
+				solution.getTotalLikelhood(),
+				solution.getTopicLikelihoods()[newTopicIndex], improvement,
 				solution.getTopicFrequency(newTopicIndex));
 		child1.setParent(parent);
 		child2.setParent(parent);
