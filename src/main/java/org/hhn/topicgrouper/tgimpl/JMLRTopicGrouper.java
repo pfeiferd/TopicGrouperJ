@@ -293,44 +293,50 @@ public class JMLRTopicGrouper<T> extends AbstractTopicGrouper<T> {
 
 	protected void createInitialJoinCandidates(
 			SolutionListener<T> solutionListener) {
-		int initMax = maxTopics * (maxTopics - 1);
+		int initMax = maxTopics * (maxTopics - 1) / 2;
 		int initCounter = 0;
-		// double[] coherence = new double[1];
+
+		JoinCandidate[] joinCandidates = new JoinCandidate[maxTopics];
 
 		for (int i = 0; i < maxTopics; i++) {
-			// topics[i] may be null if the element's frequency is below
-			// frThreshold
-			double bestImprovement = Double.NEGATIVE_INFINITY;
-			double bestLikelihood = 0;
-			int bestJ = -1;
+			for (int j = i + 1; j < maxTopics; j++) {
+				double newLikelihood = computeTwoWordLogLikelihood(i, j,
+						topics[i].get(0), topics[j].get(0));
 
-			for (int j = 0; j < maxTopics; j++) {
-				if (j != i) {
-					double newLikelihood = computeTwoWordLogLikelihood(i, j,
-							topics[i].get(0), topics[j].get(0));
+				double newImprovement = newLikelihood - topicLikelihoods[i]
+						- topicLikelihoods[j];
 
-					double newImprovement = newLikelihood - topicLikelihoods[i]
-							- topicLikelihoods[j];
-					if (newImprovement > bestImprovement) {
-						bestImprovement = newImprovement;
-						bestLikelihood = newLikelihood;
-						bestJ = j;
-					}
-					initCounter++;
-					if (initCounter % 100000 == 0) {
-						solutionListener.initalizing(((double) initCounter)
-								/ initMax);
-					}
+				JoinCandidate jc = joinCandidates[i];
+				if (jc == null) {
+					jc = joinCandidates[i] = new JoinCandidate();
+				}
+				if (newImprovement > jc.improvement) {
+					jc.improvement = newImprovement;
+					jc.i = i;
+					jc.j = j;
+					jc.likelihood = newLikelihood;
+				}
+				
+				jc = joinCandidates[j];
+				if (jc == null) {
+					jc = joinCandidates[j] = new JoinCandidate();
+				}
+				if (newImprovement > jc.improvement) {
+					jc.improvement = newImprovement;
+					jc.i = j;
+					jc.j = i;
+					jc.likelihood = newLikelihood;
+				}
+				
+				initCounter++;
+				if (initCounter % 100000 == 0) {
+					solutionListener.initalizing(((double) initCounter)
+							/ initMax);
 				}
 			}
-			if (bestJ != -1) {
-				JoinCandidate jc = new JoinCandidate();
-				jc.improvement = bestImprovement;
-				jc.likelihood = bestLikelihood;
-				jc.i = i;
-				jc.j = bestJ;
-				addToJoinCandiates(i, jc);
-			}
+		}
+		for (int i = 0; i < joinCandidates.length; i++) {
+			addToJoinCandiates(i, joinCandidates[i]);
 		}
 	}
 
@@ -380,12 +386,14 @@ public class JMLRTopicGrouper<T> extends AbstractTopicGrouper<T> {
 			if (jc2.i == j) {
 				it.remove();
 			} else if (jc2 != jc
-					// The following commented out optimization would require to show that
-					// 
-					// dh(s, t) < x, dh(s, w) < x ==> dh(s, t \cup {w}) < x
-					//
-					// Judging by the algorithm, the criterion is not violated. But proving it seems hard.
-					/*&& (jc2.j == jc.i || jc2.j == j || jc2.j == -1)*/) {
+			// The following commented out optimization would require to show
+			// that
+			//
+			// dh(s, t) < x, dh(s, w) < x ==> dh(s, t \cup {w}) < x
+			//
+			// Judging by the algorithm, the criterion is not violated. But
+			// proving it seems hard.
+			/* && (jc2.j == jc.i || jc2.j == j || jc2.j == -1) */) {
 				double newLikelihood = computeTwoTopicLogLikelihood(jc2.i, jc.i);
 				double newImprovement = newLikelihood - topicLikelihoods[jc2.i]
 						- topicLikelihoods[jc.i];
@@ -394,10 +402,10 @@ public class JMLRTopicGrouper<T> extends AbstractTopicGrouper<T> {
 					jc2.improvement = newImprovement;
 					jc2.likelihood = newLikelihood;
 					jc2.j = jc.i;
-// Show me where the criterion from above is violated:					
-//					if (jc2.j != jc.i && jc2.j != j) {
-//						System.out.println("Stop!");
-//					}
+					// Show me where the criterion from above is violated:
+					// if (jc2.j != jc.i && jc2.j != j) {
+					// System.out.println("Stop!");
+					// }
 					addLaterCache.add(jc2);
 				} else if (jc2.j == jc.i || jc2.j == j) {
 					jc2.j = -1;
@@ -466,15 +474,16 @@ public class JMLRTopicGrouper<T> extends AbstractTopicGrouper<T> {
 		double bestLikelihood = 0;
 		int bestJ = -1;
 		for (int j = 0; j < maxTopics; j++) {
-			if (j != jc.i && topics[j] != null && 
-					(jc.j != -1 || topicAges[jc.i] <= topicAges[j])) {
+			if (j != jc.i && topics[j] != null
+					&& (jc.j != -1 || topicAges[jc.i] <= topicAges[j])) {
 				double newLikelihood = computeTwoTopicLogLikelihood(jc.i, j);
 				double newImprovement = newLikelihood - topicLikelihoods[jc.i]
 						- topicLikelihoods[j];
 				if (newImprovement > bestImprovement) {
-//					if (jc.j == -1 && topicAges[jc.i] > topicAges[j] && newImprovement > jc.improvement) {
-//						System.out.println("stop!");
-//					}
+					// if (jc.j == -1 && topicAges[jc.i] > topicAges[j] &&
+					// newImprovement > jc.improvement) {
+					// System.out.println("stop!");
+					// }
 					bestImprovement = newImprovement;
 					bestLikelihood = newLikelihood;
 					bestJ = j;
@@ -491,6 +500,10 @@ public class JMLRTopicGrouper<T> extends AbstractTopicGrouper<T> {
 		public double improvement;
 		public int i;
 		public int j;
+
+		public JoinCandidate() {
+			improvement = Double.NEGATIVE_INFINITY;
+		}
 
 		@Override
 		public int compareTo(JoinCandidate o) {
