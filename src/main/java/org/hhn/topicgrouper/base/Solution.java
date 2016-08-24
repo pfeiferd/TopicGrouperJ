@@ -6,6 +6,8 @@ public interface Solution<T> {
 	public int getNumberOfTopics();
 	
 	public TIntCollection[] getTopics();
+	
+	public int[] getTopicIds();
 		
 	public int getTopicFrequency(int topicIndex);
 	
