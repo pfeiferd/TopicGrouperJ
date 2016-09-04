@@ -489,7 +489,6 @@ public class JMLRTopicGrouper<T> extends AbstractTopicGrouper<T> {
 			}
 		}
 		System.out.println("Deferred recomps: " + deferredJCRecomputations);
-		System.out.println("Compare equals: " + JoinCandidate.c);
 	}
 
 	protected boolean handleHomonymicTopic(JoinCandidate jc) {
@@ -518,8 +517,6 @@ public class JMLRTopicGrouper<T> extends AbstractTopicGrouper<T> {
 	}
 
 	protected static class JoinCandidate implements Comparable<JoinCandidate> {
-		public static int c = 0;
-		
 		public double likelihood;
 		public double improvement;
 		public int i;
