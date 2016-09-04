@@ -8,6 +8,7 @@ import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -26,8 +27,6 @@ public class JMLRTopicGrouper<T> extends AbstractTopicGrouper<T> {
 	protected final UnionFind topicUnionFind;
 	protected final int[] wordToInitialTopic;
 	protected final int[] topicSizes;
-	protected final int[] topicAges;
-	protected final TreeSet<JoinCandidate> joinCandidates;
 	protected final double[] topicLikelihoods;
 	protected double totalLikelihood;
 	protected final int[] nTopics;
@@ -64,12 +63,10 @@ public class JMLRTopicGrouper<T> extends AbstractTopicGrouper<T> {
 			}
 		}
 		maxTopics = counter;
-
+		createJoinCandidateList(minTopics);
 		topicUnionFind = new UnionFind(maxTopics);
 		topics = new TIntList[maxTopics];
 		topicSizes = new int[maxTopics];
-		topicAges = new int[maxTopics];
-		joinCandidates = new TreeSet<JoinCandidate>();
 		topicLikelihoods = new double[maxTopics];
 		nTopics = new int[1];
 
@@ -79,6 +76,10 @@ public class JMLRTopicGrouper<T> extends AbstractTopicGrouper<T> {
 		invertedIndex = createInvertedIndex();
 
 		solution = createSolution();
+	}
+	
+	protected void createJoinCandidateList(int maxTopics) {
+		joinCandidates = new TreeSet<JoinCandidate>();		
 	}
 
 	protected TIntObjectMap<List<DocIndexAndWordFr>> createInvertedIndex() {
@@ -275,7 +276,6 @@ public class JMLRTopicGrouper<T> extends AbstractTopicGrouper<T> {
 				topicSizes[counter] = documentProvider.getWordFrequency(i);
 				topicLikelihoods[counter] = computeOneWordTopicLogLikelihood(i);
 				totalLikelihood += topicLikelihoods[counter];
-				topicAges[counter] = maxTopics;
 
 				topicFrequencyPerDocuments[counter] = new int[documents.size()];
 				for (int j = 0; j < documents.size(); j++) {
@@ -335,13 +335,13 @@ public class JMLRTopicGrouper<T> extends AbstractTopicGrouper<T> {
 				}
 			}
 		}
-		for (int i = 0; i < joinCandidates.length; i++) {
-			addToJoinCandiates(i, joinCandidates[i]);
-		}
+		addAllToJoinCandiates(joinCandidates);
 	}
-
-	protected void addToJoinCandiates(int i, JoinCandidate jc) {
-		joinCandidates.add(jc);
+	
+	protected void addAllToJoinCandiates(JoinCandidate[] joinCandidates) {
+		for (int i = 0; i < joinCandidates.length; i++) {
+			addJoinCandidate(joinCandidates[i]);
+		}
 	}
 
 	@Override
@@ -360,13 +360,31 @@ public class JMLRTopicGrouper<T> extends AbstractTopicGrouper<T> {
 		solutionListener.done();
 	}
 
+	private final Collection<JoinCandidate> addLaterCache = new ArrayList<JMLRTopicGrouper.JoinCandidate>();
+	private Iterator<JoinCandidate> it;
+	private TreeSet<JoinCandidate> joinCandidates;
+	
 	protected JoinCandidate getBestJoinCandidate() {
 		JoinCandidate jc = joinCandidates.last();
 		joinCandidates.remove(jc);
 		return jc;
 	}
+	
+	protected void addJoinCandidate(JoinCandidate jc) {
+		joinCandidates.add(jc);		
+	}
+	
+	protected void prepareRemoveJoinCandidate(JoinCandidate jc) {
+		it.remove();		
+	}
 
-	private final List<JoinCandidate> addLaterCache = new ArrayList<JMLRTopicGrouper.JoinCandidate>();
+	protected void prepareRemoveJCPartner(JoinCandidate jc) {
+		it.remove();		
+	}
+	
+	protected void addJoinCandidateLater(JoinCandidate jc) {
+		addLaterCache.add(jc);
+	}	
 
 	protected void updateJoinCandidates(JoinCandidate jc) {
 		// Save old j-index of jc, cause the join candidate with jc.i == j must
@@ -377,42 +395,51 @@ public class JMLRTopicGrouper<T> extends AbstractTopicGrouper<T> {
 		// Recompute the best join partner for joined topic
 		updateJoinCandidateForTopic(jc);
 		// Add the new best join partner for topic[jc.i]
-		joinCandidates.add(jc);
+		addJoinCandidate(jc);
 
-		Iterator<JoinCandidate> it = joinCandidates.iterator();
+		iterateOverJCsForUpdate(jc, j);
+	}
+	
+	protected void iterateOverJCsForUpdate(JoinCandidate jc, int j) {
+		it = joinCandidates.iterator();
 		addLaterCache.clear();
 		while (it.hasNext()) {
 			JoinCandidate jc2 = it.next();
-			if (jc2.i == j) {
-				it.remove();
-			} else if (jc2 != jc
-			// The following commented out optimization would require to show
-			// that
-			//
-			// dh(s, t) < x, dh(s, w) < x ==> dh(s, t \cup {w}) < x
-			//
-			// Judging by the algorithm, the criterion is not violated. But
-			// proving it seems hard.
-			/* && (jc2.j == jc.i || jc2.j == j || jc2.j == -1) */) {
-				double newLikelihood = computeTwoTopicLogLikelihood(jc2.i, jc.i);
-				double newImprovement = newLikelihood - topicLikelihoods[jc2.i]
-						- topicLikelihoods[jc.i];
-				if (newImprovement >= jc2.improvement) {
-					it.remove();
-					jc2.improvement = newImprovement;
-					jc2.likelihood = newLikelihood;
-					jc2.j = jc.i;
-					// Show me where the criterion from above is violated:
-					// if (jc2.j != jc.i && jc2.j != j) {
-					// System.out.println("Stop!");
-					// }
-					addLaterCache.add(jc2);
-				} else if (jc2.j == jc.i || jc2.j == j) {
-					jc2.j = -1;
-				}
-			}
+			handleJoinCandidateUpdate(jc, jc2, j);
 		}
-		joinCandidates.addAll(addLaterCache);
+		joinCandidates.addAll(addLaterCache);		
+	}
+	
+	protected void handleJoinCandidateUpdate(JoinCandidate jc, JoinCandidate jc2, int j) {
+		if (jc2.i == j) {
+			prepareRemoveJCPartner(jc2);
+		} else if (jc2 != jc
+		// The following commented out optimization would require to show
+		// that
+		//
+		// delta_h(s, t) < x and delta_h(s, w) < x ==> delta_h(s, t \cup {w}) < x
+		//
+		// Judging by the algorithm, the criterion is not violated. But
+		// proving it seems hard.
+		/* && (jc2.j == jc.i || jc2.j == j || jc2.j == -1) */) {
+			double newLikelihood = computeTwoTopicLogLikelihood(jc2.i, jc.i);
+			double newImprovement = newLikelihood - topicLikelihoods[jc2.i]
+					- topicLikelihoods[jc.i];
+			if (newImprovement > jc2.improvement) {
+				prepareRemoveJoinCandidate(jc2);
+				jc2.improvement = newImprovement;
+				jc2.likelihood = newLikelihood;
+				jc2.j = jc.i;
+				
+				// Show me where the criterion from above is violated:
+				// if (jc2.j != jc.i && jc2.j != j) {
+				// System.out.println("Stop!");
+				// }
+				addJoinCandidateLater(jc2);
+			} else if (jc2.j == jc.i || jc2.j == j) {
+				jc2.j = -1;
+			}
+		}		
 	}
 
 	protected void groupTopics(SolutionListener<T> solutionListener) {
@@ -426,7 +453,7 @@ public class JMLRTopicGrouper<T> extends AbstractTopicGrouper<T> {
 				// Recompute the best join candidate for jc and sort it in in
 				// the right place.
 				updateJoinCandidateForTopic(jc);
-				joinCandidates.add(jc);
+				addJoinCandidate(jc);
 				deferredJCRecomputations++;
 			} else {
 				int t1Size = 0, t2Size = 0;
@@ -454,7 +481,6 @@ public class JMLRTopicGrouper<T> extends AbstractTopicGrouper<T> {
 					topicSizes[jc.j] = 0;
 
 					nTopics[0]--;
-					topicAges[jc.i] = nTopics[0];
 
 					solutionListener.updatedSolution(jc.i, jc.j,
 							jc.improvement, t1Size, t2Size, solution);
@@ -463,6 +489,7 @@ public class JMLRTopicGrouper<T> extends AbstractTopicGrouper<T> {
 			}
 		}
 		System.out.println("Deferred recomps: " + deferredJCRecomputations);
+		System.out.println("Compare equals: " + JoinCandidate.c);
 	}
 
 	protected boolean handleHomonymicTopic(JoinCandidate jc) {
@@ -474,16 +501,11 @@ public class JMLRTopicGrouper<T> extends AbstractTopicGrouper<T> {
 		double bestLikelihood = 0;
 		int bestJ = -1;
 		for (int j = 0; j < maxTopics; j++) {
-			if (j != jc.i && topics[j] != null
-					&& (jc.j != -1 || topicAges[jc.i] <= topicAges[j])) {
+			if (j != jc.i && topics[j] != null) {
 				double newLikelihood = computeTwoTopicLogLikelihood(jc.i, j);
 				double newImprovement = newLikelihood - topicLikelihoods[jc.i]
 						- topicLikelihoods[j];
 				if (newImprovement > bestImprovement) {
-					// if (jc.j == -1 && topicAges[jc.i] > topicAges[j] &&
-					// newImprovement > jc.improvement) {
-					// System.out.println("stop!");
-					// }
 					bestImprovement = newImprovement;
 					bestLikelihood = newLikelihood;
 					bestJ = j;
@@ -496,6 +518,8 @@ public class JMLRTopicGrouper<T> extends AbstractTopicGrouper<T> {
 	}
 
 	protected static class JoinCandidate implements Comparable<JoinCandidate> {
+		public static int c = 0;
+		
 		public double likelihood;
 		public double improvement;
 		public int i;
@@ -508,7 +532,7 @@ public class JMLRTopicGrouper<T> extends AbstractTopicGrouper<T> {
 		@Override
 		public int compareTo(JoinCandidate o) {
 			if (improvement == o.improvement) {
-				return 0;
+				return i - o.i;
 			}
 			return improvement > o.improvement ? 1 : -1;
 		}
