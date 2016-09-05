@@ -7,9 +7,9 @@ import java.io.LineNumberReader;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.hhn.topicgrouper.base.DefaultDocumentProvider;
-import org.hhn.topicgrouper.base.Document;
-import org.hhn.topicgrouper.base.DocumentProvider;
+import org.hhn.topicgrouper.doc.Document;
+import org.hhn.topicgrouper.doc.DocumentProvider;
+import org.hhn.topicgrouper.doc.impl.DefaultDocumentProvider;
 
 public class EachMovieParser {
 	private final int minVoteSize;

@@ -4,9 +4,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
 
-import org.hhn.topicgrouper.base.DefaultDocumentProvider;
-import org.hhn.topicgrouper.base.DefaultDocumentProvider.DefaultDocument;
-import org.hhn.topicgrouper.base.DocumentProvider;
+import org.hhn.topicgrouper.doc.DocumentProvider;
+import org.hhn.topicgrouper.doc.impl.DefaultDocumentProvider;
+import org.hhn.topicgrouper.doc.impl.DefaultDocumentProvider.DefaultDocument;
 
 import com.aliasi.classify.Classification;
 import com.aliasi.corpus.ClassificationHandler;

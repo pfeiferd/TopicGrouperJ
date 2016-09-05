@@ -10,10 +10,10 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-import org.hhn.topicgrouper.base.DefaultDocumentProvider;
-import org.hhn.topicgrouper.base.DefaultDocumentProvider.DefaultDocument;
-import org.hhn.topicgrouper.base.Document;
-import org.hhn.topicgrouper.base.DocumentProvider;
+import org.hhn.topicgrouper.doc.Document;
+import org.hhn.topicgrouper.doc.DocumentProvider;
+import org.hhn.topicgrouper.doc.impl.DefaultDocumentProvider;
+import org.hhn.topicgrouper.doc.impl.DefaultDocumentProvider.DefaultDocument;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;

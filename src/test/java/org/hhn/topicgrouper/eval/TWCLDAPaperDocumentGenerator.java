@@ -7,9 +7,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-import org.hhn.topicgrouper.base.AbstractDocumentImpl;
-import org.hhn.topicgrouper.base.Document;
-import org.hhn.topicgrouper.base.DocumentProvider;
+import org.hhn.topicgrouper.doc.Document;
+import org.hhn.topicgrouper.doc.DocumentProvider;
+import org.hhn.topicgrouper.doc.impl.AbstractDocumentImpl;
 import org.hhn.topicgrouper.util.Dirichlet;
 import org.hhn.topicgrouper.util.RandomDirichlet1Dist;
 
