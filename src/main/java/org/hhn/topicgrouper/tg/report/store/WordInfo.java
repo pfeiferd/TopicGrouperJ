@@ -1,4 +1,4 @@
-package org.hhn.topicgrouper.report.store;
+package org.hhn.topicgrouper.tg.report.store;
 
 import java.io.Serializable;
 

@@ -1,4 +1,4 @@
-package org.hhn.topicgrouper.validation;
+package org.hhn.topicgrouper.doc.impl;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -6,7 +6,6 @@ import java.util.Random;
 
 import org.hhn.topicgrouper.doc.Document;
 import org.hhn.topicgrouper.doc.DocumentProvider;
-import org.hhn.topicgrouper.doc.impl.DefaultDocumentProvider;
 
 public class HoldOutSplitter<T> {
 	private DefaultDocumentProvider<T> holdOut;

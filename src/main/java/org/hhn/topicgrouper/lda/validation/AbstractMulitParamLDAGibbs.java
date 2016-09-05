@@ -1,11 +1,11 @@
-package org.hhn.topicgrouper.validation;
+package org.hhn.topicgrouper.lda.validation;
 
 import java.io.PrintStream;
 import java.util.Random;
 
 import org.hhn.topicgrouper.doc.DocumentProvider;
 import org.hhn.topicgrouper.lda.impl.LDAGibbsSampler;
-import org.hhn.topicgrouper.report.LDAPerplexityResultReporter;
+import org.hhn.topicgrouper.lda.report.LDAPerplexityResultReporter;
 
 public abstract class AbstractMulitParamLDAGibbs<T> {
 	protected final PrintStream pw;

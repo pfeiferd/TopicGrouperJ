@@ -1,4 +1,4 @@
-package org.hhn.topicgrouper.report;
+package org.hhn.topicgrouper.tg.report;
 
 import gnu.trove.TIntCollection;
 import gnu.trove.map.TIntObjectMap;
@@ -7,10 +7,10 @@ import gnu.trove.map.hash.TIntObjectHashMap;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hhn.topicgrouper.report.store.MapNode;
-import org.hhn.topicgrouper.report.store.WordInfo;
 import org.hhn.topicgrouper.tg.TGSolution;
 import org.hhn.topicgrouper.tg.TGSolutionListener;
+import org.hhn.topicgrouper.tg.report.store.MapNode;
+import org.hhn.topicgrouper.tg.report.store.WordInfo;
 
 public class MindMapSolutionReporter<T> implements TGSolutionListener<T> {
 

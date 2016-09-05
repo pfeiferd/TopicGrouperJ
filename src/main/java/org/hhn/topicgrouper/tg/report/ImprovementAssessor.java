@@ -1,4 +1,4 @@
-package org.hhn.topicgrouper.report;
+package org.hhn.topicgrouper.tg.report;
 
 public class ImprovementAssessor {
 	private final double[] improvementWindow;

@@ -1,4 +1,4 @@
-package org.hhn.topicgrouper.report;
+package org.hhn.topicgrouper.lda.report;
 
 import info.monitorenter.gui.chart.Chart2D;
 import info.monitorenter.gui.chart.ITrace2D;
@@ -15,7 +15,7 @@ import javax.swing.JPanel;
 
 import org.hhn.topicgrouper.doc.DocumentProvider;
 import org.hhn.topicgrouper.lda.impl.LDAGibbsSampler;
-import org.hhn.topicgrouper.validation.AbstractLDAPerplexityCalculator;
+import org.hhn.topicgrouper.lda.validation.AbstractLDAPerplexityCalculator;
 
 public class LDAPerplexityResultReporter<T> extends BasicLDAResultReporter<T> {
 	private final ITrace2D trace;

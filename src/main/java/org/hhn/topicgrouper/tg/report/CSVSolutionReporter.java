@@ -1,11 +1,11 @@
-package org.hhn.topicgrouper.report;
+package org.hhn.topicgrouper.tg.report;
 
 import java.io.PrintStream;
 
 import org.hhn.topicgrouper.doc.DocumentProvider;
 import org.hhn.topicgrouper.tg.TGSolution;
 import org.hhn.topicgrouper.tg.TGSolutionListener;
-import org.hhn.topicgrouper.validation.PerplexityCalculator;
+import org.hhn.topicgrouper.tg.validation.PerplexityCalculator;
 
 public class CSVSolutionReporter<T> implements TGSolutionListener<T> {
 	private final PrintStream pw;

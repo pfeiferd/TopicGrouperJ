@@ -1,11 +1,11 @@
-package org.hhn.topicgrouper.report;
+package org.hhn.topicgrouper.tg.report;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 
-import org.hhn.topicgrouper.report.store.MapNode;
-import org.hhn.topicgrouper.report.store.WordInfo;
+import org.hhn.topicgrouper.tg.report.store.MapNode;
+import org.hhn.topicgrouper.tg.report.store.WordInfo;
 
 public class FreeMindXMLTopicHierarchyWriter<T> {
 	private final boolean withFrColor;

@@ -1,4 +1,4 @@
-package org.hhn.topicgrouper.viz;
+package org.hhn.topicgrouper.tg.viz;
 
 import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
@@ -63,9 +63,9 @@ import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 
-import org.hhn.topicgrouper.report.TopTopicSearcher;
-import org.hhn.topicgrouper.report.store.MapNode;
-import org.hhn.topicgrouper.report.store.WordInfo;
+import org.hhn.topicgrouper.tg.report.TopTopicSearcher;
+import org.hhn.topicgrouper.tg.report.store.MapNode;
+import org.hhn.topicgrouper.tg.report.store.WordInfo;
 
 public class HierarchyBrowser<T> {
 	/*

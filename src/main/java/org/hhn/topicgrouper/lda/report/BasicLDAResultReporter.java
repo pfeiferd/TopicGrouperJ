@@ -1,4 +1,4 @@
-package org.hhn.topicgrouper.report;
+package org.hhn.topicgrouper.lda.report;
 
 import java.io.PrintStream;
 import java.util.Arrays;

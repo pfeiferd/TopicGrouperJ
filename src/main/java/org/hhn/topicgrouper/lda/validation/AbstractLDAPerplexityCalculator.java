@@ -1,10 +1,11 @@
-package org.hhn.topicgrouper.validation;
+package org.hhn.topicgrouper.lda.validation;
 
 import gnu.trove.iterator.TIntIterator;
 
 import org.hhn.topicgrouper.doc.Document;
 import org.hhn.topicgrouper.doc.DocumentProvider;
 import org.hhn.topicgrouper.lda.impl.LDAGibbsSampler;
+import org.hhn.topicgrouper.tg.validation.PerplexityCalculator;
 
 public abstract class AbstractLDAPerplexityCalculator<T> {
 	protected final boolean bowFactor;

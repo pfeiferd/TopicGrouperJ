@@ -1,4 +1,4 @@
-package org.hhn.topicgrouper.report;
+package org.hhn.topicgrouper.tg.report;
 
 import gnu.trove.TIntCollection;
 import gnu.trove.iterator.TIntIterator;
@@ -20,7 +20,7 @@ import javax.swing.JPanel;
 import org.hhn.topicgrouper.doc.DocumentProvider;
 import org.hhn.topicgrouper.tg.TGSolution;
 import org.hhn.topicgrouper.tg.TGSolutionListener;
-import org.hhn.topicgrouper.validation.PerplexityCalculator;
+import org.hhn.topicgrouper.tg.validation.PerplexityCalculator;
 
 public class BasicSolutionReporter<T> implements TGSolutionListener<T> {
 	private final ITrace2D trace;

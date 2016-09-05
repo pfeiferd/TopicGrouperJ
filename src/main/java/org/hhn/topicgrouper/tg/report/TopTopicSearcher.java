@@ -1,9 +1,9 @@
-package org.hhn.topicgrouper.report;
+package org.hhn.topicgrouper.tg.report;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hhn.topicgrouper.report.store.MapNode;
+import org.hhn.topicgrouper.tg.report.store.MapNode;
 
 public class TopTopicSearcher<T> {
 	public List<MapNode<T>> getBestTopics(int n, MapNode<T> root) {

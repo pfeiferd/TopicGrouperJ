@@ -1,4 +1,4 @@
-package org.hhn.topicgrouper.report;
+package org.hhn.topicgrouper.tg.report;
 
 import gnu.trove.TIntCollection;
 import gnu.trove.iterator.TIntIterator;

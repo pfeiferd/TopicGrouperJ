@@ -1,4 +1,4 @@
-package org.hhn.topicgrouper.validation;
+package org.hhn.topicgrouper.lda.validation;
 
 import org.hhn.topicgrouper.doc.Document;
 import org.hhn.topicgrouper.lda.impl.LDAGibbsSampler;

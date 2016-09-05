@@ -1,4 +1,4 @@
-package org.hhn.topicgrouper.validation;
+package org.hhn.topicgrouper.util;
 
 import org.hhn.topicgrouper.doc.DocumentProvider;
 
