@@ -7,14 +7,14 @@ import org.hhn.topicgrouper.tg.TGSolution;
 import gnu.trove.TIntCollection;
 import gnu.trove.iterator.TIntIterator;
 
-public class PerplexityCalculator<T> {
+public class TGPerplexityCalculator<T> {
 	private final boolean bowFactor;
 
-	public PerplexityCalculator() {
+	public TGPerplexityCalculator() {
 		this(true);
 	}
 
-	public PerplexityCalculator(boolean bowFactor) {
+	public TGPerplexityCalculator(boolean bowFactor) {
 		this.bowFactor = bowFactor;
 	}
 

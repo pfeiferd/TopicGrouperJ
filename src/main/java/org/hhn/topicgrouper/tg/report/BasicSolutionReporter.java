@@ -20,13 +20,13 @@ import javax.swing.JPanel;
 import org.hhn.topicgrouper.doc.DocumentProvider;
 import org.hhn.topicgrouper.tg.TGSolution;
 import org.hhn.topicgrouper.tg.TGSolutionListener;
-import org.hhn.topicgrouper.tg.validation.PerplexityCalculator;
+import org.hhn.topicgrouper.tg.validation.TGPerplexityCalculator;
 
 public class BasicSolutionReporter<T> implements TGSolutionListener<T> {
 	private final ITrace2D trace;
 	private final PrintStream pw;
 	private final int reportDetailsAtTopicSize;
-	private final PerplexityCalculator<T> perplexityCalculator;
+	private final TGPerplexityCalculator<T> perplexityCalculator;
 	private DocumentProvider<T> testDocumentProvider;
 	private final boolean derive;
 	private final boolean verbose;
@@ -44,7 +44,7 @@ public class BasicSolutionReporter<T> implements TGSolutionListener<T> {
 		this.verbose = verbose;
 
 		this.assessor = new ImprovementAssessor(5);
-		this.perplexityCalculator = new PerplexityCalculator<T>(bowFactor);
+		this.perplexityCalculator = new TGPerplexityCalculator<T>(bowFactor);
 
 		this.reportDetailsAtTopicSize = reportDetailsAtTopicSize;
 

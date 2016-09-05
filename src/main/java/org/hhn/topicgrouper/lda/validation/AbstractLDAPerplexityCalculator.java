@@ -5,7 +5,7 @@ import gnu.trove.iterator.TIntIterator;
 import org.hhn.topicgrouper.doc.Document;
 import org.hhn.topicgrouper.doc.DocumentProvider;
 import org.hhn.topicgrouper.lda.impl.LDAGibbsSampler;
-import org.hhn.topicgrouper.tg.validation.PerplexityCalculator;
+import org.hhn.topicgrouper.tg.validation.TGPerplexityCalculator;
 
 public abstract class AbstractLDAPerplexityCalculator<T> {
 	protected final boolean bowFactor;
@@ -47,7 +47,7 @@ public abstract class AbstractLDAPerplexityCalculator<T> {
 	protected double computeLogProbability(LDAGibbsSampler<T> sampler,
 			Document<T> d, int dSize, int dIndex) {
 		DocumentProvider<T> provider = sampler.getDocumentProvider();
-		double res = bowFactor ? PerplexityCalculator.logFacN(dSize) : 0;
+		double res = bowFactor ? TGPerplexityCalculator.logFacN(dSize) : 0;
 
 		// update ptd for d
 		updatePtd(sampler, d, dSize, dIndex);
@@ -62,7 +62,7 @@ public abstract class AbstractLDAPerplexityCalculator<T> {
 				int wordFr = d.getWordFrequency(index);
 				if (wordFr > 0) {
 					if (bowFactor) {
-						res -= PerplexityCalculator.logFacN(wordFr);
+						res -= TGPerplexityCalculator.logFacN(wordFr);
 					}
 					res += wordFr
 							* computeWordLogProbability(sampler, tIndex, d);

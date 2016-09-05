@@ -1,4 +1,4 @@
-package org.hhn.topicgrouper.util;
+package org.hhn.topicgrouper.doc.impl;
 
 import org.hhn.topicgrouper.doc.DocumentProvider;
 

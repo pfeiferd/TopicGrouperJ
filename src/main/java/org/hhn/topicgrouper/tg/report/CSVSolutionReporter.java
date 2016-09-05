@@ -5,16 +5,16 @@ import java.io.PrintStream;
 import org.hhn.topicgrouper.doc.DocumentProvider;
 import org.hhn.topicgrouper.tg.TGSolution;
 import org.hhn.topicgrouper.tg.TGSolutionListener;
-import org.hhn.topicgrouper.tg.validation.PerplexityCalculator;
+import org.hhn.topicgrouper.tg.validation.TGPerplexityCalculator;
 
 public class CSVSolutionReporter<T> implements TGSolutionListener<T> {
 	private final PrintStream pw;
-	private final PerplexityCalculator<T> perplexityCalculator;
+	private final TGPerplexityCalculator<T> perplexityCalculator;
 	private DocumentProvider<T> testDocumentProvider;
 
 	public CSVSolutionReporter(PrintStream pw, boolean bowFactor) {
 		this.pw = pw;
-		this.perplexityCalculator = new PerplexityCalculator<T>(bowFactor);
+		this.perplexityCalculator = new TGPerplexityCalculator<T>(bowFactor);
 	}
 
 	public void setTestDocumentProvider(DocumentProvider<T> documentProvider) {
