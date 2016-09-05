@@ -1,11 +1,11 @@
-package org.hhn.topicgrouper.tgimpl;
+package org.hhn.topicgrouper.tg.impl;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.TreeSet;
 
-import org.hhn.topicgrouper.base.DocumentProvider;
+import org.hhn.topicgrouper.doc.DocumentProvider;
 
 public class TopicGrouperWithTreeSet<T> extends AbstractTopicGrouper<T> {
 	private final Collection<JoinCandidate> addLaterCache;

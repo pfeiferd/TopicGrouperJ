@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import org.hhn.topicgrouper.base.DefaultDocumentProvider;
-import org.hhn.topicgrouper.base.Document;
-import org.hhn.topicgrouper.base.DocumentProvider;
+import org.hhn.topicgrouper.doc.Document;
+import org.hhn.topicgrouper.doc.DocumentProvider;
+import org.hhn.topicgrouper.doc.impl.DefaultDocumentProvider;
 
 public class HoldOutSplitter<T> {
 	private DefaultDocumentProvider<T> holdOut;

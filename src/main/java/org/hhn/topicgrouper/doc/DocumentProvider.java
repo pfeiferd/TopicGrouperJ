@@ -1,4 +1,4 @@
-package org.hhn.topicgrouper.base;
+package org.hhn.topicgrouper.doc;
 
 import java.util.List;
 

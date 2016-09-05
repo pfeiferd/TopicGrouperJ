@@ -1,8 +1,8 @@
 package org.hhn.topicgrouper.validation;
 
-import org.hhn.topicgrouper.base.Document;
-import org.hhn.topicgrouper.base.DocumentProvider;
-import org.hhn.topicgrouper.base.Solution;
+import org.hhn.topicgrouper.doc.Document;
+import org.hhn.topicgrouper.doc.DocumentProvider;
+import org.hhn.topicgrouper.tg.TGSolution;
 
 import gnu.trove.TIntCollection;
 import gnu.trove.iterator.TIntIterator;
@@ -18,7 +18,7 @@ public class PerplexityCalculator<T> {
 		this.bowFactor = bowFactor;
 	}
 
-	public double computePerplexity(DocumentProvider<T> provider, Solution<T> s) {
+	public double computePerplexity(DocumentProvider<T> provider, TGSolution<T> s) {
 		double sumA = 0;
 		double sumB = 0;
 		for (Document<T> d : provider.getDocuments()) {
@@ -38,7 +38,7 @@ public class PerplexityCalculator<T> {
 		return Math.exp(-sumA / sumB);
 	}
 
-	public double computeLogProbability(Document<T> d, int dSize, Solution<T> s) {
+	public double computeLogProbability(Document<T> d, int dSize, TGSolution<T> s) {
 		double res = bowFactor ? logFacN(dSize) : 0;
 
 		TIntIterator it = d.getWordIndices().iterator();
@@ -64,7 +64,7 @@ public class PerplexityCalculator<T> {
 	}
 
 	private double computeWordLogProbability(int sIndex, Document<T> d,
-			int dSize, Solution<T> s, TIntCollection words, int topicIndex) {
+			int dSize, TGSolution<T> s, TIntCollection words, int topicIndex) {
 		int topicFrInDoc = 0;
 		TIntIterator it = words.iterator();
 		while (it.hasNext()) {

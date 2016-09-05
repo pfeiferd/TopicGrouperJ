@@ -5,10 +5,10 @@ import gnu.trove.iterator.TIntIterator;
 
 import java.util.Arrays;
 
-import org.hhn.topicgrouper.base.Solution;
-import org.hhn.topicgrouper.base.Solver.SolutionListener;
+import org.hhn.topicgrouper.tg.TGSolution;
+import org.hhn.topicgrouper.tg.TGSolutionListener;
 
-public class TopicFrCollectSolutionReporter<T> implements SolutionListener<T> {
+public class TopicFrCollectSolutionReporter<T> implements TGSolutionListener<T> {
 	private int[][] frequenciesPerNTopics;
 
 	public TopicFrCollectSolutionReporter() {
@@ -28,7 +28,7 @@ public class TopicFrCollectSolutionReporter<T> implements SolutionListener<T> {
 	}
 
 	@Override
-	public void initialized(Solution<T> initialSolution) {
+	public void initialized(TGSolution<T> initialSolution) {
 	}
 	
 	@Override
@@ -37,7 +37,7 @@ public class TopicFrCollectSolutionReporter<T> implements SolutionListener<T> {
 
 	@Override
 	public void updatedSolution(int newTopicIndex, int oldTopicIndex,
-			double improvement, int t1Size, int t2Size, Solution<T> solution) {
+			double improvement, int t1Size, int t2Size, TGSolution<T> solution) {
 		int[] frs = new int[solution.getNumberOfTopics()];
 		int i = 0;
 		for (TIntCollection t : solution.getTopics()) {

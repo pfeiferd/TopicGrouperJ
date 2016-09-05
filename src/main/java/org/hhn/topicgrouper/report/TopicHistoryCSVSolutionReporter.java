@@ -4,10 +4,10 @@ import gnu.trove.TIntCollection;
 
 import java.io.PrintStream;
 
-import org.hhn.topicgrouper.base.Solution;
-import org.hhn.topicgrouper.base.Solver.SolutionListener;
+import org.hhn.topicgrouper.tg.TGSolution;
+import org.hhn.topicgrouper.tg.TGSolutionListener;
 
-public class TopicHistoryCSVSolutionReporter<T> implements SolutionListener<T> {
+public class TopicHistoryCSVSolutionReporter<T> implements TGSolutionListener<T> {
 	private final PrintStream pw;
 	private final int reportDetailsAtTopicSize;
 
@@ -28,7 +28,7 @@ public class TopicHistoryCSVSolutionReporter<T> implements SolutionListener<T> {
 
 	@Override
 	public void updatedSolution(int newTopicIndex, int oldTopicIndex,
-			double improvement, int t1Size, int t2Size, Solution<T> solution) {
+			double improvement, int t1Size, int t2Size, TGSolution<T> solution) {
 		TIntCollection topic = solution.getTopics()[newTopicIndex];
 		double ratio = 0;
 		if (lastImprovement != null && lastImprovement != 0) {
@@ -57,7 +57,7 @@ public class TopicHistoryCSVSolutionReporter<T> implements SolutionListener<T> {
 	}
 
 	@Override
-	public void initialized(Solution<T> initialSolution) {
+	public void initialized(TGSolution<T> initialSolution) {
 	}
 
 	@Override

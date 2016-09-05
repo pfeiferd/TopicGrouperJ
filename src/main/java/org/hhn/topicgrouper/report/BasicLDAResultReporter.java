@@ -3,9 +3,9 @@ package org.hhn.topicgrouper.report;
 import java.io.PrintStream;
 import java.util.Arrays;
 
-import org.hhn.topicgrouper.base.DocumentProvider;
-import org.hhn.topicgrouper.ldaimpl.LDAGibbsSampler;
-import org.hhn.topicgrouper.ldaimpl.LDASolutionListener;
+import org.hhn.topicgrouper.doc.DocumentProvider;
+import org.hhn.topicgrouper.lda.impl.LDAGibbsSampler;
+import org.hhn.topicgrouper.lda.impl.LDASolutionListener;
 
 public class BasicLDAResultReporter<T> implements LDASolutionListener<T> {
 	protected final PrintStream pw;

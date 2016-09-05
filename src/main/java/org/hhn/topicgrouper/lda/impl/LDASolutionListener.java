@@ -1,4 +1,4 @@
-package org.hhn.topicgrouper.ldaimpl;
+package org.hhn.topicgrouper.lda.impl;
 
 
 public interface LDASolutionListener<T> {

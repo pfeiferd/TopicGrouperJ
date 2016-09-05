@@ -1,4 +1,4 @@
-package org.hhn.topicgrouper.base;
+package org.hhn.topicgrouper.doc.impl;
 
 import gnu.trove.list.TIntList;
 import gnu.trove.map.TIntObjectMap;
@@ -6,6 +6,9 @@ import gnu.trove.map.TObjectIntMap;
 
 import java.util.Collections;
 import java.util.List;
+
+import org.hhn.topicgrouper.doc.Document;
+import org.hhn.topicgrouper.doc.DocumentProvider;
 
 public class WordMapDocumentProvider<T> implements DocumentProvider<T> {
 	protected final TObjectIntMap<T> wordToIndex;

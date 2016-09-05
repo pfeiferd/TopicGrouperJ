@@ -2,12 +2,12 @@ package org.hhn.topicgrouper.report;
 
 import java.io.PrintStream;
 
-import org.hhn.topicgrouper.base.DocumentProvider;
-import org.hhn.topicgrouper.base.Solution;
-import org.hhn.topicgrouper.base.Solver.SolutionListener;
+import org.hhn.topicgrouper.doc.DocumentProvider;
+import org.hhn.topicgrouper.tg.TGSolution;
+import org.hhn.topicgrouper.tg.TGSolutionListener;
 import org.hhn.topicgrouper.validation.PerplexityCalculator;
 
-public class CSVSolutionReporter<T> implements SolutionListener<T> {
+public class CSVSolutionReporter<T> implements TGSolutionListener<T> {
 	private final PrintStream pw;
 	private final PerplexityCalculator<T> perplexityCalculator;
 	private DocumentProvider<T> testDocumentProvider;
@@ -31,7 +31,7 @@ public class CSVSolutionReporter<T> implements SolutionListener<T> {
 
 	@Override
 	public void updatedSolution(int newTopicIndex, int oldTopicIndex,
-			double improvement, int t1Size, int t2Size, Solution<T> solution) {
+			double improvement, int t1Size, int t2Size, TGSolution<T> solution) {
 		pw.print(solution.getNumberOfTopics());
 		pw.print("; ");
 		if (testDocumentProvider != null) {
@@ -52,7 +52,7 @@ public class CSVSolutionReporter<T> implements SolutionListener<T> {
 	}
 
 	@Override
-	public void initialized(Solution<T> initialSolution) {
+	public void initialized(TGSolution<T> initialSolution) {
 		pw.println();
 		pw.println();
 		pw.print("Number of Topics; ");

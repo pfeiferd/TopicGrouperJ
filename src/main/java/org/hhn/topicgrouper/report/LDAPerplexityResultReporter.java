@@ -13,8 +13,8 @@ import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
-import org.hhn.topicgrouper.base.DocumentProvider;
-import org.hhn.topicgrouper.ldaimpl.LDAGibbsSampler;
+import org.hhn.topicgrouper.doc.DocumentProvider;
+import org.hhn.topicgrouper.lda.impl.LDAGibbsSampler;
 import org.hhn.topicgrouper.validation.AbstractLDAPerplexityCalculator;
 
 public class LDAPerplexityResultReporter<T> extends BasicLDAResultReporter<T> {

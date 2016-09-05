@@ -7,12 +7,12 @@ import gnu.trove.map.hash.TIntObjectHashMap;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hhn.topicgrouper.base.Solution;
-import org.hhn.topicgrouper.base.Solver.SolutionListener;
 import org.hhn.topicgrouper.report.store.MapNode;
 import org.hhn.topicgrouper.report.store.WordInfo;
+import org.hhn.topicgrouper.tg.TGSolution;
+import org.hhn.topicgrouper.tg.TGSolutionListener;
 
-public class MindMapSolutionReporter<T> implements SolutionListener<T> {
+public class MindMapSolutionReporter<T> implements TGSolutionListener<T> {
 
 	private final List<MapNode<T>> allNodes;
 	private final TIntObjectMap<MapNode<T>> currentNodes;
@@ -47,7 +47,7 @@ public class MindMapSolutionReporter<T> implements SolutionListener<T> {
 	}
 
 	@Override
-	public void initialized(Solution<T> initialSolution) {
+	public void initialized(TGSolution<T> initialSolution) {
 		TIntCollection[] t = initialSolution.getTopics();
 		for (int i = 0; i < t.length; i++) {
 			if (t[i] != null) {
@@ -73,7 +73,7 @@ public class MindMapSolutionReporter<T> implements SolutionListener<T> {
 
 	@Override
 	public void updatedSolution(int newTopicIndex, int oldTopicIndex,
-			double improvement, int t1Size, int t2Size, Solution<T> solution) {
+			double improvement, int t1Size, int t2Size, TGSolution<T> solution) {
 		boolean mark = false;
 		// if (solution.getNumberOfTopics() <= minMarkTopics
 		// && lastImprovement != null) {

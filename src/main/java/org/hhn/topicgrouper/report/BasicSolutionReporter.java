@@ -12,18 +12,17 @@ import java.awt.event.WindowEvent;
 import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.List;
 
 import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
-import org.hhn.topicgrouper.base.DocumentProvider;
-import org.hhn.topicgrouper.base.Solution;
-import org.hhn.topicgrouper.base.Solver.SolutionListener;
+import org.hhn.topicgrouper.doc.DocumentProvider;
+import org.hhn.topicgrouper.tg.TGSolution;
+import org.hhn.topicgrouper.tg.TGSolutionListener;
 import org.hhn.topicgrouper.validation.PerplexityCalculator;
 
-public class BasicSolutionReporter<T> implements SolutionListener<T> {
+public class BasicSolutionReporter<T> implements TGSolutionListener<T> {
 	private final ITrace2D trace;
 	private final PrintStream pw;
 	private final int reportDetailsAtTopicSize;
@@ -96,7 +95,7 @@ public class BasicSolutionReporter<T> implements SolutionListener<T> {
 
 	@Override
 	public void updatedSolution(int newTopicIndex, int oldTopicIndex,
-			double improvement, int t1Size, int t2Size, Solution<T> solution) {
+			double improvement, int t1Size, int t2Size, TGSolution<T> solution) {
 		if (testDocumentProvider != null) {
 			double p = perplexityCalculator.computePerplexity(
 					testDocumentProvider, solution);
@@ -122,9 +121,7 @@ public class BasicSolutionReporter<T> implements SolutionListener<T> {
 					}
 				}
 			} else {
-				trace.addPoint(solution.getNumberOfTopics(),
-						solution.getTopicLikelihoods()[newTopicIndex]
-								/ solution.getTopicFrequency(newTopicIndex));
+				trace.addPoint(solution.getNumberOfTopics(),improvement);
 			}
 		}
 		lastImprovement = improvement;
@@ -192,14 +189,14 @@ public class BasicSolutionReporter<T> implements SolutionListener<T> {
 	}
 
 	@Override
-	public void initialized(Solution<T> initialSolution) {
+	public void initialized(TGSolution<T> initialSolution) {
 	}
 
 	@Override
 	public void done() {
 	}
 
-	private void printTopics(Solution<T> solution, PrintStream pw) {
+	private void printTopics(TGSolution<T> solution, PrintStream pw) {
 		for (TIntCollection topic : solution.getTopics()) {
 			if (topic != null) {
 				printTopic(solution, topic, pw);
@@ -207,7 +204,7 @@ public class BasicSolutionReporter<T> implements SolutionListener<T> {
 		}
 	}
 
-	private void printTopic(Solution<T> solution, TIntCollection topic,
+	private void printTopic(TGSolution<T> solution, TIntCollection topic,
 			PrintStream pw) {
 		pw.print("[");
 		TIntIterator iterator = topic.iterator();
@@ -218,7 +215,7 @@ public class BasicSolutionReporter<T> implements SolutionListener<T> {
 		pw.println("]");
 	}
 
-	public static <T> void printTopicDetails(Solution<T> solution,
+	public static <T> void printTopicDetails(TGSolution<T> solution,
 			TIntCollection topic, PrintStream pw) {
 		TopicInfo<T>[] tuples = new TopicInfo[topic.size()];
 		int i = 0;

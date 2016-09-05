@@ -1,4 +1,4 @@
-package org.hhn.topicgrouper.tgimpl;
+package org.hhn.topicgrouper.tg.impl;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -6,7 +6,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import org.hhn.topicgrouper.base.DocumentProvider;
+import org.hhn.topicgrouper.doc.DocumentProvider;
 
 public class TopicGrouperWithSortedList<T> extends AbstractTopicGrouper<T> {
 	private final Collection<JoinCandidate> addLaterCache;
@@ -53,7 +53,7 @@ public class TopicGrouperWithSortedList<T> extends AbstractTopicGrouper<T> {
 
 	@Override
 	protected void prepareRemoveJCPartner(
-			org.hhn.topicgrouper.tgimpl.AbstractTopicGrouper.JoinCandidate jc) {
+			org.hhn.topicgrouper.tg.impl.AbstractTopicGrouper.JoinCandidate jc) {
 		it.remove();
 	}
 

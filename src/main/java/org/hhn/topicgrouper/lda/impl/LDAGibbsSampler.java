@@ -1,4 +1,4 @@
-package org.hhn.topicgrouper.ldaimpl;
+package org.hhn.topicgrouper.lda.impl;
 
 import gnu.trove.iterator.TIntIterator;
 
@@ -6,8 +6,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
-import org.hhn.topicgrouper.base.Document;
-import org.hhn.topicgrouper.base.DocumentProvider;
+import org.hhn.topicgrouper.doc.Document;
+import org.hhn.topicgrouper.doc.DocumentProvider;
 
 public class LDAGibbsSampler<T> {
 	private final Random random;

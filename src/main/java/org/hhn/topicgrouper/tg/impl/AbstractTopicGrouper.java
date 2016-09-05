@@ -1,4 +1,4 @@
-package org.hhn.topicgrouper.tgimpl;
+package org.hhn.topicgrouper.tg.impl;
 
 import gnu.trove.TIntCollection;
 import gnu.trove.iterator.TIntIterator;
@@ -11,13 +11,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.hhn.topicgrouper.base.Document;
-import org.hhn.topicgrouper.base.DocumentProvider;
-import org.hhn.topicgrouper.base.Solution;
-import org.hhn.topicgrouper.base.Solver.SolutionListener;
+import org.hhn.topicgrouper.doc.Document;
+import org.hhn.topicgrouper.doc.DocumentProvider;
+import org.hhn.topicgrouper.tg.TGSolution;
+import org.hhn.topicgrouper.tg.TGSolutionListener;
+import org.hhn.topicgrouper.tg.TGSolver;
 import org.hhn.topicgrouper.util.UnionFind;
 
-public abstract class AbstractTopicGrouper<T> {
+public abstract class AbstractTopicGrouper<T> implements TGSolver<T> {
 	protected final int minWordFrequency;
 	protected final DocumentProvider<T> documentProvider;
 	protected final int[] documentSizes;
@@ -34,7 +35,7 @@ public abstract class AbstractTopicGrouper<T> {
 	protected final double[] topicLikelihoods;
 	protected double totalLikelihood;
 	protected final int[] nTopics;
-	protected final Solution<T> solution;
+	protected final TGSolution<T> solution;
 	protected final int[][] topicFrequencyPerDocuments;
 	protected final double[] sumWordFrTimesLogWordFrByTopic;
 
@@ -100,8 +101,8 @@ public abstract class AbstractTopicGrouper<T> {
 		solution = createSolution();
 	}
 
-	protected Solution<T> createSolution() {
-		return new Solution<T>() {
+	protected TGSolution<T> createSolution() {
+		return new TGSolution<T>() {
 			@Override
 			public TIntCollection[] getTopics() {
 				return topics;
@@ -133,7 +134,8 @@ public abstract class AbstractTopicGrouper<T> {
 
 			@Override
 			public int getIndex(T word) {
-				return AbstractTopicGrouper.this.documentProvider.getIndex(word);
+				return AbstractTopicGrouper.this.documentProvider
+						.getIndex(word);
 			}
 
 			@Override
@@ -219,7 +221,8 @@ public abstract class AbstractTopicGrouper<T> {
 		return invertedIndex;
 	}
 
-	public void solve(SolutionListener<T> solutionListener) {
+	@Override
+	public void solve(TGSolutionListener<T> solutionListener) {
 		// Initialization
 		totalLikelihood = 0;
 		solutionListener.beforeInitialization(maxTopics, documentSizes.length);
@@ -263,7 +266,7 @@ public abstract class AbstractTopicGrouper<T> {
 			}
 		}
 	}
-	
+
 	protected double computeOneWordTopicLogLikelihood(int wordIndex) {
 		double sum = 0; // Coherence weight log(1).
 		for (int i = 0; i < documents.size(); i++) {
@@ -278,7 +281,7 @@ public abstract class AbstractTopicGrouper<T> {
 	}
 
 	protected void createInitialJoinCandidates(
-			SolutionListener<T> solutionListener) {
+			TGSolutionListener<T> solutionListener) {
 		int initMax = maxTopics * (maxTopics - 1) / 2;
 		int initCounter = 0;
 
@@ -323,7 +326,7 @@ public abstract class AbstractTopicGrouper<T> {
 		}
 		addAllToJoinCandiates(joinCandidates);
 	}
-	
+
 	protected double computeTwoWordLogLikelihood(int i, int j, int word1,
 			int word2) {
 		double sum = computeTwoWordLogLikelihoodHelp(word1, word2);
@@ -370,7 +373,8 @@ public abstract class AbstractTopicGrouper<T> {
 		}
 		return sum;
 	}
-	protected void groupTopics(SolutionListener<T> solutionListener) {
+
+	protected void groupTopics(TGSolutionListener<T> solutionListener) {
 		nTopics[0] = maxTopics;
 		deferredJCRecomputations = 0;
 		while (nTopics[0] > minTopics) {
@@ -417,7 +421,7 @@ public abstract class AbstractTopicGrouper<T> {
 			}
 		}
 	}
-	
+
 	public int getDeferredJCRecomputations() {
 		return deferredJCRecomputations;
 	}
@@ -512,7 +516,7 @@ public abstract class AbstractTopicGrouper<T> {
 	protected abstract void addJoinCandidateLater(JoinCandidate jc);
 
 	protected abstract void updateJoinCandidates(JoinCandidate jc);
-	
+
 	protected abstract void iterateOverJCsForUpdate(JoinCandidate jc, int j);
 
 	protected static class JoinCandidate implements Comparable<JoinCandidate> {

@@ -1,7 +1,7 @@
 package org.hhn.topicgrouper.validation;
 
-import org.hhn.topicgrouper.base.Document;
-import org.hhn.topicgrouper.ldaimpl.LDAGibbsSampler;
+import org.hhn.topicgrouper.doc.Document;
+import org.hhn.topicgrouper.lda.impl.LDAGibbsSampler;
 
 
 public class LDAPerplexityCalculatorWithFoldIn<T> extends

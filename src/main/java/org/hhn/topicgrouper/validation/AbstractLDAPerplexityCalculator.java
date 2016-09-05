@@ -2,9 +2,9 @@ package org.hhn.topicgrouper.validation;
 
 import gnu.trove.iterator.TIntIterator;
 
-import org.hhn.topicgrouper.base.Document;
-import org.hhn.topicgrouper.base.DocumentProvider;
-import org.hhn.topicgrouper.ldaimpl.LDAGibbsSampler;
+import org.hhn.topicgrouper.doc.Document;
+import org.hhn.topicgrouper.doc.DocumentProvider;
+import org.hhn.topicgrouper.lda.impl.LDAGibbsSampler;
 
 public abstract class AbstractLDAPerplexityCalculator<T> {
 	protected final boolean bowFactor;

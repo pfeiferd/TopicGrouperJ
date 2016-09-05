@@ -1,8 +1,8 @@
-package org.hhn.topicgrouper.base;
+package org.hhn.topicgrouper.tg;
 
 import gnu.trove.TIntCollection;
 
-public interface Solution<T> {
+public interface TGSolution<T> {
 	public int getNumberOfTopics();
 	
 	public TIntCollection[] getTopics();

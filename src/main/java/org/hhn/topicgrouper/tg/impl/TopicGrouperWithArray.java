@@ -1,6 +1,6 @@
-package org.hhn.topicgrouper.tgimpl;
+package org.hhn.topicgrouper.tg.impl;
 
-import org.hhn.topicgrouper.base.DocumentProvider;
+import org.hhn.topicgrouper.doc.DocumentProvider;
 
 public class TopicGrouperWithArray<T> extends AbstractTopicGrouper<T> {
 	private JoinCandidate[] joinCandidates;
@@ -50,7 +50,7 @@ public class TopicGrouperWithArray<T> extends AbstractTopicGrouper<T> {
 	
 	@Override
 	protected void prepareRemoveJCPartner(
-			org.hhn.topicgrouper.tgimpl.AbstractTopicGrouper.JoinCandidate jc) {
+			org.hhn.topicgrouper.tg.impl.AbstractTopicGrouper.JoinCandidate jc) {
 		joinCandidates[jc.i] = null;
 	}
 

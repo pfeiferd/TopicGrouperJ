@@ -1,4 +1,6 @@
-package org.hhn.topicgrouper.base;
+package org.hhn.topicgrouper.doc.impl;
+
+import org.hhn.topicgrouper.doc.Document;
 
 import gnu.trove.map.TIntIntMap;
 import gnu.trove.map.hash.TIntIntHashMap;
