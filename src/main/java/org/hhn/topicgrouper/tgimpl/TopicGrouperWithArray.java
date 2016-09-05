@@ -2,20 +2,25 @@ package org.hhn.topicgrouper.tgimpl;
 
 import org.hhn.topicgrouper.base.DocumentProvider;
 
-public class JMLRTopicGrouper2<T> extends JMLRTopicGrouper<T> {
-	public JMLRTopicGrouper2(int minWordFrequency,
+public class TopicGrouperWithArray<T> extends AbstractTopicGrouper<T> {
+	private JoinCandidate[] joinCandidates;
+	
+	public TopicGrouperWithArray(int minWordFrequency,
 			DocumentProvider<T> documentProvider, int minTopics) {
-		super(minWordFrequency, documentProvider, minTopics);
+		this(minWordFrequency, documentProvider, minTopics, 0);
 	}
 	
+	public TopicGrouperWithArray(int minWordFrequency,
+			DocumentProvider<T> documentProvider, int minTopics, double hEpsilon) {
+		super(minWordFrequency, documentProvider, minTopics, hEpsilon);
+	}
+
 	protected void createJoinCandidateList(int maxTopics) {
 	}
 	
 	protected void addAllToJoinCandiates(JoinCandidate[] joinCandidates) {
 		this.joinCandidates = joinCandidates;
 	}
-
-	private JoinCandidate[] joinCandidates;
 	
 	@Override
 	protected JoinCandidate getBestJoinCandidate() {
@@ -45,7 +50,7 @@ public class JMLRTopicGrouper2<T> extends JMLRTopicGrouper<T> {
 	
 	@Override
 	protected void prepareRemoveJCPartner(
-			org.hhn.topicgrouper.tgimpl.JMLRTopicGrouper.JoinCandidate jc) {
+			org.hhn.topicgrouper.tgimpl.AbstractTopicGrouper.JoinCandidate jc) {
 		joinCandidates[jc.i] = null;
 	}
 

@@ -4,65 +4,63 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 
 import org.hhn.topicgrouper.base.DocumentProvider;
 
-
-public class JMLRTopicGrouper3<T> extends JMLRTopicGrouper<T> {
-	public JMLRTopicGrouper3(int minWordFrequency,
-			DocumentProvider<T> documentProvider, int minTopics) {
-		super(minWordFrequency, documentProvider, minTopics);
-	}
-	
-	protected void createJoinCandidateList(int maxTopics) {
-		joinCandidates = new ArrayList<JMLRTopicGrouper.JoinCandidate>();
-	}
-	
-	protected void addAllToJoinCandiates(JoinCandidate[] joinCandidates) {
-		Collections.addAll(this.joinCandidates, joinCandidates);
-	}
-
-	private Collection<JoinCandidate> joinCandidates;
-	private Collection<JoinCandidate> addLater = new ArrayList<JMLRTopicGrouper.JoinCandidate>();
+public class TopicGrouperWithSortedList<T> extends AbstractTopicGrouper<T> {
+	private final Collection<JoinCandidate> addLaterCache;
+	private List<JoinCandidate> joinCandidates;
 	private Iterator<JoinCandidate> it;
 	
+	public TopicGrouperWithSortedList(int minWordFrequency,
+			DocumentProvider<T> documentProvider, int minTopics) {
+		this(minWordFrequency, documentProvider, minTopics, 0);
+	}
+
+	public TopicGrouperWithSortedList(int minWordFrequency,
+			DocumentProvider<T> documentProvider, int minTopics, double hEpsilon) {
+		super(minWordFrequency, documentProvider, minTopics, hEpsilon);
+		addLaterCache = new ArrayList<AbstractTopicGrouper.JoinCandidate>();
+	}
+
+	protected void createJoinCandidateList(int maxTopics) {
+		joinCandidates = new ArrayList<AbstractTopicGrouper.JoinCandidate>();
+	}
+
+	protected void addAllToJoinCandiates(JoinCandidate[] joinCandidates) {
+		Collections.addAll(this.joinCandidates, joinCandidates);
+		Collections.sort(this.joinCandidates);
+	}
+
+
 	@Override
 	protected JoinCandidate getBestJoinCandidate() {
-		double maxImprovement = Double.NEGATIVE_INFINITY;
-		JoinCandidate bestJC = null;
-		for (JoinCandidate jc : joinCandidates) {
-			if (jc != null) {
-				if (jc.improvement > maxImprovement) {
-					maxImprovement = jc.improvement;
-					bestJC = jc;
-				}
-			}			
-		}
-		joinCandidates.remove(bestJC);
-
-		return bestJC;
+		return joinCandidates.remove(joinCandidates.size() - 1);
 	}
-	
+
 	@Override
 	protected void addJoinCandidate(JoinCandidate jc) {
-		joinCandidates.add(jc);
+		int insertionPoint = Collections.binarySearch(joinCandidates, jc);
+		joinCandidates.add((insertionPoint > -1) ? insertionPoint
+				: (-insertionPoint) - 1, jc);
 	}
-	
+
 	@Override
 	protected void prepareRemoveJoinCandidate(JoinCandidate jc) {
 		it.remove();
 	}
-	
+
 	@Override
 	protected void prepareRemoveJCPartner(
-			org.hhn.topicgrouper.tgimpl.JMLRTopicGrouper.JoinCandidate jc) {
+			org.hhn.topicgrouper.tgimpl.AbstractTopicGrouper.JoinCandidate jc) {
 		it.remove();
 	}
 
 	@Override
 	protected void addJoinCandidateLater(JoinCandidate jc) {
-		addLater.add(jc);
-	}	
+		addLaterCache.add(jc);
+	}
 
 	@Override
 	protected void updateJoinCandidates(JoinCandidate jc) {
@@ -78,15 +76,19 @@ public class JMLRTopicGrouper3<T> extends JMLRTopicGrouper<T> {
 
 		iterateOverJCsForUpdate(jc, j);
 	}
-	
+
 	@Override
 	protected void iterateOverJCsForUpdate(JoinCandidate jc, int j) {
 		it = joinCandidates.iterator();
-		addLater.clear();
-		
+		addLaterCache.clear();
+
 		while (it.hasNext()) {
-			handleJoinCandidateUpdate(jc, it.next(), j);			
+			handleJoinCandidateUpdate(jc, it.next(), j);
 		}
-		joinCandidates.addAll(addLater);		
+//		joinCandidates.addAll(addLater);
+//		Collections.sort(this.joinCandidates);
+		for (JoinCandidate jc2 : addLaterCache) {
+			addJoinCandidate(jc2);
+		}
 	}
 }
