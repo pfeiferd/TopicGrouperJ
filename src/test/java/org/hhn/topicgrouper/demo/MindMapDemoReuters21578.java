@@ -1,36 +1,35 @@
-package org.hhn.topicgrouper.test;
+package org.hhn.topicgrouper.demo;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
-import java.io.Writer;
 
-import org.hhn.topicgrouper.base.DocumentProvider;
-import org.hhn.topicgrouper.base.SolutionListenerMultiplexer;
-import org.hhn.topicgrouper.base.Solver;
-import org.hhn.topicgrouper.base.Solver.SolutionListener;
+import org.hhn.topicgrouper.doc.DocumentProvider;
+import org.hhn.topicgrouper.eval.AbstractTGTester;
 import org.hhn.topicgrouper.eval.Reuters21578;
-import org.hhn.topicgrouper.report.BasicSolutionReporter;
-import org.hhn.topicgrouper.report.FreeMindXMLTopicHierarchyWriter;
-import org.hhn.topicgrouper.report.MindMapSolutionReporter;
-import org.hhn.topicgrouper.tgimpl.OptimizedTopicGrouper;
+import org.hhn.topicgrouper.tg.TGSolutionListener;
+import org.hhn.topicgrouper.tg.TGSolutionListenerMultiplexer;
+import org.hhn.topicgrouper.tg.TGSolver;
+import org.hhn.topicgrouper.tg.impl.TopicGrouperWithTreeSet;
+import org.hhn.topicgrouper.tg.report.BasicSolutionReporter;
+import org.hhn.topicgrouper.tg.report.FreeMindXMLTopicHierarchyWriter;
+import org.hhn.topicgrouper.tg.report.MindMapSolutionReporter;
 
-public class MindMapDemo extends OptimizedTGTester {
+public class MindMapDemoReuters21578 extends AbstractTGTester<String> {
 	private MindMapSolutionReporter<String> mindMapSolutionReporter;
 	private OutputStream file;
 
-	public MindMapDemo(OutputStream file) throws IOException {
+	public MindMapDemoReuters21578(OutputStream file) throws IOException {
 		super(null);
 		this.file = file;
 	}
 
 	@Override
-	protected Solver<String> createSolver(
+	protected TGSolver<String> createSolver(
 			DocumentProvider<String> documentProvider) {
-		return new OptimizedTopicGrouper<String>(50, 0, documentProvider, 1);
+		return new TopicGrouperWithTreeSet<String>(50, documentProvider, 1);
 	}
 
 	@Override
@@ -44,8 +43,8 @@ public class MindMapDemo extends OptimizedTGTester {
 	}
 
 	@Override
-	protected SolutionListener<String> createSolutionListener(PrintStream out) {
-		SolutionListenerMultiplexer<String> multiplexer = new SolutionListenerMultiplexer<String>();
+	protected TGSolutionListener<String> createSolutionListener(PrintStream out) {
+		TGSolutionListenerMultiplexer<String> multiplexer = new TGSolutionListenerMultiplexer<String>();
 		multiplexer
 				.addSolutionListener(mindMapSolutionReporter = new MindMapSolutionReporter<String>(
 						5, false, 1.1, 20));
@@ -67,9 +66,9 @@ public class MindMapDemo extends OptimizedTGTester {
 	}
 
 	public static void main(String[] args) throws IOException {
-		File file = new File("./target/result7.mm");
+		File file = new File("./target/reuters21578.mm");
 		FileOutputStream writer = new FileOutputStream(file);
-		new MindMapDemo(writer).run();
+		new MindMapDemoReuters21578(writer).run();
 		writer.close();
 	}
 }
