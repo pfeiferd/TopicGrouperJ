@@ -1,4 +1,4 @@
-package org.hhn.topicgrouper.test;
+package org.hhn.topicgrouper.demo;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -11,26 +11,27 @@ import javax.swing.JPanel;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
 
-import org.hhn.topicgrouper.base.DocumentProvider;
-import org.hhn.topicgrouper.base.Solver;
-import org.hhn.topicgrouper.base.Solver.SolutionListener;
+import org.hhn.topicgrouper.doc.DocumentProvider;
+import org.hhn.topicgrouper.eval.AbstractTGTester;
 import org.hhn.topicgrouper.eval.TWCLDAPaperDocumentGenerator;
-import org.hhn.topicgrouper.report.ClusterSolutionReporter;
-import org.hhn.topicgrouper.tgimpl.OptimizedTopicGrouper;
+import org.hhn.topicgrouper.tg.TGSolutionListener;
+import org.hhn.topicgrouper.tg.TGSolver;
+import org.hhn.topicgrouper.tg.impl.TopicGrouperWithTreeSet;
 
 import external.com.apporiented.algorithm.clustering.Cluster;
 import external.com.apporiented.algorithm.clustering.visualization.DendrogramPanel;
 
-public class DendroGramDemo extends OptimizedTGTester {
+public class DendroGramDemo extends AbstractTGTester<String> {
 	private ClusterSolutionReporter<String> clusterSolutionReporter;
 
 	public DendroGramDemo() throws IOException {
 		super(null);
 	}
-
+	
 	@Override
-	protected Solver<String> createSolver(DocumentProvider<String> documentProvider) {
-		return new OptimizedTopicGrouper<String>(1, 0, documentProvider, 1);
+	protected TGSolver<String> createSolver(
+			DocumentProvider<String> documentProvider) {
+		return new TopicGrouperWithTreeSet<String>(1, documentProvider, 1);
 	}
 	
 	@Override
@@ -40,7 +41,7 @@ public class DendroGramDemo extends OptimizedTGTester {
 	}
 
 	@Override
-	protected SolutionListener<String> createSolutionListener(PrintStream out) {
+	protected TGSolutionListener<String> createSolutionListener(PrintStream out) {
 		return clusterSolutionReporter = new ClusterSolutionReporter<String>();
 	}
 
