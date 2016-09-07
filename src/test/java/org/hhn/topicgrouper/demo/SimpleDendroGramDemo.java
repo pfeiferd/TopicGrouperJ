@@ -21,10 +21,10 @@ import org.hhn.topicgrouper.tg.impl.TopicGrouperWithTreeSet;
 import external.com.apporiented.algorithm.clustering.Cluster;
 import external.com.apporiented.algorithm.clustering.visualization.DendrogramPanel;
 
-public class DendroGramDemo extends AbstractTGTester<String> {
+public class SimpleDendroGramDemo extends AbstractTGTester<String> {
 	private ClusterSolutionReporter<String> clusterSolutionReporter;
 
-	public DendroGramDemo() throws IOException {
+	public SimpleDendroGramDemo() throws IOException {
 		super(null);
 	}
 	
@@ -77,6 +77,6 @@ public class DendroGramDemo extends AbstractTGTester<String> {
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
-		new DendroGramDemo().run();
+		new SimpleDendroGramDemo().run();
 	}
 }
