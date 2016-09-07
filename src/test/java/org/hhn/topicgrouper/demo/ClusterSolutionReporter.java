@@ -1,16 +1,16 @@
-package org.hhn.topicgrouper.report;
+package org.hhn.topicgrouper.demo;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import org.hhn.topicgrouper.base.Solution;
-import org.hhn.topicgrouper.base.Solver.SolutionListener;
+import org.hhn.topicgrouper.tg.TGSolution;
+import org.hhn.topicgrouper.tg.TGSolutionListener;
 
 import external.com.apporiented.algorithm.clustering.Cluster;
 import external.com.apporiented.algorithm.clustering.Distance;
 import gnu.trove.TIntCollection;
 
-public class ClusterSolutionReporter<T> implements SolutionListener<T> {
+public class ClusterSolutionReporter<T> implements TGSolutionListener<T> {
 	private final Map<Integer, Cluster> currentClusters;
 
 	public ClusterSolutionReporter() {
@@ -50,8 +50,8 @@ public class ClusterSolutionReporter<T> implements SolutionListener<T> {
 	}
 
 	@Override
-	public void initialized(Solution<T> initialSolution) {
-		TIntCollection[] t = initialSolution.getTopicsAlt();
+	public void initialized(TGSolution<T> initialSolution) {
+		TIntCollection[] t = initialSolution.getTopics();
 		for (int i = 0; i < t.length; i++) {
 			Cluster cluster = new Cluster(initialSolution.getWord(
 					t[i].iterator().next()).toString());
@@ -61,7 +61,7 @@ public class ClusterSolutionReporter<T> implements SolutionListener<T> {
 
 	@Override
 	public void updatedSolution(int newTopicIndex, int oldTopicIndex,
-			double improvement, int t1Size, int t2Size, Solution<T> solution) {
+			double improvement, int t1Size, int t2Size, TGSolution<T> solution) {
 		Cluster parent = new Cluster(String.valueOf(newTopicIndex));
 		Cluster child1 = currentClusters.get(newTopicIndex);
 		currentClusters.remove(newTopicIndex);
@@ -79,7 +79,7 @@ public class ClusterSolutionReporter<T> implements SolutionListener<T> {
 	}
 
 	public double computeDistance(int newTopicIndex, int oldTopicIndex,
-			double improvement, int t1Size, int t2Size, Solution<T> solution) {
+			double improvement, int t1Size, int t2Size, TGSolution<T> solution) {
 		return Math.log(- improvement);
 	}
 }
