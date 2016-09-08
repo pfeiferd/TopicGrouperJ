@@ -15,7 +15,7 @@ public interface TGSolution<T> {
 	
 	public int getGlobalWordFrequency(int wordIndex);
 		
-	public double getTotalLikelhood();
+	public double getTotalLogLikelhood();
 	
 	public T getWord(int wordIndex);
 	
@@ -23,5 +23,5 @@ public interface TGSolution<T> {
 	
 	public TIntCollection getHomonymns();
 	
-	public double[] getTopicLikelihoods();
+	public double[] getTopicLogLikelihoods();
 }
