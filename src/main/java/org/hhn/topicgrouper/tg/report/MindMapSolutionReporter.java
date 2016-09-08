@@ -58,7 +58,7 @@ public class MindMapSolutionReporter<T> implements TGSolutionListener<T> {
 						.getGlobalWordFrequency(wordId), initialSolution
 						.getWord(wordId)));
 				MapNode<T> node = new MapNode<T>(-i, null, null, list,
-						initialSolution.getTotalLikelhood(), 0, 0,
+						initialSolution.getTotalLogLikelhood(), 0, 0,
 						initialSolution.getTopicFrequency(i));
 				currentNodes.put(i, node);
 			}
@@ -126,8 +126,8 @@ public class MindMapSolutionReporter<T> implements TGSolutionListener<T> {
 		MapNode<T> parent = new MapNode<T>(solution.getNumberOfTopics(),
 				child1List.isEmpty() ? null : child1,
 				child2List.isEmpty() ? null : child2, topList,
-				solution.getTotalLikelhood(),
-				solution.getTopicLikelihoods()[newTopicIndex], improvement,
+				solution.getTotalLogLikelhood(),
+				solution.getTopicLogLikelihoods()[newTopicIndex], improvement,
 				solution.getTopicFrequency(newTopicIndex));
 		child1.setParent(parent);
 		child2.setParent(parent);

@@ -32,8 +32,8 @@ public abstract class AbstractTopicGrouper<T> implements TGSolver<T> {
 	protected final UnionFind topicUnionFind;
 	protected final int[] wordToInitialTopic;
 	protected final int[] topicSizes;
-	protected final double[] topicLikelihoods;
-	protected double totalLikelihood;
+	protected final double[] topicLogLikelihoods;
+	protected double totalLogLikelihood;
 	protected final int[] nTopics;
 	protected final TGSolution<T> solution;
 	protected final int[][] topicFrequencyPerDocuments;
@@ -90,7 +90,7 @@ public abstract class AbstractTopicGrouper<T> implements TGSolver<T> {
 		topicUnionFind = new UnionFind(maxTopics);
 		topics = new TIntList[maxTopics];
 		topicSizes = new int[maxTopics];
-		topicLikelihoods = new double[maxTopics];
+		topicLogLikelihoods = new double[maxTopics];
 		nTopics = new int[1];
 
 		topicFrequencyPerDocuments = new int[maxTopics][];
@@ -150,13 +150,13 @@ public abstract class AbstractTopicGrouper<T> implements TGSolver<T> {
 			}
 
 			@Override
-			public double[] getTopicLikelihoods() {
-				return topicLikelihoods;
+			public double[] getTopicLogLikelihoods() {
+				return topicLogLikelihoods;
 			}
 
 			@Override
-			public double getTotalLikelhood() {
-				return totalLikelihood;
+			public double getTotalLogLikelhood() {
+				return totalLogLikelihood;
 			}
 
 			@Override
@@ -224,7 +224,7 @@ public abstract class AbstractTopicGrouper<T> implements TGSolver<T> {
 	@Override
 	public void solve(TGSolutionListener<T> solutionListener) {
 		// Initialization
-		totalLikelihood = 0;
+		totalLogLikelihood = 0;
 		solutionListener.beforeInitialization(maxTopics, documentSizes.length);
 		createInitialTopics();
 
@@ -250,8 +250,8 @@ public abstract class AbstractTopicGrouper<T> implements TGSolver<T> {
 				// at position i
 				topics[counter] = topic;
 				topicSizes[counter] = documentProvider.getWordFrequency(i);
-				topicLikelihoods[counter] = computeOneWordTopicLogLikelihood(i);
-				totalLikelihood += topicLikelihoods[counter];
+				topicLogLikelihoods[counter] = computeOneWordTopicLogLikelihood(i);
+				totalLogLikelihood += topicLogLikelihoods[counter];
 
 				topicFrequencyPerDocuments[counter] = new int[documents.size()];
 				for (int j = 0; j < documents.size(); j++) {
@@ -292,8 +292,8 @@ public abstract class AbstractTopicGrouper<T> implements TGSolver<T> {
 				double newLikelihood = computeTwoWordLogLikelihood(i, j,
 						topics[i].get(0), topics[j].get(0));
 
-				double newImprovement = newLikelihood - topicLikelihoods[i]
-						- topicLikelihoods[j];
+				double newImprovement = newLikelihood - topicLogLikelihoods[i]
+						- topicLogLikelihoods[j];
 
 				JoinCandidate jc = joinCandidates[i];
 				if (jc == null) {
@@ -303,7 +303,7 @@ public abstract class AbstractTopicGrouper<T> implements TGSolver<T> {
 					jc.improvement = newImprovement;
 					jc.i = i;
 					jc.j = j;
-					jc.likelihood = newLikelihood;
+					jc.logLikelihood = newLikelihood;
 				}
 
 				jc = joinCandidates[j];
@@ -314,7 +314,7 @@ public abstract class AbstractTopicGrouper<T> implements TGSolver<T> {
 					jc.improvement = newImprovement;
 					jc.i = j;
 					jc.j = i;
-					jc.likelihood = newLikelihood;
+					jc.logLikelihood = newLikelihood;
 				}
 
 				initCounter++;
@@ -398,9 +398,9 @@ public abstract class AbstractTopicGrouper<T> implements TGSolver<T> {
 					topicSizes[jc.i] += t2Size;
 					sumWordFrTimesLogWordFrByTopic[jc.i] += sumWordFrTimesLogWordFrByTopic[jc.j];
 					// Compute likelihood for joined topic
-					totalLikelihood -= topicLikelihoods[jc.i];
-					topicLikelihoods[jc.i] = jc.likelihood;
-					totalLikelihood += topicLikelihoods[jc.i];
+					totalLogLikelihood -= topicLogLikelihoods[jc.i];
+					topicLogLikelihoods[jc.i] = jc.logLikelihood;
+					totalLogLikelihood += topicLogLikelihoods[jc.i];
 					int[] a = topicFrequencyPerDocuments[jc.i];
 					int[] b = topicFrequencyPerDocuments[jc.j];
 					for (int i = 0; i < a.length; i++) {
@@ -408,8 +408,8 @@ public abstract class AbstractTopicGrouper<T> implements TGSolver<T> {
 					}
 					// Topic at position jc.j is gone
 					topics[jc.j] = null;
-					totalLikelihood -= topicLikelihoods[jc.j];
-					topicLikelihoods[jc.j] = 0;
+					totalLogLikelihood -= topicLogLikelihoods[jc.j];
+					topicLogLikelihoods[jc.j] = 0;
 					topicSizes[jc.j] = 0;
 
 					nTopics[0]--;
@@ -433,8 +433,8 @@ public abstract class AbstractTopicGrouper<T> implements TGSolver<T> {
 		for (int j = 0; j < maxTopics; j++) {
 			if (j != jc.i && topics[j] != null) {
 				double newLikelihood = computeTwoTopicLogLikelihood(jc.i, j);
-				double newImprovement = newLikelihood - topicLikelihoods[jc.i]
-						- topicLikelihoods[j];
+				double newImprovement = newLikelihood - topicLogLikelihoods[jc.i]
+						- topicLogLikelihoods[j];
 				if (newImprovement > bestImprovement) {
 					bestImprovement = newImprovement;
 					bestLikelihood = newLikelihood;
@@ -443,7 +443,7 @@ public abstract class AbstractTopicGrouper<T> implements TGSolver<T> {
 			}
 		}
 		jc.improvement = bestImprovement;
-		jc.likelihood = bestLikelihood;
+		jc.logLikelihood = bestLikelihood;
 		jc.j = bestJ;
 	}
 
@@ -482,12 +482,12 @@ public abstract class AbstractTopicGrouper<T> implements TGSolver<T> {
 		// proving it seems hard.
 		/* && (jc2.j == jc.i || jc2.j == j || jc2.j == -1) */) {
 			double newLikelihood = computeTwoTopicLogLikelihood(jc2.i, jc.i);
-			double newImprovement = newLikelihood - topicLikelihoods[jc2.i]
-					- topicLikelihoods[jc.i];
+			double newImprovement = newLikelihood - topicLogLikelihoods[jc2.i]
+					- topicLogLikelihoods[jc.i];
 			if (newImprovement > jc2.improvement) {
 				prepareRemoveJoinCandidate(jc2);
 				jc2.improvement = newImprovement;
-				jc2.likelihood = newLikelihood;
+				jc2.logLikelihood = newLikelihood;
 				jc2.j = jc.i;
 
 				// Show me where the criterion from above is violated:
@@ -520,7 +520,7 @@ public abstract class AbstractTopicGrouper<T> implements TGSolver<T> {
 	protected abstract void iterateOverJCsForUpdate(JoinCandidate jc, int j);
 
 	protected static class JoinCandidate implements Comparable<JoinCandidate> {
-		public double likelihood;
+		public double logLikelihood;
 		public double improvement;
 		public int i;
 		public int j;
@@ -539,7 +539,7 @@ public abstract class AbstractTopicGrouper<T> implements TGSolver<T> {
 
 		@Override
 		public String toString() {
-			return "[l:" + likelihood + " imp:" + improvement + " i:" + i
+			return "[l:" + logLikelihood + " imp:" + improvement + " i:" + i
 					+ " j:" + j + "]";
 		}
 	}
@@ -649,8 +649,8 @@ public abstract class AbstractTopicGrouper<T> implements TGSolver<T> {
 			int fr = documentProvider.getWordFrequency(wordIndex);
 			topicSizes[tid] -= fr;
 			double v = computeOneWordTopicLogLikelihood(otherWord);
-			totalLikelihood += v - topicLikelihoods[tid];
-			topicLikelihoods[tid] = v;
+			totalLogLikelihood += v - topicLogLikelihoods[tid];
+			topicLogLikelihoods[tid] = v;
 
 			for (int j = 0; j < documents.size(); j++) {
 				topicFrequencyPerDocuments[tid][j] -= documents.get(j)

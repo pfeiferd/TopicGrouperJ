@@ -10,15 +10,16 @@ public class MathExt {
 		return sum1 / values.length;
 	}
 
-	public static double sampleStdDev(double[] values) {
-		double avg = avg(values);
-
+	public static double sampleStdDev(double avg, double[] values) {		
 		double sum = 0;
 		for (int j = 0; j < values.length; j++) {
 			sum += (values[j] - avg) * (values[j] - avg);
 		}
 		return Math.sqrt(sum / (values.length - 1));
 	}
-
 	
+	public static double sampleStdDev(double[] values) {
+		double avg = avg(values);
+		return sampleStdDev(avg, values);
+	}
 }

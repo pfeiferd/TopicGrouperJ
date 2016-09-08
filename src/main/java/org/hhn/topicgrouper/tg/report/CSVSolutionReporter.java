@@ -42,7 +42,7 @@ public class CSVSolutionReporter<T> implements TGSolutionListener<T> {
 		}
 		pw.print(improvement);
 		pw.print("; ");
-		pw.println(solution.getTotalLikelhood());
+		pw.println(solution.getTotalLogLikelhood());
 	}
 
 	@Override

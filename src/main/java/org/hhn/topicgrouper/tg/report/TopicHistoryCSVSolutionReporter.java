@@ -42,13 +42,13 @@ public class TopicHistoryCSVSolutionReporter<T> implements TGSolutionListener<T>
 			pw.print("; ");
 			pw.print(t1Size + t2Size);
 			pw.print("; ");
-			pw.print(solution.getTotalLikelhood());
+			pw.print(solution.getTotalLogLikelhood());
 			pw.print("; ");
 			pw.print(improvement);
 			pw.print("; ");
 			pw.print(ratio);
 			pw.print("; ");
-			BasicSolutionReporter.printTopicDetails(solution, topic, pw);
+			BasicTGSolutionReporter.printTopicDetails(solution, topic, pw);
 		}
 	}
 
