@@ -24,13 +24,19 @@ public abstract class DeferredJCComputationDependency<T> {
 		pw.println("err;");
 
 		for (int i = 0; i < steps; i++) {
+			System.out.print("Step: ");
+			System.out.println(i);
 			final double[] tgDeferredJCCs = new double[avgC];
 			final double[] nWords = new double[avgC];
 			final int[] counter = new int[1];
 			for (int j = 0; j < avgC; j++) {
+				System.out.print("Avg run: ");
+				System.out.println(j);
 				counter[0] = j;
 				DocumentProvider<T> documentProvider = createDocumentProvider(i);
 				nWords[j] = documentProvider.getNumberOfWords();
+				System.out.print("Number of Words: ");
+				System.out.println(nWords[j]);
 				final AbstractTopicGrouper<T> topicGrouper = new TopicGrouperWithTreeSet<T>(
 						1, documentProvider, 1);
 				topicGrouper.solve(new TGSolutionListener<T>() {

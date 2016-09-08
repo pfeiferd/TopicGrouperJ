@@ -85,7 +85,7 @@ public class TWCPerplexityErrorRateLDAGibbs {
 		pw3.print("improvement;");
 		pw3.println("improvementratio;");
 
-		int avgC = 5;
+		int avgC = 10;
 		double[] perplexity1 = new double[avgC];
 		double[] perplexity2 = new double[avgC];
 		double[] acc = new double[avgC];
@@ -100,9 +100,10 @@ public class TWCPerplexityErrorRateLDAGibbs {
 			for (int j = 0; j < avgC; j++) {
 				counter[0] = j;
 				DocumentProvider<String> documentProvider = new TWCLDAPaperDocumentGenerator(
-						random);
+						random, new double[] { 5, 0.5, 0.5, 0.5 }, 9000, 100,
+						100, 30, 30, 0, null, 0.5, 0.8);
 				holdOutSplitter[0] = new HoldOutSplitter<String>(random,
-						documentProvider, 0.1, 1);
+						documentProvider, 0.3333, 1);
 
 				gibbsSampler[0] = new LDAGibbsSampler<String>(
 						holdOutSplitter[0].getRest(), new double[] { alpha1,
