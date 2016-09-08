@@ -22,7 +22,7 @@ import org.hhn.topicgrouper.tg.TGSolution;
 import org.hhn.topicgrouper.tg.TGSolutionListener;
 import org.hhn.topicgrouper.tg.validation.TGPerplexityCalculator;
 
-public class BasicSolutionReporter<T> implements TGSolutionListener<T> {
+public class BasicTGSolutionReporter<T> implements TGSolutionListener<T> {
 	private final ITrace2D trace;
 	private final PrintStream pw;
 	private final int reportDetailsAtTopicSize;
@@ -32,12 +32,12 @@ public class BasicSolutionReporter<T> implements TGSolutionListener<T> {
 	private final boolean verbose;
 	private final ImprovementAssessor assessor;
 
-	public BasicSolutionReporter(PrintStream pw, int reportDetailsAtTopicSize,
+	public BasicTGSolutionReporter(PrintStream pw, int reportDetailsAtTopicSize,
 			boolean derive) {
 		this(pw, reportDetailsAtTopicSize, derive, true, true);
 	}
 
-	public BasicSolutionReporter(PrintStream pw, int reportDetailsAtTopicSize,
+	public BasicTGSolutionReporter(PrintStream pw, int reportDetailsAtTopicSize,
 			boolean derive, boolean verbose, boolean bowFactor) {
 		this.pw = pw;
 		this.derive = derive;
@@ -129,7 +129,7 @@ public class BasicSolutionReporter<T> implements TGSolutionListener<T> {
 			pw.print("Improvement: ");
 			pw.println(improvement);
 			pw.print("Likelihood: ");
-			pw.println(solution.getTotalLikelhood());
+			pw.println(solution.getTotalLogLikelhood());
 			pw.print("Number of topics: ");
 			pw.println(solution.getNumberOfTopics());
 			pw.println("New topic: ");
