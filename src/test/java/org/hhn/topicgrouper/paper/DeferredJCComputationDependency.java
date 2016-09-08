@@ -15,7 +15,7 @@ import org.hhn.topicgrouper.tg.impl.TopicGrouperWithTreeSet;
 import org.hhn.topicgrouper.util.MathExt;
 
 public abstract class DeferredJCComputationDependency<T> {
-	public void run(int steps) throws IOException {
+	public void run(int steps, int avgC) throws IOException {
 		PrintStream pw = new PrintStream(new FileOutputStream(new File(
 				"./target/" + getFileName() + ".csv")));
 
@@ -23,7 +23,6 @@ public abstract class DeferredJCComputationDependency<T> {
 		pw.print("ndeferredjccs;");
 		pw.println("err;");
 
-		int avgC = 10;
 		for (int i = 0; i < steps; i++) {
 			final double[] tgDeferredJCCs = new double[avgC];
 			final double[] nWords = new double[avgC];
@@ -98,6 +97,6 @@ public abstract class DeferredJCComputationDependency<T> {
 			protected String getFileName() {
 				return "DeferredJCComputationDependencyTWC";
 			}
-		}.run(wordSizesPerTopics.length);
+		}.run(wordSizesPerTopics.length, 10);
 	}
 }
