@@ -35,8 +35,6 @@ public abstract class DeferredJCComputationDependency<T> {
 				counter[0] = j;
 				DocumentProvider<T> documentProvider = createDocumentProvider(i);
 				nWords[j] = documentProvider.getNumberOfWords();
-				System.out.print("Number of Words: ");
-				System.out.println(nWords[j]);
 				final AbstractTopicGrouper<T> topicGrouper = new TopicGrouperWithTreeSet<T>(
 						1, documentProvider, 1);
 				topicGrouper.solve(new TGSolutionListener<T>() {
@@ -64,6 +62,9 @@ public abstract class DeferredJCComputationDependency<T> {
 					@Override
 					public void beforeInitialization(int maxTopics,
 							int documents) {
+						nWords[counter[0]] = maxTopics;
+						System.out.print("Number of Words: ");
+						System.out.println(maxTopics);
 					}
 				});
 			}
