@@ -8,7 +8,7 @@ import java.io.PrintStream;
 import org.hhn.topicgrouper.doc.DocumentProvider;
 import org.hhn.topicgrouper.tg.TGSolutionListener;
 import org.hhn.topicgrouper.tg.TGSolver;
-import org.hhn.topicgrouper.tg.report.BasicSolutionReporter;
+import org.hhn.topicgrouper.tg.report.BasicTGSolutionReporter;
 import org.hhn.topicgrouper.util.OutputStreamMultiplexer;
 
 public abstract class AbstractTGTester<T> {
@@ -40,7 +40,7 @@ public abstract class AbstractTGTester<T> {
 	}
 
 	protected TGSolutionListener<T> createSolutionListener(PrintStream out) {
-		return new BasicSolutionReporter<T>(out, 4, false);
+		return new BasicTGSolutionReporter<T>(out, 4, false);
 	}
 
 	protected abstract DocumentProvider<T> createDocumentProvider();

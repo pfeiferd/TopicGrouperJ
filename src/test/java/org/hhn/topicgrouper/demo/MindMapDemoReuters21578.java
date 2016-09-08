@@ -13,7 +13,7 @@ import org.hhn.topicgrouper.tg.TGSolutionListener;
 import org.hhn.topicgrouper.tg.TGSolutionListenerMultiplexer;
 import org.hhn.topicgrouper.tg.TGSolver;
 import org.hhn.topicgrouper.tg.impl.TopicGrouperWithTreeSet;
-import org.hhn.topicgrouper.tg.report.BasicSolutionReporter;
+import org.hhn.topicgrouper.tg.report.BasicTGSolutionReporter;
 import org.hhn.topicgrouper.tg.report.FreeMindXMLTopicHierarchyWriter;
 import org.hhn.topicgrouper.tg.report.MindMapSolutionReporter;
 
@@ -48,7 +48,7 @@ public class MindMapDemoReuters21578 extends AbstractTGTester<String> {
 		multiplexer
 				.addSolutionListener(mindMapSolutionReporter = new MindMapSolutionReporter<String>(
 						5, false, 1.1, 20));
-		multiplexer.addSolutionListener(new BasicSolutionReporter<String>(
+		multiplexer.addSolutionListener(new BasicTGSolutionReporter<String>(
 				System.out, 30, true));
 		return multiplexer;
 	}
