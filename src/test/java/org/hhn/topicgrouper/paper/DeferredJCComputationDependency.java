@@ -54,15 +54,16 @@ public class DeferredJCComputationDependency {
 
 			@Override
 			protected void aggregateResults(PrintStream pw, int[] nWords,
-					int[] tgDeferredJCCs, long[] durationMs) {
-				aggregateResultsNone(pw, nWords, tgDeferredJCCs, durationMs);
+					int[] tgDeferredJCCs, long[] durationMs, int[] nDocs) {
+				aggregateResultsNone(pw, nWords, tgDeferredJCCs, durationMs,
+						nDocs);
 			}
 
 			@Override
 			protected String getFileName() {
 				return "DeferredJCComputationDependencyReuters";
 			}
-		}.run(holdOutRatios.length, 1);
+		}.run(holdOutRatios.length, 10);
 
 		final DocumentProvider<String> apExtractDocumentProvider = new APParser(
 				false, true).getCorpusDocumentProvider(new File(
@@ -77,15 +78,16 @@ public class DeferredJCComputationDependency {
 
 			@Override
 			protected void aggregateResults(PrintStream pw, int[] nWords,
-					int[] tgDeferredJCCs, long[] durationMs) {
-				aggregateResultsNone(pw, nWords, tgDeferredJCCs, durationMs);
+					int[] tgDeferredJCCs, long[] durationMs, int[] nDocs) {
+				aggregateResultsNone(pw, nWords, tgDeferredJCCs, durationMs,
+						nDocs);
 			}
 
 			@Override
 			protected String getFileName() {
 				return "DeferredJCComputationDependencyAPExtract";
 			}
-		}.run(holdOutRatios.length, 1);
+		}.run(holdOutRatios.length, 10);
 	}
 
 	public static abstract class JCCsRunner<T> {
@@ -93,7 +95,7 @@ public class DeferredJCComputationDependency {
 			PrintStream pw = new PrintStream(new FileOutputStream(new File(
 					"./target/" + getFileName() + ".csv")));
 
-			pw.println("nwords;ndeferredjccs;err;durationms;durationms_err");
+			pw.println("nwords;ndeferredjccs;err;durationms;durationms_err;ndocs;");
 
 			for (int i = 0; i < steps; i++) {
 				System.out.print("Step: ");
@@ -101,6 +103,7 @@ public class DeferredJCComputationDependency {
 				final int[] tgDeferredJCCs = new int[avgC];
 				final int[] nWords = new int[avgC];
 				final long[] durationMs = new long[avgC];
+				final int[] nDocs = new int[avgC];
 				final int[] counter = new int[1];
 				for (int j = 0; j < avgC; j++) {
 					System.out.print("Avg run: ");
@@ -108,6 +111,7 @@ public class DeferredJCComputationDependency {
 					counter[0] = j;
 					DocumentProvider<T> documentProvider = createDocumentProvider(i);
 					nWords[j] = documentProvider.getNumberOfWords();
+					nDocs[j] = documentProvider.getDocuments().size();
 					final AbstractTopicGrouper<T> topicGrouper = new TopicGrouperWithTreeSet<T>(
 							1, documentProvider, 1);
 					long startTime = System.currentTimeMillis();
@@ -144,29 +148,31 @@ public class DeferredJCComputationDependency {
 					});
 					durationMs[j] = System.currentTimeMillis() - startTime;
 				}
-				aggregateResults(pw, nWords, tgDeferredJCCs, durationMs);
+				aggregateResults(pw, nWords, tgDeferredJCCs, durationMs, nDocs);
 			}
 			pw.close();
 		}
 
 		protected void aggregateResultsNone(PrintStream pw, int[] nWords,
-				int[] tgDeferredJCCs, long[] durationMs) {
+				int[] tgDeferredJCCs, long[] durationMs, int[] nDocs) {
 			for (int i = 0; i < nWords.length; i++) {
 				pw.print(nWords[i]);
 				pw.print("; ");
 				pw.print(tgDeferredJCCs[i]);
 				pw.print("; ");
 				pw.print(0);
-				pw.println("; ");
+				pw.print("; ");
 				pw.print(durationMs[i]);
 				pw.print("; ");
 				pw.print(0);
+				pw.print("; ");
+				pw.print(nDocs[i]);
 				pw.println("; ");
 			}
 		}
 
 		protected void aggregateResultsAvg(PrintStream pw, int[] nWords,
-				int[] tgDeferredJCCs, long[] durationMs) {
+				int[] tgDeferredJCCs, long[] durationMs, int[] nDocs) {
 			double tgDeferredJCCsAvg = MathExt.avg(tgDeferredJCCs);
 			double tgDeferredJCCsStdDev = MathExt.sampleStdDev(
 					tgDeferredJCCsAvg, tgDeferredJCCs);
@@ -177,14 +183,16 @@ public class DeferredJCComputationDependency {
 			pw.print(tgDeferredJCCsStdDev);
 			pw.print("; ");
 			pw.print(MathExt.avg(durationMs));
-			pw.println("; ");
+			pw.print("; ");
 			pw.print(MathExt.sampleStdDev(durationMs));
+			pw.print("; ");
+			pw.print(MathExt.avg(nDocs));
 			pw.println("; ");
 		}
 
 		protected void aggregateResults(PrintStream pw, int[] nWords,
-				int[] tgDeferredJCCs, long[] durationMs) {
-			aggregateResultsAvg(pw, nWords, tgDeferredJCCs, durationMs);
+				int[] tgDeferredJCCs, long[] durationMs, int[] nDocs) {
+			aggregateResultsAvg(pw, nWords, tgDeferredJCCs, durationMs, nDocs);
 		}
 
 		protected abstract DocumentProvider<T> createDocumentProvider(int step);
