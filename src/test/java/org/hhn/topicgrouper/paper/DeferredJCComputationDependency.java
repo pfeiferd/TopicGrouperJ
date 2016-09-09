@@ -7,6 +7,9 @@ import java.io.PrintStream;
 import java.util.Random;
 
 import org.hhn.topicgrouper.doc.DocumentProvider;
+import org.hhn.topicgrouper.doc.impl.HoldOutSplitter;
+import org.hhn.topicgrouper.eval.APParser;
+import org.hhn.topicgrouper.eval.Reuters21578;
 import org.hhn.topicgrouper.eval.TWCLDAPaperDocumentGenerator;
 import org.hhn.topicgrouper.tg.TGSolution;
 import org.hhn.topicgrouper.tg.TGSolutionListener;
@@ -14,61 +17,156 @@ import org.hhn.topicgrouper.tg.impl.AbstractTopicGrouper;
 import org.hhn.topicgrouper.tg.impl.TopicGrouperWithTreeSet;
 import org.hhn.topicgrouper.util.MathExt;
 
-public abstract class DeferredJCComputationDependency<T> {
-	public void run(int steps, int avgC) throws IOException {
-		PrintStream pw = new PrintStream(new FileOutputStream(new File(
-				"./target/" + getFileName() + ".csv")));
+public class DeferredJCComputationDependency {
+	public void runAll() throws IOException {
+		final Random random = new Random(10);
 
-		pw.print("nwords;");
-		pw.print("ndeferredjccs;");
-		pw.println("err;");
+		final int[] wordSizesPerTopics = new int[] { 10, 20, 50, 100, 200, 400,
+				800 };
 
-		for (int i = 0; i < steps; i++) {
-			System.out.print("Step: ");
-			System.out.println(i);
-			final double[] tgDeferredJCCs = new double[avgC];
-			final double[] nWords = new double[avgC];
-			final int[] counter = new int[1];
-			for (int j = 0; j < avgC; j++) {
-				System.out.print("Avg run: ");
-				System.out.println(j);
-				counter[0] = j;
-				DocumentProvider<T> documentProvider = createDocumentProvider(i);
-				nWords[j] = documentProvider.getNumberOfWords();
-				final AbstractTopicGrouper<T> topicGrouper = new TopicGrouperWithTreeSet<T>(
-						1, documentProvider, 1);
-				topicGrouper.solve(new TGSolutionListener<T>() {
-					@Override
-					public void updatedSolution(int newTopicIndex,
-							int oldTopicIndex, double improvement, int t1Size,
-							int t2Size, final TGSolution<T> solution) {
-					}
+		new JCCsRunner<String>() {
+			protected org.hhn.topicgrouper.doc.DocumentProvider<String> createDocumentProvider(
+					int step) {
+				return new TWCLDAPaperDocumentGenerator(random, new double[] {
+						5, 0.5, 0.5, 0.5 }, 6000, wordSizesPerTopics[step],
+						wordSizesPerTopics[step], 30, 30, 0, null, 0.5, 0.8);
+			};
 
-					@Override
-					public void initialized(TGSolution<T> initialSolution) {
-					}
+			@Override
+			protected String getFileName() {
+				return "DeferredJCComputationDependencyTWC";
+			}
+		}.run(wordSizesPerTopics.length, 10);
 
-					@Override
-					public void initalizing(double percentage) {
-					}
-
-					@Override
-					public void done() {
-						tgDeferredJCCs[counter[0]] = topicGrouper
-								.getDeferredJCRecomputations();
-
-					}
-
-					@Override
-					public void beforeInitialization(int maxTopics,
-							int documents) {
-						nWords[counter[0]] = maxTopics;
-						System.out.print("Number of Words: ");
-						System.out.println(maxTopics);
-					}
-				});
+		final double[] holdOutRatios = new double[] { 0.01, 0.05, 0.1, 0.2,
+				0.5, 1 };
+		final DocumentProvider<String> reutersDocumentProvider = new Reuters21578(
+				false).getCorpusDocumentProvider(new File(
+				"src/test/resources/reuters21578"), new String[] { "earn" },
+				false, true);
+		new JCCsRunner<String>() {
+			protected org.hhn.topicgrouper.doc.DocumentProvider<String> createDocumentProvider(
+					int step) {
+				return new HoldOutSplitter<String>(random,
+						reutersDocumentProvider, holdOutRatios[step], 1)
+						.getHoldOut();
 			}
 
+			@Override
+			protected void aggregateResults(PrintStream pw, int[] nWords,
+					int[] tgDeferredJCCs, long[] durationMs) {
+				aggregateResultsNone(pw, nWords, tgDeferredJCCs, durationMs);
+			}
+
+			@Override
+			protected String getFileName() {
+				return "DeferredJCComputationDependencyReuters";
+			}
+		}.run(holdOutRatios.length, 1);
+
+		final DocumentProvider<String> apExtractDocumentProvider = new APParser(
+				false, true).getCorpusDocumentProvider(new File(
+				"src/test/resources/ap-corpus/extract/ap.txt"));
+		new JCCsRunner<String>() {
+			protected org.hhn.topicgrouper.doc.DocumentProvider<String> createDocumentProvider(
+					int step) {
+				return new HoldOutSplitter<String>(random,
+						apExtractDocumentProvider, holdOutRatios[step], 1)
+						.getHoldOut();
+			}
+
+			@Override
+			protected void aggregateResults(PrintStream pw, int[] nWords,
+					int[] tgDeferredJCCs, long[] durationMs) {
+				aggregateResultsNone(pw, nWords, tgDeferredJCCs, durationMs);
+			}
+
+			@Override
+			protected String getFileName() {
+				return "DeferredJCComputationDependencyAPExtract";
+			}
+		}.run(holdOutRatios.length, 1);
+	}
+
+	public static abstract class JCCsRunner<T> {
+		public void run(int steps, int avgC) throws IOException {
+			PrintStream pw = new PrintStream(new FileOutputStream(new File(
+					"./target/" + getFileName() + ".csv")));
+
+			pw.println("nwords;ndeferredjccs;err;durationms;durationms_err");
+
+			for (int i = 0; i < steps; i++) {
+				System.out.print("Step: ");
+				System.out.println(i);
+				final int[] tgDeferredJCCs = new int[avgC];
+				final int[] nWords = new int[avgC];
+				final long[] durationMs = new long[avgC];
+				final int[] counter = new int[1];
+				for (int j = 0; j < avgC; j++) {
+					System.out.print("Avg run: ");
+					System.out.println(j);
+					counter[0] = j;
+					DocumentProvider<T> documentProvider = createDocumentProvider(i);
+					nWords[j] = documentProvider.getNumberOfWords();
+					final AbstractTopicGrouper<T> topicGrouper = new TopicGrouperWithTreeSet<T>(
+							1, documentProvider, 1);
+					long startTime = System.currentTimeMillis();
+					topicGrouper.solve(new TGSolutionListener<T>() {
+						@Override
+						public void updatedSolution(int newTopicIndex,
+								int oldTopicIndex, double improvement,
+								int t1Size, int t2Size,
+								final TGSolution<T> solution) {
+						}
+
+						@Override
+						public void initialized(TGSolution<T> initialSolution) {
+						}
+
+						@Override
+						public void initalizing(double percentage) {
+						}
+
+						@Override
+						public void done() {
+							tgDeferredJCCs[counter[0]] = topicGrouper
+									.getDeferredJCRecomputations();
+
+						}
+
+						@Override
+						public void beforeInitialization(int maxTopics,
+								int documents) {
+							nWords[counter[0]] = maxTopics;
+							System.out.print("Number of Words: ");
+							System.out.println(maxTopics);
+						}
+					});
+					durationMs[j] = System.currentTimeMillis() - startTime;
+				}
+				aggregateResults(pw, nWords, tgDeferredJCCs, durationMs);
+			}
+			pw.close();
+		}
+
+		protected void aggregateResultsNone(PrintStream pw, int[] nWords,
+				int[] tgDeferredJCCs, long[] durationMs) {
+			for (int i = 0; i < nWords.length; i++) {
+				pw.print(nWords[i]);
+				pw.print("; ");
+				pw.print(tgDeferredJCCs[i]);
+				pw.print("; ");
+				pw.print(0);
+				pw.println("; ");
+				pw.print(durationMs[i]);
+				pw.print("; ");
+				pw.print(0);
+				pw.println("; ");
+			}
+		}
+
+		protected void aggregateResultsAvg(PrintStream pw, int[] nWords,
+				int[] tgDeferredJCCs, long[] durationMs) {
 			double tgDeferredJCCsAvg = MathExt.avg(tgDeferredJCCs);
 			double tgDeferredJCCsStdDev = MathExt.sampleStdDev(
 					tgDeferredJCCsAvg, tgDeferredJCCs);
@@ -77,33 +175,24 @@ public abstract class DeferredJCComputationDependency<T> {
 			pw.print(tgDeferredJCCsAvg);
 			pw.print("; ");
 			pw.print(tgDeferredJCCsStdDev);
+			pw.print("; ");
+			pw.print(MathExt.avg(durationMs));
+			pw.println("; ");
+			pw.print(MathExt.sampleStdDev(durationMs));
 			pw.println("; ");
 		}
-		pw.close();
+
+		protected void aggregateResults(PrintStream pw, int[] nWords,
+				int[] tgDeferredJCCs, long[] durationMs) {
+			aggregateResultsAvg(pw, nWords, tgDeferredJCCs, durationMs);
+		}
+
+		protected abstract DocumentProvider<T> createDocumentProvider(int step);
+
+		protected abstract String getFileName();
 	}
 
-	protected abstract DocumentProvider<T> createDocumentProvider(int step);
-	
-	protected abstract String getFileName();
-
 	public static void main(String[] args) throws IOException {
-		final int[] wordSizesPerTopics = new int[] { 10, 20, 50, 100, 200, 400,
-				800 };
-		final Random random = new Random(10);
-
-		new DeferredJCComputationDependency<String>() {
-			protected org.hhn.topicgrouper.doc.DocumentProvider<String> createDocumentProvider(
-					int step) {
-				return new TWCLDAPaperDocumentGenerator(random,
-						new double[] { 5, 0.5, 0.5, 0.5 }, 6000,
-						wordSizesPerTopics[step], wordSizesPerTopics[step], 30,
-						30, 0, null, 0.5, 0.8);
-			};
-			
-			@Override
-			protected String getFileName() {
-				return "DeferredJCComputationDependencyTWC";
-			}
-		}.run(wordSizesPerTopics.length, 10);
+		new DeferredJCComputationDependency().runAll();
 	}
 }
