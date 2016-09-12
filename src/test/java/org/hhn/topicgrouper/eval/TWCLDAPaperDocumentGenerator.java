@@ -10,14 +10,12 @@ import java.util.Random;
 import org.hhn.topicgrouper.doc.Document;
 import org.hhn.topicgrouper.doc.DocumentProvider;
 import org.hhn.topicgrouper.doc.impl.AbstractDocumentImpl;
-import org.hhn.topicgrouper.util.Dirichlet;
+import org.hhn.topicgrouper.util.DirichletSampler;
 import org.hhn.topicgrouper.util.RandomDirichlet1Dist;
-
-import cc.mallet.util.Randoms;
 
 public class TWCLDAPaperDocumentGenerator implements DocumentProvider<String> {
 	private final List<Document<String>> documentsImmutable;
-	private final Dirichlet dirichlet;
+	private final DirichletSampler dirichlet;
 	private final int[] indexToFr;
 	private int size;
 
@@ -77,12 +75,7 @@ public class TWCLDAPaperDocumentGenerator implements DocumentProvider<String> {
 		}
 		indexToFr = new int[allWords + homonyms];
 
-		dirichlet = new Dirichlet(dirichletAlpha) {
-			@Override
-			protected Randoms createRandom() {
-				return new Randoms(random.nextInt());
-			}
-		};
+		dirichlet = new DirichletSampler(random);
 		int minMaxWordsPerDocDiff = maxWordsPerDoc - minWordsPerDoc;
 
 		List<Integer> drawn = new ArrayList<Integer>();
@@ -114,7 +107,7 @@ public class TWCLDAPaperDocumentGenerator implements DocumentProvider<String> {
 		}
 
 		for (int i = 0; i < docs; i++) {
-			double[] topicPerDocDist = dirichlet.nextDistribution();
+			double[] topicPerDocDist = dirichlet.sample(dirichletAlpha);
 			AbstractDocumentImpl<String> document = new AbstractDocumentImpl<String>() {
 				@Override
 				public DocumentProvider<String> getProvider() {
