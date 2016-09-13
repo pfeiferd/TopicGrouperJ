@@ -1,7 +1,5 @@
 package org.hhn.topicgrouper.paper;
 
-import gnu.trove.TIntCollection;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
