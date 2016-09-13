@@ -80,7 +80,7 @@ public class TWCPerplexityErrorRateVaryAlpha extends
 			}
 		};
 
-		acc[repeat] = accuracyCalculator.computeAccuracy(testDocumentProvider,
+		acc[repeat] = accuracyCalculator.computeAccuracy(documentProvider,
 				gibbsSampler.getNTopics(), ldaFrequencyProvider);
 	}
 
