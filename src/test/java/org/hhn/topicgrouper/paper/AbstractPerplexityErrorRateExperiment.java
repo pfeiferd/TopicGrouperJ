@@ -22,7 +22,7 @@ public abstract class AbstractPerplexityErrorRateExperiment<T> {
 		perplexityCalculator = new TGPerplexityCalculator<T>(false);
 	}
 
-	public void run(int gibbsIterations, int avgC, int steps)
+	public void run(int gibbsIterations, int steps, int avgC)
 			throws IOException {
 		PrintStream pw = prepareLDAPrintStream();
 		PrintStream pw2 = prepareTGPrintStream();
@@ -41,13 +41,13 @@ public abstract class AbstractPerplexityErrorRateExperiment<T> {
 				HoldOutSplitter<T> holdOutSplitter = createHoldoutSplitter(i,
 						documentProvider);
 
+				runTopicGrouper(pw3, i, j, holdOutSplitter.getRest(),
+						holdOutSplitter.getHoldOut(), tgPerplexity, tgAcc);
+				
 				runLDAGibbsSampler(i, j, gibbsIterations,
 						holdOutSplitter.getRest(),
 						holdOutSplitter.getHoldOut(), perplexity1, perplexity2,
 						acc);
-
-				runTopicGrouper(pw3, i, j, holdOutSplitter.getRest(),
-						holdOutSplitter.getHoldOut(), tgPerplexity, tgAcc);
 			}
 			aggregateLDAResults(pw, i, perplexity1, perplexity2, acc);
 			aggregateTGResults(pw2, i, tgPerplexity, tgAcc);

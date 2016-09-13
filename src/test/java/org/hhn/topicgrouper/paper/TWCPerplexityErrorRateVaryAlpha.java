@@ -20,11 +20,11 @@ import org.hhn.topicgrouper.tg.impl.AbstractTopicGrouper;
 import org.hhn.topicgrouper.tg.impl.TopicGrouperWithTreeSet;
 import org.hhn.topicgrouper.util.MathExt;
 
-public class TWCPerplexityErrorRateLDAGibbs extends
+public class TWCPerplexityErrorRateVaryAlpha extends
 		AbstractPerplexityErrorRateExperiment<String> {
 	protected final TrueTopicAccuracyCalculator<String> accuracyCalculator;
 
-	public TWCPerplexityErrorRateLDAGibbs(Random random) {
+	public TWCPerplexityErrorRateVaryAlpha(Random random) {
 		super(random);
 		accuracyCalculator = new TrueTopicAccuracyCalculator<String>();
 	}
@@ -79,7 +79,7 @@ public class TWCPerplexityErrorRateLDAGibbs extends
 			}
 		};
 
-		acc[step] = accuracyCalculator.computeAccuracy(testDocumentProvider,
+		acc[repeat] = accuracyCalculator.computeAccuracy(testDocumentProvider,
 				gibbsSampler.getNTopics(), ldaFrequencyProvider);
 	}
 
@@ -243,6 +243,6 @@ public class TWCPerplexityErrorRateLDAGibbs extends
 	}
 
 	public static void main(String[] args) throws IOException {
-		new TWCPerplexityErrorRateLDAGibbs(new Random()).run(100, 10, 10);
+		new TWCPerplexityErrorRateVaryAlpha(new Random()).run(100, 10, 10);
 	}
 }

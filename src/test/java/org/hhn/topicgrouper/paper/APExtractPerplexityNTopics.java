@@ -9,7 +9,6 @@ import java.util.Random;
 import org.hhn.topicgrouper.doc.DocumentProvider;
 import org.hhn.topicgrouper.doc.impl.HoldOutSplitter;
 import org.hhn.topicgrouper.eval.APParser;
-import org.hhn.topicgrouper.eval.TWCLDAPaperDocumentGenerator;
 import org.hhn.topicgrouper.lda.impl.LDAGibbsSampler;
 import org.hhn.topicgrouper.lda.report.BasicLDAResultReporter;
 import org.hhn.topicgrouper.lda.validation.AbstractLDAPerplexityCalculator;
@@ -23,6 +22,7 @@ import org.hhn.topicgrouper.util.MathExt;
 public class APExtractPerplexityNTopics extends TWCPerplexityErrorRateNDocs {
 	protected final DocumentProvider<String> apExtractDocumentProvider;
 	protected double[] tgPerplexityPerNTopics;
+	protected int maxTopicsToReport;
 
 	public APExtractPerplexityNTopics(Random random) {
 		super(random);
@@ -31,14 +31,21 @@ public class APExtractPerplexityNTopics extends TWCPerplexityErrorRateNDocs {
 						"src/test/resources/ap-corpus/extract/ap.txt"));
 	}
 
+	@Override
+	public void run(int gibbsIterations, int avgC, int steps)
+			throws IOException {
+		tgPerplexityPerNTopics = new double[nTopicFromStep(steps)];
+		super.run(gibbsIterations, avgC, steps);
+	}
+
 	protected int nTopicFromStep(int step) {
-		return step + 1;
+		return (step + 1) * 10;
 	}
 
 	@Override
 	protected HoldOutSplitter<String> createHoldoutSplitter(int step,
 			DocumentProvider<String> documentProvider) {
-		return new HoldOutSplitter<String>(random, documentProvider, 0.3333, 1);
+		return new HoldOutSplitter<String>(random, documentProvider, 0.1, 1);
 	}
 
 	@Override
@@ -49,9 +56,20 @@ public class APExtractPerplexityNTopics extends TWCPerplexityErrorRateNDocs {
 	@Override
 	protected LDAGibbsSampler<String> createGibbsSampler(int step,
 			DocumentProvider<String> documentProvider) {
+		int topics = nTopicFromStep(step);
 		return new LDAGibbsSampler<String>(documentProvider,
-				LDAGibbsSampler.symmetricAlpha(0.5, nTopicFromStep(step)), 0.5,
-				random);
+				LDAGibbsSampler.symmetricAlpha(createAlpha(topics), topics),
+				0.5, random);
+	}
+
+	// Like in: http://psiexp.ss.uci.edu/research/papers/sciencetopics.pdf
+	protected double createAlpha(int topics) {
+		return 50.d / topics;
+	}
+
+	// Like in: http://psiexp.ss.uci.edu/research/papers/sciencetopics.pdf
+	protected double createBeta(int topics) {
+		return 0.1;
 	}
 
 	@Override
@@ -61,7 +79,7 @@ public class APExtractPerplexityNTopics extends TWCPerplexityErrorRateNDocs {
 
 		pw.print("ntopics;");
 		pw.print("perplexity;");
-		pw.print("perplexityFoldIn;");
+		pw.println("perplexityFoldIn;");
 
 		return pw;
 	}
@@ -71,7 +89,7 @@ public class APExtractPerplexityNTopics extends TWCPerplexityErrorRateNDocs {
 		PrintStream pw = new PrintStream(new FileOutputStream(new File(
 				"./target/APExtractPerplexityNTopicsTG.csv")));
 		pw.print("ntopics;");
-		pw.print("perplexity;");
+		pw.println("perplexity;");
 		return pw;
 	}
 
@@ -93,8 +111,11 @@ public class APExtractPerplexityNTopics extends TWCPerplexityErrorRateNDocs {
 				public void updatedSolution(int newTopicIndex,
 						int oldTopicIndex, double improvement, int t1Size,
 						int t2Size, final TGSolution<String> solution) {
-					tgPerplexityPerNTopics[solution.getNumberOfTopics() - 1] = computeTGPerplexity(
-							solution, testDocumentProvider);
+					int topics = solution.getNumberOfTopics();
+					if (topics <= tgPerplexityPerNTopics.length) {
+						tgPerplexityPerNTopics[solution.getNumberOfTopics() - 1] = computeTGPerplexity(
+								solution, testDocumentProvider);
+					}
 				}
 
 				@Override
@@ -111,7 +132,6 @@ public class APExtractPerplexityNTopics extends TWCPerplexityErrorRateNDocs {
 
 				@Override
 				public void beforeInitialization(int maxTopics, int documents) {
-					tgPerplexityPerNTopics = new double[maxTopics];
 				}
 			});
 		}
@@ -142,16 +162,12 @@ public class APExtractPerplexityNTopics extends TWCPerplexityErrorRateNDocs {
 	@Override
 	protected void aggregateLDAResults(PrintStream pw, int step,
 			double[] perplexity1, double[] perplexity2, double[] acc) {
-		pw.print(docsFromStep(step));
+		pw.print(nTopicFromStep(step));
 		pw.print("; ");
-		pw.print(MathExt.avg(perplexity1));
+		pw.print(perplexity1[0]);
 		pw.print("; ");
-		pw.print(MathExt.sampleStdDev(perplexity1));
-		pw.print("; ");
-		pw.print(MathExt.avg(perplexity2));
-		pw.print("; ");
-		pw.print(MathExt.sampleStdDev(perplexity2));
-		pw.print("; ");
+		pw.print(perplexity2[0]);
+		pw.println("; ");
 	}
 
 	@Override
@@ -162,12 +178,12 @@ public class APExtractPerplexityNTopics extends TWCPerplexityErrorRateNDocs {
 				pw.print(i + 1);
 				pw.print("; ");
 				pw.print(tgPerplexityPerNTopics[i]);
-				pw.print("; ");
+				pw.println("; ");
 			}
 		}
 	}
 
 	public static void main(String[] args) throws IOException {
-		new APExtractPerplexityNTopics(new Random()).run(100, 10, 10);
+		new APExtractPerplexityNTopics(new Random()).run(100, 10, 1);
 	}
 }

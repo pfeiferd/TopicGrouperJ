@@ -16,7 +16,7 @@ import org.hhn.topicgrouper.tg.impl.AbstractTopicGrouper;
 import org.hhn.topicgrouper.tg.impl.TopicGrouperWithTreeSet;
 import org.hhn.topicgrouper.util.MathExt;
 
-public class TWCPerplexityErrorRateNDocs extends TWCPerplexityErrorRateLDAGibbs {
+public class TWCPerplexityErrorRateNDocs extends TWCPerplexityErrorRateVaryAlpha {
 	public TWCPerplexityErrorRateNDocs(Random random) {
 		super(random);
 	}
