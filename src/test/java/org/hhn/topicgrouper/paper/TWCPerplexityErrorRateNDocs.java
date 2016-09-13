@@ -79,7 +79,7 @@ public class TWCPerplexityErrorRateNDocs extends TWCPerplexityErrorRateLDAGibbs 
 
 	@Override
 	protected void runTopicGrouper(final PrintStream pw3, final int step,
-			final DocumentProvider<String> documentProvider,
+			final int repeat, final DocumentProvider<String> documentProvider,
 			final DocumentProvider<String> testDocumentProvider,
 			final double[] tgPerplexity, final double[] tgAcc) {
 		AbstractTopicGrouper<String> topicGrouper = new TopicGrouperWithTreeSet<String>(
@@ -90,8 +90,8 @@ public class TWCPerplexityErrorRateNDocs extends TWCPerplexityErrorRateLDAGibbs 
 					double improvement, int t1Size, int t2Size,
 					final TGSolution<String> solution) {
 				if (solution.getNumberOfTopics() == 4) {
-					tgAcc[step] = computeTGAccuracy(solution, documentProvider);
-					tgPerplexity[step] = computeTGPerplexity(solution,
+					tgAcc[repeat] = computeTGAccuracy(solution, documentProvider);
+					tgPerplexity[repeat] = computeTGPerplexity(solution,
 							testDocumentProvider);
 				}
 			}

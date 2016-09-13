@@ -22,7 +22,8 @@ public abstract class AbstractPerplexityErrorRateExperiment<T> {
 		perplexityCalculator = new TGPerplexityCalculator<T>(false);
 	}
 
-	public void run(int gibbsIterations, int avgC, int steps) throws IOException {
+	public void run(int gibbsIterations, int avgC, int steps)
+			throws IOException {
 		PrintStream pw = prepareLDAPrintStream();
 		PrintStream pw2 = prepareTGPrintStream();
 		PrintStream pw3 = prepareTGLikelihoodPrintStream();
@@ -37,14 +38,15 @@ public abstract class AbstractPerplexityErrorRateExperiment<T> {
 		for (int i = 0; i < steps; i++) {
 			for (int j = 0; j < avgC; j++) {
 				DocumentProvider<T> documentProvider = createDocumentProvider(i);
-				HoldOutSplitter<T> holdOutSplitter = createHoldoutSplitter(i, documentProvider);
+				HoldOutSplitter<T> holdOutSplitter = createHoldoutSplitter(i,
+						documentProvider);
 
-				runLDAGibbsSampler(i, gibbsIterations,
+				runLDAGibbsSampler(i, j, gibbsIterations,
 						holdOutSplitter.getRest(),
 						holdOutSplitter.getHoldOut(), perplexity1, perplexity2,
 						acc);
 
-				runTopicGrouper(pw3, i, holdOutSplitter.getRest(),
+				runTopicGrouper(pw3, i, j, holdOutSplitter.getRest(),
 						holdOutSplitter.getHoldOut(), tgPerplexity, tgAcc);
 			}
 			aggregateLDAResults(pw, i, perplexity1, perplexity2, acc);
@@ -54,16 +56,16 @@ public abstract class AbstractPerplexityErrorRateExperiment<T> {
 			pw.close();
 		}
 		if (pw2 != null) {
-			pw2.close();			
+			pw2.close();
 		}
 		if (pw3 != null) {
-			pw3.close();			
+			pw3.close();
 		}
 	}
-	
-	protected HoldOutSplitter<T> createHoldoutSplitter(int step, DocumentProvider<T> documentProvider) {
-		return new HoldOutSplitter<T>(
-				random, documentProvider, 0.3333, 1);
+
+	protected HoldOutSplitter<T> createHoldoutSplitter(int step,
+			DocumentProvider<T> documentProvider) {
+		return new HoldOutSplitter<T>(random, documentProvider, 0.3333, 1);
 	}
 
 	protected abstract DocumentProvider<T> createDocumentProvider(int step);
@@ -71,22 +73,23 @@ public abstract class AbstractPerplexityErrorRateExperiment<T> {
 	protected abstract LDAGibbsSampler<T> createGibbsSampler(int step,
 			DocumentProvider<T> documentProvider);
 
-	protected abstract void runLDAGibbsSampler(int step, int gibbsIterations,
-			final DocumentProvider<T> documentProvider,
+	protected abstract void runLDAGibbsSampler(int step, int repeat,
+			int gibbsIterations, final DocumentProvider<T> documentProvider,
 			final DocumentProvider<T> testDocumentProvider,
 			double[] perplexity1, double[] perplexity2, double[] acc);
-	
+
 	protected abstract PrintStream prepareLDAPrintStream() throws IOException;
-	
+
 	protected abstract PrintStream prepareTGPrintStream() throws IOException;
 
-	protected abstract PrintStream prepareTGLikelihoodPrintStream() throws IOException;
+	protected abstract PrintStream prepareTGLikelihoodPrintStream()
+			throws IOException;
 
-	protected abstract void runTopicGrouper(final PrintStream pw3, final int step,
-			final DocumentProvider<T> documentProvider,
-			final DocumentProvider<T> testDocumentProvider,
-			final double[] tgPerplexity, final double[] tgAcc);
-	
+	protected abstract void runTopicGrouper(PrintStream pw3, int step,
+			int repeat, DocumentProvider<T> documentProvider,
+			DocumentProvider<T> testDocumentProvider, double[] tgPerplexity,
+			double[] tgAcc);
+
 	protected abstract void aggregateLDAResults(PrintStream pw, int step,
 			double[] perplexity1, double[] perplexity2, double[] acc);
 

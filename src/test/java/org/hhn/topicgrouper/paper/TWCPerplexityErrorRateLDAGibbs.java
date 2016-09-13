@@ -47,7 +47,7 @@ public class TWCPerplexityErrorRateLDAGibbs extends
 	}
 
 	@Override
-	protected void runLDAGibbsSampler(int step, int gibbsIterations,
+	protected void runLDAGibbsSampler(int step, int repeat, int gibbsIterations,
 			final DocumentProvider<String> documentProvider,
 			final DocumentProvider<String> testDocumentProvider,
 			double[] perplexity1, double[] perplexity2, double[] acc) {
@@ -59,10 +59,10 @@ public class TWCPerplexityErrorRateLDAGibbs extends
 		AbstractLDAPerplexityCalculator<String> calc2 = new LDAPerplexityCalculatorWithFoldIn<String>(
 				false, gibbsIterations);
 
-		perplexity1[step] = calc1.computePerplexity(testDocumentProvider,
+		perplexity1[repeat] = calc1.computePerplexity(testDocumentProvider,
 				gibbsSampler);
 
-		perplexity2[step] = calc2.computePerplexity(testDocumentProvider,
+		perplexity2[repeat] = calc2.computePerplexity(testDocumentProvider,
 				gibbsSampler);
 
 		FrequencyProvider ldaFrequencyProvider = new FrequencyProvider() {
@@ -121,7 +121,7 @@ public class TWCPerplexityErrorRateLDAGibbs extends
 	}
 
 	@Override
-	protected void runTopicGrouper(final PrintStream pw3, final int step,
+	protected void runTopicGrouper(final PrintStream pw3, final int step, int repeat,
 			final DocumentProvider<String> documentProvider,
 			final DocumentProvider<String> testDocumentProvider,
 			final double[] tgPerplexity, final double[] tgAcc) {
@@ -223,7 +223,7 @@ public class TWCPerplexityErrorRateLDAGibbs extends
 	@Override
 	protected void aggregateTGResults(PrintStream pw, int step,
 			double[] tgPerplexity, double[] tgAcc) {
-		if (step == 1) {
+		if (step == 0) {
 			double tgPerplexityAvg = MathExt.avg(tgPerplexity);
 			double tgAccAvg = MathExt.avg(tgAcc);
 
