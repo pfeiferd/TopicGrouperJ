@@ -13,11 +13,17 @@ public class HoldOutSplitter<T> {
 
 	public HoldOutSplitter(Random random, DocumentProvider<T> origDocuments,
 			double holdOutRatio, int minGlobalWordFrequency) {
+		this(random, origDocuments,
+				(int) (origDocuments.getDocuments().size() * Math.min(1,
+						holdOutRatio)), minGlobalWordFrequency);
+	}
+
+	public HoldOutSplitter(Random random, DocumentProvider<T> origDocuments,
+			int holdOutNumber, int minGlobalWordFrequency) {
 		List<Document<T>> documents = new ArrayList<Document<T>>(
 				origDocuments.getDocuments());
 		List<Document<T>> holdOutDocuments = new ArrayList<Document<T>>();
-		int max = (int) (documents.size() * Math.min(1, holdOutRatio));
-		for (int i = 0; i < max; i++) {
+		for (int i = 0; i < holdOutNumber; i++) {
 			holdOutDocuments.add(documents.remove(random.nextInt(documents
 					.size())));
 		}
