@@ -17,7 +17,6 @@ import org.hhn.topicgrouper.tg.TGSolution;
 import org.hhn.topicgrouper.tg.TGSolutionListener;
 import org.hhn.topicgrouper.tg.impl.AbstractTopicGrouper;
 import org.hhn.topicgrouper.tg.impl.TopicGrouperWithTreeSet;
-import org.hhn.topicgrouper.util.MathExt;
 
 public class APExtractPerplexityNTopics extends TWCPerplexityErrorRateNDocs {
 	protected final DocumentProvider<String> apExtractDocumentProvider;

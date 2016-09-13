@@ -86,7 +86,7 @@ public class TWCPerplexityErrorRateVaryAlpha extends
 	@Override
 	protected PrintStream prepareLDAPrintStream() throws IOException {
 		PrintStream pw = new PrintStream(new FileOutputStream(new File(
-				"./target/TWCPerplexityErrorRateLDAGibbs.csv")));
+				"./target/TWCPerplexityErrorRateVaryAlphaLDA.csv")));
 
 		pw.print("alpha1;");
 		pw.print("perplexity;");
@@ -101,7 +101,7 @@ public class TWCPerplexityErrorRateVaryAlpha extends
 	@Override
 	protected PrintStream prepareTGPrintStream() throws IOException {
 		PrintStream pw = new PrintStream(new FileOutputStream(new File(
-				"./target/TWCPerplexityErrorRateTG.csv")));
+				"./target/TWCPerplexityErrorRateVaryAlphaTG.csv")));
 		pw.print("x;");
 		pw.print("perplexity;");
 		pw.print("perplexity_stddev;");
@@ -121,7 +121,7 @@ public class TWCPerplexityErrorRateVaryAlpha extends
 	}
 
 	@Override
-	protected void runTopicGrouper(final PrintStream pw3, final int step, int repeat,
+	protected void runTopicGrouper(final PrintStream pw3, final int step, final int repeat,
 			final DocumentProvider<String> documentProvider,
 			final DocumentProvider<String> testDocumentProvider,
 			final double[] tgPerplexity, final double[] tgAcc) {
@@ -147,10 +147,10 @@ public class TWCPerplexityErrorRateVaryAlpha extends
 						pw3.println();
 					}
 					if (solution.getNumberOfTopics() == 4) {
-						tgAcc[step] = computeTGAccuracy(solution,
+						tgAcc[repeat] = computeTGAccuracy(solution,
 								documentProvider);
 
-						tgPerplexity[step] = computeTGPerplexity(solution,
+						tgPerplexity[repeat] = computeTGPerplexity(solution,
 								testDocumentProvider);
 					}
 				}
@@ -243,6 +243,6 @@ public class TWCPerplexityErrorRateVaryAlpha extends
 	}
 
 	public static void main(String[] args) throws IOException {
-		new TWCPerplexityErrorRateVaryAlpha(new Random()).run(100, 10, 10);
+		new TWCPerplexityErrorRateVaryAlpha(new Random()).run(100, 10, 100);
 	}
 }

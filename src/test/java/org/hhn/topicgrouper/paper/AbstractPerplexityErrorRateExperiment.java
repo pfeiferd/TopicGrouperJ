@@ -36,7 +36,11 @@ public abstract class AbstractPerplexityErrorRateExperiment<T> {
 		double[] tgPerplexity = new double[avgC];
 
 		for (int i = 0; i < steps; i++) {
+			System.out.print("Step: ");
+			System.out.println(i);
 			for (int j = 0; j < avgC; j++) {
+				System.out.print("Repeat: ");
+				System.out.println(j);
 				DocumentProvider<T> documentProvider = createDocumentProvider(i);
 				HoldOutSplitter<T> holdOutSplitter = createHoldoutSplitter(i,
 						documentProvider);
