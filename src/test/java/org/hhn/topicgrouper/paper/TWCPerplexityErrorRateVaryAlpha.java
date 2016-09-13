@@ -47,7 +47,8 @@ public class TWCPerplexityErrorRateVaryAlpha extends
 	}
 
 	@Override
-	protected void runLDAGibbsSampler(int step, int repeat, int gibbsIterations,
+	protected void runLDAGibbsSampler(int step, int repeat,
+			int gibbsIterations,
 			final DocumentProvider<String> documentProvider,
 			final DocumentProvider<String> testDocumentProvider,
 			double[] perplexity1, double[] perplexity2, double[] acc) {
@@ -121,8 +122,8 @@ public class TWCPerplexityErrorRateVaryAlpha extends
 	}
 
 	@Override
-	protected void runTopicGrouper(final PrintStream pw3, final int step, final int repeat,
-			final DocumentProvider<String> documentProvider,
+	protected void runTopicGrouper(final PrintStream pw3, final int step,
+			final int repeat, final DocumentProvider<String> documentProvider,
 			final DocumentProvider<String> testDocumentProvider,
 			final double[] tgPerplexity, final double[] tgAcc) {
 		if (step == 0) {
@@ -134,17 +135,19 @@ public class TWCPerplexityErrorRateVaryAlpha extends
 				public void updatedSolution(int newTopicIndex,
 						int oldTopicIndex, double improvement, int t1Size,
 						int t2Size, final TGSolution<String> solution) {
-					if (solution.getNumberOfTopics() < 20) {
-						pw3.print(solution.getNumberOfTopics());
-						pw3.print(";");
-						pw3.print(improvement);
-						pw3.print(";");
-						if (lastImprovement[0] != 0) {
-							pw3.print(improvement / lastImprovement[0]);
+					if (repeat == 0) {
+						if (solution.getNumberOfTopics() < 20) {
+							pw3.print(solution.getNumberOfTopics());
 							pw3.print(";");
+							pw3.print(improvement);
+							pw3.print(";");
+							if (lastImprovement[0] != 0) {
+								pw3.print(improvement / lastImprovement[0]);
+								pw3.print(";");
+							}
+							lastImprovement[0] = improvement;
+							pw3.println();
 						}
-						lastImprovement[0] = improvement;
-						pw3.println();
 					}
 					if (solution.getNumberOfTopics() == 4) {
 						tgAcc[repeat] = computeTGAccuracy(solution,
