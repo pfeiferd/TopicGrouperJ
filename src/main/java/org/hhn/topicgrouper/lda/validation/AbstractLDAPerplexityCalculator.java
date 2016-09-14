@@ -78,13 +78,16 @@ public abstract class AbstractLDAPerplexityCalculator<T> {
 
 	protected abstract void updatePtd(LDAGibbsSampler<T> sampler,
 			Document<T> d, int dSize, int dIndex);
+	
+	protected final double topicCountSmoothingLamda = 0.00001;
 
 	private double computeWordLogProbability(LDAGibbsSampler<T> sampler,
 			int tIndex, Document<T> d) {
 		double sum = 0;
 		for (int i = 0; i < ptd.length; i++) {
-			sum += ((double) sampler.getTopicWordAssignmentCount(i, tIndex) + 1) // + 1 --> Laplace smoothing.
-					/ (sampler.getTopicFrCount(i) + ptd.length) * ptd[i]; // Laplace smoothing to avoid division by zero.
+			sum += ((double) sampler.getTopicWordAssignmentCount(i, tIndex) + 
+					(topicCountSmoothingLamda / sampler.getDocumentProvider().getNumberOfWords())) // Lidstone smoothing.
+					/ (sampler.getTopicFrCount(i) + topicCountSmoothingLamda) * ptd[i]; // Lidstone smoothing to avoid division by zero.
 		}
 		return Math.log(sum);
 	}
