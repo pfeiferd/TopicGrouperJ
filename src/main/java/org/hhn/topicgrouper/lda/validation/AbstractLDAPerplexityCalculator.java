@@ -23,20 +23,24 @@ public abstract class AbstractLDAPerplexityCalculator<T> {
 
 		DocumentProvider<T> provider = sampler.getDocumentProvider();
 		double sumA = 0;
-		double sumB = 0;
+		long sumB = 0;
 		// Compute the document size excluding words not in the training
 		// vocabulary.
 		// (Therefore cannot use d.size() ...)
 		int i = 0;
 		for (Document<T> d : testDocumentProvider.getDocuments()) {
 			int dSize = 0;
-			for (int j = 0; j < provider.getNumberOfWords(); j++) {
-				T word = provider.getWord(j);
-				int index = provider.getIndex(word);
-				if (index >= 0) {
+
+			TIntIterator it = d.getWordIndices().iterator();
+			while (it.hasNext()) {
+				int index = it.next();
+				T word = testDocumentProvider.getWord(index);
+				int sIndex = provider.getIndex(word);
+				if (sIndex >= 0) {
 					dSize += d.getWordFrequency(index);
 				}
 			}
+			
 			sumA += computeLogProbability(sampler, d, dSize, i);
 			sumB += dSize;
 			i++;
@@ -56,16 +60,16 @@ public abstract class AbstractLDAPerplexityCalculator<T> {
 		while (it.hasNext()) {
 			int index = it.next();
 			T word = d.getProvider().getWord(index);
-			int tIndex = provider.getIndex(word);
+			int sIndex = provider.getIndex(word);
 			// Ensure the word is in the training vocabulary.
-			if (tIndex >= 0) {
+			if (sIndex >= 0) {
 				int wordFr = d.getWordFrequency(index);
 				if (wordFr > 0) {
 					if (bowFactor) {
 						res -= TGPerplexityCalculator.logFacN(wordFr);
 					}
 					res += wordFr
-							* computeWordLogProbability(sampler, tIndex, d);
+							* computeWordLogProbability(sampler, sIndex, d);
 				}
 			}
 		}

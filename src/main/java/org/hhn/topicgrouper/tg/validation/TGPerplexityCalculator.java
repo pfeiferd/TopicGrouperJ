@@ -18,15 +18,15 @@ public class TGPerplexityCalculator<T> {
 		this.bowFactor = bowFactor;
 	}
 
-	public double computePerplexity(DocumentProvider<T> provider, TGSolution<T> s) {
+	public double computePerplexity(DocumentProvider<T> testDocumentProvider, TGSolution<T> s) {
 		double sumA = 0;
-		double sumB = 0;
-		for (Document<T> d : provider.getDocuments()) {
+		long sumB = 0;
+		for (Document<T> d : testDocumentProvider.getDocuments()) {
 			int dSize = 0;
 			TIntIterator it = d.getWordIndices().iterator();
 			while (it.hasNext()) {
 				int index = it.next();
-				T word = provider.getWord(index);
+				T word = testDocumentProvider.getWord(index);
 				int sIndex = s.getIndex(word);
 				if (sIndex >= 0) {
 					dSize += d.getWordFrequency(index);
@@ -48,12 +48,12 @@ public class TGPerplexityCalculator<T> {
 			int sIndex = s.getIndex(word);
 			if (sIndex >= 0) {
 				int wordFr = d.getWordFrequency(index);
-				int topicIndex = s.getTopicForWord(sIndex);
-				TIntCollection words = s.getTopics()[topicIndex];
-				if (wordFr > 0 && words != null) {
+				if (wordFr > 0 /*&& words != null*/) {
 					if (bowFactor) {
 						res -= logFacN(wordFr);
 					}
+					int topicIndex = s.getTopicForWord(sIndex);
+					TIntCollection words = s.getTopics()[topicIndex];
 					res += wordFr
 							* computeWordLogProbability(sIndex, d, dSize, s,
 									words, topicIndex);
