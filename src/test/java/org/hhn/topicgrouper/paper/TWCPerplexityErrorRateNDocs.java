@@ -152,6 +152,6 @@ public class TWCPerplexityErrorRateNDocs extends TWCPerplexityErrorRateVaryAlpha
 	}
 
 	public static void main(String[] args) throws IOException {
-		new TWCPerplexityErrorRateNDocs(new Random()).run(100, 10, 10);
+		new TWCPerplexityErrorRateNDocs(new Random()).run(100, 30, 100);
 	}
 }
