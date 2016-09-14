@@ -22,7 +22,7 @@ public class TWCPerplexityErrorRateNDocs extends TWCPerplexityErrorRateVaryAlpha
 	}
 
 	protected int docsFromStep(int step) {
-		return 100 * (step + 1) + 3000;
+		return 100 * (step + 1);
 	}
 
 	@Override
@@ -34,7 +34,7 @@ public class TWCPerplexityErrorRateNDocs extends TWCPerplexityErrorRateVaryAlpha
 	@Override
 	protected DocumentProvider<String> createDocumentProvider(int step) {
 		return new TWCLDAPaperDocumentGenerator(random, new double[] { 5, 0.5,
-				0.5, 0.5 }, docsFromStep(step), 100, 100, 30, 30, 0, null, 0.5,
+				0.5, 0.5 }, docsFromStep(step) + 3000, 100, 100, 30, 30, 0, null, 0.5,
 				0.8);
 	}
 
@@ -117,7 +117,7 @@ public class TWCPerplexityErrorRateNDocs extends TWCPerplexityErrorRateVaryAlpha
 	@Override
 	protected void aggregateLDAResults(PrintStream pw, int step,
 			double[] perplexity1, double[] perplexity2, double[] acc) {
-		pw.print(docsFromStep(step) - 3000);
+		pw.print(docsFromStep(step));
 		pw.print("; ");
 		pw.print(MathExt.avg(perplexity1));
 		pw.print("; ");
@@ -139,7 +139,7 @@ public class TWCPerplexityErrorRateNDocs extends TWCPerplexityErrorRateVaryAlpha
 		double tgPerplexityAvg = MathExt.avg(tgPerplexity);
 		double tgAccAvg = MathExt.avg(tgAcc);
 
-		pw.print(docsFromStep(step) - 3000);
+		pw.print(docsFromStep(step));
 		pw.print("; ");
 		pw.print(tgPerplexityAvg);
 		pw.print("; ");

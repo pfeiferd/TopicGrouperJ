@@ -45,12 +45,14 @@ public abstract class AbstractPerplexityErrorRateExperiment<T> {
 				HoldOutSplitter<T> holdOutSplitter = createHoldoutSplitter(i,
 						documentProvider);
 
-				DocumentProvider<T> trainingDocumentProvider = holdOutSplitter.getRest();
-				trainingDocumentProvider = prepareTrainingDocumentProvider(trainingDocumentProvider);
-				
+				DocumentProvider<T> trainingDocumentProvider = holdOutSplitter
+						.getRest();
+				trainingDocumentProvider = prepareTrainingDocumentProvider(i,
+						trainingDocumentProvider);
+
 				runTopicGrouper(pw3, i, j, trainingDocumentProvider,
 						holdOutSplitter.getHoldOut(), tgPerplexity, tgAcc);
-				
+
 				runLDAGibbsSampler(i, j, gibbsIterations,
 						holdOutSplitter.getRest(),
 						holdOutSplitter.getHoldOut(), perplexity1, perplexity2,
@@ -69,8 +71,9 @@ public abstract class AbstractPerplexityErrorRateExperiment<T> {
 			pw3.close();
 		}
 	}
-	
-	protected DocumentProvider<T> prepareTrainingDocumentProvider(DocumentProvider<T> trainingDocumentProvider) {
+
+	protected DocumentProvider<T> prepareTrainingDocumentProvider(int step,
+			DocumentProvider<T> trainingDocumentProvider) {
 		return trainingDocumentProvider;
 	}
 
