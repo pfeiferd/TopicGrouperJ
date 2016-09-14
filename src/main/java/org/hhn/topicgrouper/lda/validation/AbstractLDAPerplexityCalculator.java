@@ -40,7 +40,7 @@ public abstract class AbstractLDAPerplexityCalculator<T> {
 					dSize += d.getWordFrequency(index);
 				}
 			}
-			
+
 			sumA += computeLogProbability(sampler, d, dSize, i);
 			sumB += dSize;
 			i++;
@@ -78,16 +78,20 @@ public abstract class AbstractLDAPerplexityCalculator<T> {
 
 	protected abstract void updatePtd(LDAGibbsSampler<T> sampler,
 			Document<T> d, int dSize, int dIndex);
-	
-	protected final double topicCountSmoothingLamda = 0.00001;
 
 	private double computeWordLogProbability(LDAGibbsSampler<T> sampler,
-			int tIndex, Document<T> d) {
+			int sIndex, Document<T> d) {
 		double sum = 0;
 		for (int i = 0; i < ptd.length; i++) {
-			sum += ((double) sampler.getTopicWordAssignmentCount(i, tIndex) + 
-					(topicCountSmoothingLamda / sampler.getDocumentProvider().getNumberOfWords())) // Lidstone smoothing.
-					/ (sampler.getTopicFrCount(i) + topicCountSmoothingLamda) * ptd[i]; // Lidstone smoothing to avoid division by zero.
+			if (sampler.getTopicFrCount(i) > 0) { // To avoid division by zero.
+													// Also correct: If a topic
+													// has zero probability
+													// (zero frequency), it
+													// cannot be allocated to
+													// produce a word.
+				sum += ((double) sampler.getTopicWordAssignmentCount(i, sIndex))
+						/ sampler.getTopicFrCount(i) * ptd[i];
+			}
 		}
 		return Math.log(sum);
 	}
