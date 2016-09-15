@@ -6,14 +6,14 @@ import java.io.PrintStream;
 
 import javax.swing.UIManager;
 
-import org.hhn.topicgrouper.base.DocumentProvider;
-import org.hhn.topicgrouper.base.SolutionListenerMultiplexer;
-import org.hhn.topicgrouper.base.Solver;
-import org.hhn.topicgrouper.base.Solver.SolutionListener;
+import org.hhn.topicgrouper.doc.DocumentProvider;
 import org.hhn.topicgrouper.eval.APParser;
 import org.hhn.topicgrouper.eval.AbstractTGTester;
-import org.hhn.topicgrouper.report.BasicSolutionReporter;
-import org.hhn.topicgrouper.report.CSVSolutionReporter;
+import org.hhn.topicgrouper.tg.TGSolutionListener;
+import org.hhn.topicgrouper.tg.TGSolutionListenerMultiplexer;
+import org.hhn.topicgrouper.tg.TGSolver;
+import org.hhn.topicgrouper.tg.report.BasicTGSolutionReporter;
+import org.hhn.topicgrouper.tg.report.CSVSolutionReporter;
 import org.hhn.topicgrouper.tgimpl.exp.OptimizedTopicGrouper2;
 
 public class OptimizedTG2TesterOnAP extends AbstractTGTester<String> {
@@ -21,10 +21,10 @@ public class OptimizedTG2TesterOnAP extends AbstractTGTester<String> {
 		super(outputFile);
 	}
 
-	protected SolutionListener<String> createSolutionListener(PrintStream out) {
-		SolutionListenerMultiplexer<String> multiplexer = new SolutionListenerMultiplexer<String>();
+	protected TGSolutionListener<String, T> createSolutionListener(PrintStream out) {
+		TGSolutionListenerMultiplexer<String> multiplexer = new TGSolutionListenerMultiplexer<String>();
 		CSVSolutionReporter<String> res1 = new CSVSolutionReporter<String>(out, true);
-		BasicSolutionReporter<String> res2 = new BasicSolutionReporter<String>(
+		BasicTGSolutionReporter<String> res2 = new BasicTGSolutionReporter<String>(
 				System.out, 100, true);
 		multiplexer.addSolutionListener(res1);
 		multiplexer.addSolutionListener(res2);
@@ -40,7 +40,7 @@ public class OptimizedTG2TesterOnAP extends AbstractTGTester<String> {
 	}
 
 	@Override
-	protected Solver<String> createSolver(
+	protected TGSolver<String> createSolver(
 			DocumentProvider<String> documentProvider) {
 		return new OptimizedTopicGrouper2<String>(10, 0, documentProvider, 1);
 	}

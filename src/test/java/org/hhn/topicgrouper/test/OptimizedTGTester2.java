@@ -7,12 +7,12 @@ import java.util.Random;
 
 import javax.swing.UIManager;
 
-import org.hhn.topicgrouper.base.DocumentProvider;
-import org.hhn.topicgrouper.base.Solution;
-import org.hhn.topicgrouper.base.Solver;
-import org.hhn.topicgrouper.base.Solver.SolutionListener;
+import org.hhn.topicgrouper.doc.DocumentProvider;
 import org.hhn.topicgrouper.eval.AbstractTGTester;
 import org.hhn.topicgrouper.eval.TWCLDAPaperDocumentGenerator;
+import org.hhn.topicgrouper.tg.TGSolution;
+import org.hhn.topicgrouper.tg.TGSolutionListener;
+import org.hhn.topicgrouper.tg.TGSolver;
 import org.hhn.topicgrouper.tgimpl.OptimizedTopicGrouper;
 
 public class OptimizedTGTester2 extends AbstractTGTester<String> {
@@ -20,20 +20,20 @@ public class OptimizedTGTester2 extends AbstractTGTester<String> {
 		super(outputFile);
 	}
 
-	protected SolutionListener<String> createSolutionListener(PrintStream out) {
+	protected TGSolutionListener<String, T> createSolutionListener(PrintStream out) {
 		// return new BasicSolutionReporter<String>(out, 4, true);
-		return new SolutionListener<String>() {
+		return new TGSolutionListener<String>() {
 
 			@Override
 			public void updatedSolution(int newTopicIndex, int oldTopicIndex,
 					double improvement, int t1Size, int t2Size,
-					Solution<String> solution) {
+					TGSolution<String> solution) {
 				// TODO Auto-generated method stub
 
 			}
 
 			@Override
-			public void initialized(Solution<String> initialSolution) {
+			public void initialized(TGSolution<String> initialSolution) {
 				// TODO Auto-generated method stub
 
 			}
@@ -64,7 +64,7 @@ public class OptimizedTGTester2 extends AbstractTGTester<String> {
 	}
 
 	@Override
-	protected Solver<String> createSolver(
+	protected TGSolver<String> createSolver(
 			DocumentProvider<String> documentProvider) {
 		// return new OptimizedTG2WithDocSampling<String>(1, 0,
 		// documentProvider,

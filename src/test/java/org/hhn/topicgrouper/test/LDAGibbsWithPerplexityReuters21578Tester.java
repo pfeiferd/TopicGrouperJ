@@ -3,11 +3,11 @@ package org.hhn.topicgrouper.test;
 import java.io.File;
 import java.util.Random;
 
-import org.hhn.topicgrouper.base.DocumentProvider;
+import org.hhn.topicgrouper.doc.DocumentProvider;
+import org.hhn.topicgrouper.doc.impl.InDocumentHoldOutSplitter;
 import org.hhn.topicgrouper.eval.APParser;
 import org.hhn.topicgrouper.ldagibbs.GibbsSamplingLDAAdapt;
 import org.hhn.topicgrouper.ldagibbs.GibbsSamplingLDAWithPerplexityInDoc;
-import org.hhn.topicgrouper.validation.InDocumentHoldOutSplitter;
 
 public class LDAGibbsWithPerplexityReuters21578Tester {
 	public static void main(String[] args) throws Exception {

@@ -5,10 +5,10 @@ import java.io.IOException;
 
 import javax.swing.UIManager;
 
-import org.hhn.topicgrouper.base.DocumentProvider;
-import org.hhn.topicgrouper.base.Solver;
+import org.hhn.topicgrouper.doc.DocumentProvider;
 import org.hhn.topicgrouper.eval.AbstractTGTester;
 import org.hhn.topicgrouper.eval.TWCLDAPaperDocumentGenerator;
+import org.hhn.topicgrouper.tg.TGSolver;
 import org.hhn.topicgrouper.tgimpl.exp.SimpleTopicGrouper;
 
 public class SimpleTGTester extends AbstractTGTester<String> {
@@ -21,7 +21,7 @@ public class SimpleTGTester extends AbstractTGTester<String> {
 	}
 	
 	@Override
-	protected Solver<String> createSolver(DocumentProvider<String> documentProvider) {
+	protected TGSolver<String> createSolver(DocumentProvider<String> documentProvider) {
 		return new SimpleTopicGrouper<String>(0, 0, documentProvider);
 	}
 

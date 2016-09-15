@@ -2,12 +2,12 @@ package org.hhn.topicgrouper.test;
 
 import java.util.Random;
 
-import org.hhn.topicgrouper.base.DocumentProvider;
+import org.hhn.topicgrouper.doc.DocumentProvider;
+import org.hhn.topicgrouper.doc.impl.InDocumentHoldOutSplitter;
 import org.hhn.topicgrouper.eval.TWCLDAPaperDocumentGenerator;
 import org.hhn.topicgrouper.ldagibbs.BasicGibbsSolutionReporter;
 import org.hhn.topicgrouper.ldagibbs.GibbsSamplingLDAAdapt;
 import org.hhn.topicgrouper.ldagibbs.GibbsSamplingLDAWithPerplexity;
-import org.hhn.topicgrouper.validation.InDocumentHoldOutSplitter;
 
 public class AsymmetricLDAGibbsTester {
 	public static void main(String[] args) throws Exception {

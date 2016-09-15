@@ -62,11 +62,13 @@ public class APExtractPerplexityNTopics extends TWCPerplexityErrorRateNDocs {
 	}
 
 	// Like in: http://psiexp.ss.uci.edu/research/papers/sciencetopics.pdf
+	// and http://stats.stackexchange.com/questions/59684/what-are-typical-values-to-use-for-alpha-and-beta-in-latent-dirichlet-allocation
 	protected double createAlpha(int topics) {
 		return 50.d / topics;
 	}
 
 	// Like in: http://psiexp.ss.uci.edu/research/papers/sciencetopics.pdf
+	// and http://stats.stackexchange.com/questions/59684/what-are-typical-values-to-use-for-alpha-and-beta-in-latent-dirichlet-allocation
 	protected double createBeta(int topics) {
 		return 0.1;
 	}

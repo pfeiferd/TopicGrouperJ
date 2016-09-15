@@ -4,13 +4,10 @@ import java.io.File;
 import java.io.PrintStream;
 import java.util.Random;
 
-import org.hhn.topicgrouper.base.DocumentProvider;
+import org.hhn.topicgrouper.doc.DocumentProvider;
+import org.hhn.topicgrouper.doc.impl.HoldOutSplitter;
 import org.hhn.topicgrouper.eval.APParser;
-import org.hhn.topicgrouper.ldagibbs.AbstractGibbsSamplingLDAWithPerplexity;
-import org.hhn.topicgrouper.ldagibbs.AbstractHyperparamOptGibbsLDA;
-import org.hhn.topicgrouper.ldagibbs.BasicGibbsSolutionReporter;
-import org.hhn.topicgrouper.ldagibbs.GibbsSamplingLDAWithPerplexityAlt;
-import org.hhn.topicgrouper.validation.HoldOutSplitter;
+import org.hhn.topicgrouper.validation.AbstractHyperparamOptGibbsLDA;
 
 public class APExtractAlphBetaOptGibbsTester {
 	public static void main(String[] args) throws Exception {
