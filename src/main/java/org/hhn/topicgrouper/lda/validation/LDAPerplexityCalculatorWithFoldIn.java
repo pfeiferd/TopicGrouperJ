@@ -6,10 +6,17 @@ import org.hhn.topicgrouper.lda.impl.LDAGibbsSampler;
 public class LDAPerplexityCalculatorWithFoldIn<T> extends
 		AbstractLDAPerplexityCalculator<T> {
 	private final int foldInIterations;
+	private final double lidstoneLambda;
 
 	public LDAPerplexityCalculatorWithFoldIn(boolean bowFactor,
 			int foldInIterations) {
+		this(bowFactor, foldInIterations, 0.00000000000001);
+	}
+	
+	public LDAPerplexityCalculatorWithFoldIn(boolean bowFactor,
+			int foldInIterations, double lidstoneLambda) {
 		super(bowFactor);
+		this.lidstoneLambda = lidstoneLambda;
 		this.foldInIterations = foldInIterations;
 	}
 
@@ -19,7 +26,8 @@ public class LDAPerplexityCalculatorWithFoldIn<T> extends
 		int[] topicAssignmentCount = sampler.foldIn(foldInIterations, d);
 
 		for (int i = 0; i < ptd.length; i++) {
-			ptd[i] = ((double) topicAssignmentCount[i]) / dSize;
+			ptd[i] = ((double) topicAssignmentCount[i] + lidstoneLambda)
+					/ (dSize + lidstoneLambda * ptd.length); // Lidstone smoothing.
 		}
 	}
 }
