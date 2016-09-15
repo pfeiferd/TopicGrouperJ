@@ -3,7 +3,7 @@ package org.hhn.topicgrouper.demo;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
+import java.io.ObjectOutputStream;
 import java.io.PrintStream;
 
 import org.hhn.topicgrouper.doc.DocumentProvider;
@@ -19,17 +19,15 @@ import org.hhn.topicgrouper.tg.report.MindMapSolutionReporter;
 
 public class MindMapDemoReuters21578 extends AbstractTGTester<String> {
 	private MindMapSolutionReporter<String> mindMapSolutionReporter;
-	private OutputStream file;
 
-	public MindMapDemoReuters21578(OutputStream file) throws IOException {
-		super(null);
-		this.file = file;
+	public MindMapDemoReuters21578(File file) throws IOException {
+		super(file);
 	}
 
 	@Override
 	protected TGSolver<String> createSolver(
 			DocumentProvider<String> documentProvider) {
-		return new TopicGrouperWithTreeSet<String>(50, documentProvider, 1);
+		return new TopicGrouperWithTreeSet<String>(10, documentProvider, 1);
 	}
 
 	@Override
@@ -37,9 +35,6 @@ public class MindMapDemoReuters21578 extends AbstractTGTester<String> {
 		return new Reuters21578(true).getCorpusDocumentProvider(new File(
 				"src/test/resources/reuters21578"), new String[] { "earn" },
 				false, true);
-		// return new TWCLDAPaperDocumentGenerator(new Random(45), new double[]
-		// {
-		// 5, 0.5, 0.5, 0.5 }, 6000, 10, 10, 60, 60, 0, null, 0.8, 0.8);
 	}
 
 	@Override
@@ -58,17 +53,29 @@ public class MindMapDemoReuters21578 extends AbstractTGTester<String> {
 		try {
 			FreeMindXMLTopicHierarchyWriter<String> writer = new FreeMindXMLTopicHierarchyWriter<String>(
 					true);
-			writer.writeToFile(file, mindMapSolutionReporter.getCurrentNodes()
+			FileOutputStream mmStream = new FileOutputStream(createMindMapFile());
+			writer.writeToFile(mmStream, mindMapSolutionReporter.getCurrentNodes()
 					.values());
+			mmStream.close();
+			ObjectOutputStream objectStream = new ObjectOutputStream(
+					new FileOutputStream(createSerializationFile()));
+			objectStream.writeObject(mindMapSolutionReporter.getAllNodes());
+			objectStream.close();
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
 	}
+	
+	protected File createMindMapFile() {
+		return new File("./target/Reuters21578.mm");
+	}
+	
+	protected File createSerializationFile() {
+		return new File(
+				"./target/Reuters21578.ser");
+	}
 
 	public static void main(String[] args) throws IOException {
-		File file = new File("./target/reuters21578.mm");
-		FileOutputStream writer = new FileOutputStream(file);
-		new MindMapDemoReuters21578(writer).run();
-		writer.close();
+		new MindMapDemoReuters21578(null).run();
 	}
 }
