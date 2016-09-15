@@ -41,8 +41,10 @@ public abstract class AbstractLDAPerplexityCalculator<T> {
 				}
 			}
 
-			sumA += computeLogProbability(sampler, d, dSize, i);
-			sumB += dSize;
+			if (dSize > 0) {
+				sumA += computeLogProbability(sampler, d, dSize, i);
+				sumB += dSize;
+			}
 			i++;
 		}
 		return Math.exp(-sumA / sumB);
