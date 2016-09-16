@@ -58,7 +58,7 @@ public class APExtractPerplexityNTopics extends TWCPerplexityErrorRateNDocs {
 		int topics = nTopicFromStep(step);
 		return new LDAGibbsSampler<String>(documentProvider,
 				LDAGibbsSampler.symmetricAlpha(createAlpha(topics), topics),
-				0.5, random);
+				createBeta(topics), random);
 	}
 
 	// Like in: http://psiexp.ss.uci.edu/research/papers/sciencetopics.pdf
