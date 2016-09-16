@@ -152,10 +152,10 @@ public class APExtractPerplexityNTopics extends TWCPerplexityErrorRateNDocs {
 			AbstractLDAPerplexityCalculator<String> calc2 = new LDAPerplexityCalculatorWithFoldIn<String>(
 					false, gibbsIterations);
 
-			perplexity1[step] = calc1.computePerplexity(testDocumentProvider,
+			perplexity1[0] = calc1.computePerplexity(testDocumentProvider,
 					gibbsSampler);
 
-			perplexity2[step] = calc2.computePerplexity(testDocumentProvider,
+			perplexity2[0] = calc2.computePerplexity(testDocumentProvider,
 					gibbsSampler);
 		}
 	}
