@@ -31,10 +31,10 @@ public class APExtractPerplexityNTopics extends TWCPerplexityErrorRateNDocs {
 	}
 
 	@Override
-	public void run(int gibbsIterations, int avgC, int steps)
+	public void run(int gibbsIterations, int steps, int avgC)
 			throws IOException {
 		tgPerplexityPerNTopics = new double[nTopicFromStep(steps)];
-		super.run(gibbsIterations, avgC, steps);
+		super.run(gibbsIterations, steps, avgC);
 	}
 
 	protected int nTopicFromStep(int step) {
@@ -185,6 +185,6 @@ public class APExtractPerplexityNTopics extends TWCPerplexityErrorRateNDocs {
 	}
 
 	public static void main(String[] args) throws IOException {
-		new APExtractPerplexityNTopics(new Random()).run(100, 10, 1);
+		new APExtractPerplexityNTopics(new Random()).run(1000, 20, 1);
 	}
 }
