@@ -22,6 +22,7 @@ public class APExtractPerplexityNTopics extends TWCPerplexityErrorRateNDocs {
 	protected final DocumentProvider<String> apExtractDocumentProvider;
 	protected double[] tgPerplexityPerNTopics;
 	protected int maxTopicsToReport;
+	protected HoldOutSplitter<String> holdOutSplitter;
 
 	public APExtractPerplexityNTopics(Random random) {
 		super(random);
@@ -44,7 +45,11 @@ public class APExtractPerplexityNTopics extends TWCPerplexityErrorRateNDocs {
 	@Override
 	protected HoldOutSplitter<String> createHoldoutSplitter(int step,
 			DocumentProvider<String> documentProvider) {
-		return new HoldOutSplitter<String>(random, documentProvider, 0.1, 1);
+		// Use always the same hold out splitter at every step.
+		if (holdOutSplitter == null) {
+			holdOutSplitter = new HoldOutSplitter<String>(random, documentProvider, 0.1, 1);
+		}
+		return holdOutSplitter;
 	}
 
 	@Override
@@ -62,13 +67,15 @@ public class APExtractPerplexityNTopics extends TWCPerplexityErrorRateNDocs {
 	}
 
 	// Like in: http://psiexp.ss.uci.edu/research/papers/sciencetopics.pdf
-	// and http://stats.stackexchange.com/questions/59684/what-are-typical-values-to-use-for-alpha-and-beta-in-latent-dirichlet-allocation
+	// and
+	// http://stats.stackexchange.com/questions/59684/what-are-typical-values-to-use-for-alpha-and-beta-in-latent-dirichlet-allocation
 	protected double createAlpha(int topics) {
 		return 50.d / topics;
 	}
 
 	// Like in: http://psiexp.ss.uci.edu/research/papers/sciencetopics.pdf
-	// and http://stats.stackexchange.com/questions/59684/what-are-typical-values-to-use-for-alpha-and-beta-in-latent-dirichlet-allocation
+	// and
+	// http://stats.stackexchange.com/questions/59684/what-are-typical-values-to-use-for-alpha-and-beta-in-latent-dirichlet-allocation
 	protected double createBeta(int topics) {
 		return 0.1;
 	}
