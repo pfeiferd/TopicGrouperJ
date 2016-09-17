@@ -192,6 +192,6 @@ public class APExtractPerplexityNTopics extends TWCPerplexityErrorRateNDocs {
 	}
 
 	public static void main(String[] args) throws IOException {
-		new APExtractPerplexityNTopics(new Random()).run(1000, 20, 1);
+		new APExtractPerplexityNTopics(new Random(42)).run(1000, 20, 1);
 	}
 }
