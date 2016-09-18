@@ -13,7 +13,7 @@ public class MindMapAPExtract extends MindMapDemoReuters21578 {
 
 	@Override
 	protected DocumentProvider<String> createDocumentProvider() {
-		return new APParser(true).getCorpusDocumentProvider(new File(
+		return new APParser(true, true).getCorpusDocumentProvider(new File(
 				"src/test/resources/ap-corpus/extract/ap.txt"));
 	}
 
