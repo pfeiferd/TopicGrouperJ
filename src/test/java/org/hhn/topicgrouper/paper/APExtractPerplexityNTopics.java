@@ -26,7 +26,7 @@ public class APExtractPerplexityNTopics extends TWCPerplexityErrorRateNDocs {
 
 	public APExtractPerplexityNTopics(Random random) {
 		super(random);
-		apExtractDocumentProvider = new APParser(false, true)
+		apExtractDocumentProvider = new APParser(true, true)
 				.getCorpusDocumentProvider(new File(
 						"src/test/resources/ap-corpus/extract/ap.txt"));
 	}

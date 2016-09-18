@@ -66,7 +66,7 @@ public class DeferredJCComputationDependency {
 		}.run(holdOutRatios.length, 10);
 
 		final DocumentProvider<String> apExtractDocumentProvider = new APParser(
-				false, true).getCorpusDocumentProvider(new File(
+				true, true).getCorpusDocumentProvider(new File(
 				"src/test/resources/ap-corpus/extract/ap.txt"));
 		new JCCsRunner<String>() {
 			protected org.hhn.topicgrouper.doc.DocumentProvider<String> createDocumentProvider(

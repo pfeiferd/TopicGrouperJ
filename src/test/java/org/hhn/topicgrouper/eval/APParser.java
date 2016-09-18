@@ -13,7 +13,6 @@ import javax.xml.parsers.SAXParserFactory;
 import org.hhn.topicgrouper.doc.Document;
 import org.hhn.topicgrouper.doc.DocumentProvider;
 import org.hhn.topicgrouper.doc.impl.DefaultDocumentProvider;
-import org.hhn.topicgrouper.doc.impl.DefaultDocumentProvider.DefaultDocument;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -29,10 +28,6 @@ import com.aliasi.tokenizer.TokenizerFactory;
 
 public class APParser {
 	private final TokenizerFactory factory;
-	
-	public APParser(boolean removeStopWords) {
-		this(removeStopWords, true);
-	}
 
 	public APParser(boolean removeStopWords, boolean stemming) {
 		TokenizerFactory baseFactory = new LowerCaseTokenizerFactory(
@@ -145,7 +140,7 @@ public class APParser {
 	}
 
 	public static void main(String[] args) {
-		DocumentProvider<String> entryProvider = new APParser(true)
+		DocumentProvider<String> entryProvider = new APParser(true, true)
 				.getCorpusDocumentProvider(new File(
 						"src/test/resources/ap-corpus/extract/ap.txt"));
 		System.out.println(entryProvider.getDocuments().size());
