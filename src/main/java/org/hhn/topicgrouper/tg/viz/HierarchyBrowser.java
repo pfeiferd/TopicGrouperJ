@@ -117,6 +117,7 @@ public class HierarchyBrowser<T> {
 	
 	private final TopTopicSearcher<T> topicSearcher;
 
+	@SuppressWarnings("serial")
 	public HierarchyBrowser(boolean highDPI) {
 		this.highDPI = highDPI;
 		alphaBase = 200;
@@ -147,6 +148,7 @@ public class HierarchyBrowser<T> {
 							try {
 								inSelection = true;
 								if (tree.getSelectionPath() != null) {
+									@SuppressWarnings("unchecked")
 									MapNode<T> node = (MapNode<T>) tree
 											.getSelectionPath()
 											.getLastPathComponent();
@@ -184,6 +186,7 @@ public class HierarchyBrowser<T> {
 				Component res = super.getTreeCellRendererComponent(tree, value,
 						sel, expanded, leaf, row, hasFocus);
 				if (frColorCheckBox.isSelected()) {
+					@SuppressWarnings("unchecked")
 					MapNode<T> node = (MapNode<T>) value;
 					setBackgroundNonSelectionColor(computerColor(-node
 							.getLikelihood() / node.getTopicFrequency()));
@@ -649,6 +652,7 @@ public class HierarchyBrowser<T> {
 				// Ignore on purpose.
 			}
 
+			@SuppressWarnings("unchecked")
 			@Override
 			public boolean isLeaf(Object node) {
 				MapNode<String> n = (MapNode<String>) node;
@@ -660,12 +664,14 @@ public class HierarchyBrowser<T> {
 				return root;
 			}
 
+			@SuppressWarnings("unchecked")
 			@Override
 			public int getIndexOfChild(Object parent, Object child) {
 				MapNode<String> n = (MapNode<String>) parent;
 				return child.equals(n.getLeftNode()) ? 0 : 1;
 			}
 
+			@SuppressWarnings("unchecked")
 			@Override
 			public int getChildCount(Object parent) {
 				MapNode<String> n = (MapNode<String>) parent;
@@ -673,6 +679,7 @@ public class HierarchyBrowser<T> {
 						: 1) : n.getRightNode() != null ? 1 : 0;
 			}
 
+			@SuppressWarnings("unchecked")
 			@Override
 			public Object getChild(Object parent, int index) {
 				MapNode<String> n = (MapNode<String>) parent;
