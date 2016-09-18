@@ -68,9 +68,13 @@ public class LDAGibbsSampler<T> {
 	}
 
 	public void solve(int iterations, LDASolutionListener<T> solutionListener) {
-		solutionListener.beforeInitialization(this);
+		if (solutionListener != null) {
+			solutionListener.beforeInitialization(this);
+		}
 		initialize(solutionListener);
-		solutionListener.initialized(this);
+		if (solutionListener != null) {
+			solutionListener.initialized(this);
+		}
 
 		for (int i = 0; i < iterations; i++) {
 			int h = 0;
@@ -101,9 +105,15 @@ public class LDAGibbsSampler<T> {
 				h++;
 			}
 			afterSampling(i, iterations);
-			solutionListener.updatedSolution(this, i);
+			if (solutionListener != null) {
+				if (solutionListener != null) {
+					solutionListener.updatedSolution(this, i);
+				}
+			}
 		}
-		solutionListener.done(this);
+		if (solutionListener != null) {
+			solutionListener.done(this);
+		}
 	}
 
 	protected void afterSampling(int i, int numberOfIterations) {
@@ -113,7 +123,9 @@ public class LDAGibbsSampler<T> {
 	protected void initialize(LDASolutionListener<T> listener) {
 		int h = 0;
 		for (Document<T> d : documents) {
-			listener.initalizing(this, h);
+			if (listener != null) {
+				listener.initalizing(this, h);
+			}
 			initializeDocument(d, h);
 			h++;
 		}
