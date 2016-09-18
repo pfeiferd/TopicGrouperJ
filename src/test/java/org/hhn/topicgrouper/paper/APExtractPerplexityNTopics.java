@@ -34,7 +34,8 @@ public class APExtractPerplexityNTopics extends TWCPerplexityErrorRateNDocs {
 	@Override
 	public void run(int gibbsIterations, int steps, int avgC)
 			throws IOException {
-		tgPerplexityPerNTopics = new double[nTopicFromStep(steps)];
+		int maxReportedTopics = nTopicFromStep(steps);
+		tgPerplexityPerNTopics = new double[maxReportedTopics];
 		super.run(gibbsIterations, steps, avgC);
 	}
 
@@ -47,7 +48,8 @@ public class APExtractPerplexityNTopics extends TWCPerplexityErrorRateNDocs {
 			DocumentProvider<String> documentProvider) {
 		// Use always the same hold out splitter at every step.
 		if (holdOutSplitter == null) {
-			holdOutSplitter = new HoldOutSplitter<String>(random, documentProvider, 0.1, 1);
+			holdOutSplitter = new HoldOutSplitter<String>(random,
+					documentProvider, 0.1, 1);
 		}
 		return holdOutSplitter;
 	}
@@ -62,15 +64,14 @@ public class APExtractPerplexityNTopics extends TWCPerplexityErrorRateNDocs {
 			DocumentProvider<String> documentProvider) {
 		int topics = nTopicFromStep(step);
 		return new LDAGibbsSampler<String>(documentProvider,
-				LDAGibbsSampler.symmetricAlpha(createAlpha(topics), topics),
-				createBeta(topics), random);
+				createAlpha(topics), createBeta(topics), random);
 	}
 
 	// Like in: http://psiexp.ss.uci.edu/research/papers/sciencetopics.pdf
 	// and
 	// http://stats.stackexchange.com/questions/59684/what-are-typical-values-to-use-for-alpha-and-beta-in-latent-dirichlet-allocation
-	protected double createAlpha(int topics) {
-		return 50.d / topics;
+	protected double[] createAlpha(int topics) {
+		return LDAGibbsSampler.symmetricAlpha(50.d / topics, topics);
 	}
 
 	// Like in: http://psiexp.ss.uci.edu/research/papers/sciencetopics.pdf
@@ -83,7 +84,7 @@ public class APExtractPerplexityNTopics extends TWCPerplexityErrorRateNDocs {
 	@Override
 	protected PrintStream prepareLDAPrintStream() throws IOException {
 		PrintStream pw = new PrintStream(new FileOutputStream(new File(
-				"./target/APExtractPerplexityNTopicsLDA.csv")));
+				"./target/APExtractPerplexityNTopicsLDAWithAlphaFromTG.csv")));
 
 		pw.print("ntopics;");
 		pw.print("perplexity;");
@@ -121,7 +122,7 @@ public class APExtractPerplexityNTopics extends TWCPerplexityErrorRateNDocs {
 						int t2Size, final TGSolution<String> solution) {
 					int topics = solution.getNumberOfTopics();
 					if (topics <= tgPerplexityPerNTopics.length) {
-						tgPerplexityPerNTopics[solution.getNumberOfTopics() - 1] = computeTGPerplexity(
+						tgPerplexityPerNTopics[topics - 1] = computeTGPerplexity(
 								solution, testDocumentProvider);
 					}
 				}
