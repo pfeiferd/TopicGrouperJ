@@ -91,8 +91,8 @@ public class LDAGibbsSampler<T> {
 						topicFrCount[topic]--;
 						for (int k = 0; k < alpha.length; k++) {
 							samplingRatios[k] = (documentTopicAssignmentCount[h][k] + alpha[k])
-									* (topicWordAssignmentCount[k][wordIndex] + beta)
-									/ (topicFrCount[k] + betaSum);
+									* (topicWordAssignmentCount[k][wordIndex] + getBeta(k, wordIndex))
+									/ (topicFrCount[k] + getBetaSum(k));
 						}
 						topic = nextDiscrete(samplingRatios);
 						documentWordOccurrenceLastTopicAssignment[h][h2][j] = topic;
@@ -115,9 +115,16 @@ public class LDAGibbsSampler<T> {
 			solutionListener.done(this);
 		}
 	}
+	
+	protected double getBeta(int topicIndex, int wordIndex) {
+		return beta;
+	}
+	
+	protected double getBetaSum(int topicIndex) {
+		return betaSum;
+	}
 
 	protected void afterSampling(int i, int numberOfIterations) {
-
 	}
 
 	protected void initialize(LDASolutionListener<T> listener) {
@@ -212,8 +219,8 @@ public class LDAGibbsSampler<T> {
 						topicFrCountCopy[topic]--;
 						for (int k = 0; k < alpha.length; k++) {
 							samplingRatios[k] = (dTopicAssignmentCount[k] + alpha[k])
-									* (topicWordAssignmentCountCopy[k][tIndex] + beta)
-									/ (topicFrCountCopy[k] + betaSum);
+									* (topicWordAssignmentCountCopy[k][tIndex] + getBeta(k, wordIndex))
+									/ (topicFrCountCopy[k] + getBetaSum(k));
 						}
 						topic = nextDiscrete(samplingRatios);
 						dWordOccurrenceLastTopicAssignment[h2][j] = topic;
