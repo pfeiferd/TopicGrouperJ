@@ -45,6 +45,11 @@ public class APExtractPerplexityNTopicsLDAWithAlphaFromTG extends
 					false, 1.1, 20);
 		}
 	}
+	
+	@Override
+	protected int nTopicFromStep(int step) {
+		return 70 + super.nTopicFromStep(step);
+	}
 
 	@Override
 	public void run(int gibbsIterations, int steps, int avgC)
@@ -57,6 +62,12 @@ public class APExtractPerplexityNTopicsLDAWithAlphaFromTG extends
 			DocumentProvider<String> documentProvider) {
 		int topics = nTopicFromStep(step);
 		List<MapNode<String>> nodes = getNodesByHistory(topics);
+		// One word topics are not in nodes and should be avoided anyways. So we might end up with too few nodes.
+		// Just search for more history nodes then (until the number is sufficient).
+		for (int i = 1; nodes.size() < topics; i++) {
+			nodes = getNodesByHistory(topics + i);
+		}
+		
 		return new LDAFullBetaGibbsSampler<String>(documentProvider,
 				createAlpha(topics, nodes), createFullBeta(topics,
 						documentProvider, nodes), random);
@@ -223,6 +234,6 @@ public class APExtractPerplexityNTopicsLDAWithAlphaFromTG extends
 
 	public static void main(String[] args) throws IOException {
 		new APExtractPerplexityNTopicsLDAWithAlphaFromTG(new Random(42), 150,
-				20, false).run(1000, 20, 1);
+				10, true).run(1000, 20, 1);
 	}
 }
