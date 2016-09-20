@@ -6,33 +6,44 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
 import org.hhn.topicgrouper.doc.DocumentProvider;
 import org.hhn.topicgrouper.lda.impl.LDAFullBetaGibbsSampler;
 import org.hhn.topicgrouper.lda.impl.LDAGibbsSampler;
+import org.hhn.topicgrouper.tg.impl.AbstractTopicGrouper;
+import org.hhn.topicgrouper.tg.impl.TopicGrouperWithTreeSet;
+import org.hhn.topicgrouper.tg.report.MindMapSolutionReporter;
 import org.hhn.topicgrouper.tg.report.store.MapNode;
 import org.hhn.topicgrouper.tg.report.store.WordInfo;
 
 public class APExtractPerplexityNTopicsLDAWithAlphaFromTG extends
 		APExtractPerplexityNTopics {
-	private final List<MapNode<String>> allNodes;
 	private final double concAlpha;
 	private final double concBeta;
 	private final List<WordInfo<String>> wordInfosForNodeCache;
 
+	private final MindMapSolutionReporter<String> mindMapSolutionReporter;
+	private List<MapNode<String>> allNodes;
+
 	public APExtractPerplexityNTopicsLDAWithAlphaFromTG(Random random,
-			double concAlpha, double concBeta) {
+			double concAlpha, double concBeta, boolean fast) {
 		super(random);
-		allNodes = loadFile(new File("./target/APExtract.ser"));
 		this.concAlpha = concAlpha;
 		this.concBeta = concBeta;
 		wordInfosForNodeCache = new ArrayList<WordInfo<String>>();
+		if (fast) {
+			allNodes = loadFile(new File(getSerializationFileName()));
+			mindMapSolutionReporter = null;
+		} else {
+			mindMapSolutionReporter = new MindMapSolutionReporter<String>(10,
+					false, 1.1, 20);
+		}
 	}
 
 	@Override
@@ -47,8 +58,8 @@ public class APExtractPerplexityNTopicsLDAWithAlphaFromTG extends
 		int topics = nTopicFromStep(step);
 		List<MapNode<String>> nodes = getNodesByHistory(topics);
 		return new LDAFullBetaGibbsSampler<String>(documentProvider,
-				createAlpha(topics, nodes), createFullBeta(topics, documentProvider, nodes),
-				random);
+				createAlpha(topics, nodes), createFullBeta(topics,
+						documentProvider, nodes), random);
 	}
 
 	protected double[] createAlpha(int topics, List<MapNode<String>> nodes) {
@@ -66,7 +77,7 @@ public class APExtractPerplexityNTopicsLDAWithAlphaFromTG extends
 
 		return alphaFromTG;
 	}
-	
+
 	protected List<MapNode<String>> getNodesByHistory(int topicId) {
 		List<MapNode<String>> res = new ArrayList<MapNode<String>>();
 		if (allNodes != null) {
@@ -91,7 +102,6 @@ public class APExtractPerplexityNTopicsLDAWithAlphaFromTG extends
 		markDeps(node.getLeftNode(), bitSet, topicId);
 		markDeps(node.getRightNode(), bitSet, topicId);
 	}
-	
 
 	public double getConcAlpha() {
 		return concAlpha;
@@ -102,7 +112,8 @@ public class APExtractPerplexityNTopicsLDAWithAlphaFromTG extends
 	}
 
 	protected double[][] createFullBeta(int topics,
-			DocumentProvider<String> documentProvider, List<MapNode<String>> nodes) {
+			DocumentProvider<String> documentProvider,
+			List<MapNode<String>> nodes) {
 		double concentration = getConcBeta();
 		double[][] betaFromTG = new double[topics][];
 		for (int i = 0; i < topics; i++) {
@@ -174,57 +185,35 @@ public class APExtractPerplexityNTopicsLDAWithAlphaFromTG extends
 		}
 	}
 
+	protected void saveFile(File file, Object o) {
+		try {
+			ObjectOutputStream oo = new ObjectOutputStream(
+					new FileOutputStream(file));
+			oo.writeObject(o);
+			oo.close();
+		} catch (FileNotFoundException e) {
+			throw new RuntimeException(e);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	@Override
 	protected void runTopicGrouper(final PrintStream pw3, final int step,
 			final int repeat, final DocumentProvider<String> documentProvider,
 			final DocumentProvider<String> testDocumentProvider,
 			final double[] tgPerplexity, final double[] tgAcc) {
-		// if (step == 0 && repeat == 0) {
-		// AbstractTopicGrouper<String> topicGrouper = new
-		// TopicGrouperWithTreeSet<String>(
-		// 1, documentProvider, 1);
-		// topicGrouper.solve(new TGSolutionListener<String>() {
-		// @Override
-		// public void updatedSolution(int newTopicIndex,
-		// int oldTopicIndex, double improvement, int t1Size,
-		// int t2Size, final TGSolution<String> solution) {
-		// int topics = solution.getNumberOfTopics();
-		// if (topics <= tgPerplexityPerNTopics.length) {
-		// tgPerplexityPerNTopics[topics - 1] = computeTGPerplexity(
-		// solution, testDocumentProvider);
-		// }
-		// if (topics <= tgAlphaPerNTopics.length) {
-		// int[] topicId = solution.getTopicIds();
-		// tgAlphaPerNTopics[topics - 1] = new double[topics];
-		// double sum = 0;
-		// for (int i = 0; i < topics; i++) {
-		// tgAlphaPerNTopics[topics - 1][i] = solution
-		// .getTopicFrequency(topicId[i]);
-		// sum += tgAlphaPerNTopics[topics - 1][i];
-		// }
-		// for (int i = 0; i < topics; i++) {
-		// tgAlphaPerNTopics[topics - 1][i] /= sum;
-		// }
-		// }
-		// }
-		//
-		// @Override
-		// public void initialized(TGSolution<String> initialSolution) {
-		// }
-		//
-		// @Override
-		// public void initalizing(double percentage) {
-		// }
-		//
-		// @Override
-		// public void done() {
-		// }
-		//
-		// @Override
-		// public void beforeInitialization(int maxTopics, int documents) {
-		// }
-		// });
-		// }
+		if (step == 0 && repeat == 0 && mindMapSolutionReporter != null) {
+			AbstractTopicGrouper<String> topicGrouper = new TopicGrouperWithTreeSet<String>(
+					1, documentProvider, 1);
+			topicGrouper.solve(mindMapSolutionReporter);
+			allNodes = mindMapSolutionReporter.getAllNodes();
+			saveFile(new File(getSerializationFileName()), allNodes);
+		}
+	}
+
+	protected String getSerializationFileName() {
+		return "./target/APExtract.ser";
 	}
 
 	@Override
@@ -233,7 +222,7 @@ public class APExtractPerplexityNTopicsLDAWithAlphaFromTG extends
 	}
 
 	public static void main(String[] args) throws IOException {
-		new APExtractPerplexityNTopicsLDAWithAlphaFromTG(new Random(42), 150, 20)
-				.run(1000, 20, 1);
+		new APExtractPerplexityNTopicsLDAWithAlphaFromTG(new Random(42), 150,
+				20, false).run(1000, 20, 1);
 	}
 }
