@@ -233,7 +233,7 @@ public class APExtractPerplexityNTopicsLDAWithAlphaFromTG extends
 	}
 
 	public static void main(String[] args) throws IOException {
-		new APExtractPerplexityNTopicsLDAWithAlphaFromTG(new Random(42), 150,
-				10, true).run(1000, 20, 1);
+		new APExtractPerplexityNTopicsLDAWithAlphaFromTG(new Random(42), 50,
+				5, true).run(1000, 20, 1);
 	}
 }
