@@ -84,7 +84,7 @@ public class APExtractPerplexityNTopics extends TWCPerplexityErrorRateNDocs {
 	@Override
 	protected PrintStream prepareLDAPrintStream() throws IOException {
 		PrintStream pw = new PrintStream(new FileOutputStream(new File(
-				"./target/APExtractPerplexityNTopicsLDAWithAlphaFromTG.csv")));
+				"./target/APExtractPerplexityNTopicsLDA.csv")));
 
 		pw.print("ntopics;");
 		pw.print("perplexity;");
