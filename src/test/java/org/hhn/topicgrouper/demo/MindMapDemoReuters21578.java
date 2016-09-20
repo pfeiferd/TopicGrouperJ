@@ -42,7 +42,7 @@ public class MindMapDemoReuters21578 extends AbstractTGTester<String> {
 		TGSolutionListenerMultiplexer<String> multiplexer = new TGSolutionListenerMultiplexer<String>();
 		multiplexer
 				.addSolutionListener(mindMapSolutionReporter = new MindMapSolutionReporter<String>(
-						5, false, 1.1, 20));
+						10, false, 1.1, 20));
 		multiplexer.addSolutionListener(new BasicTGSolutionReporter<String>(
 				System.out, 30, true));
 		return multiplexer;
