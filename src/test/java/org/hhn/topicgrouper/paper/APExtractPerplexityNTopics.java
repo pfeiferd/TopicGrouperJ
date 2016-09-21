@@ -1,9 +1,16 @@
 package org.hhn.topicgrouper.paper;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.List;
 import java.util.Random;
 
 import org.hhn.topicgrouper.doc.DocumentProvider;
@@ -15,20 +22,39 @@ import org.hhn.topicgrouper.lda.validation.AbstractLDAPerplexityCalculator;
 import org.hhn.topicgrouper.lda.validation.LDAPerplexityCalculatorWithFoldIn;
 import org.hhn.topicgrouper.tg.TGSolution;
 import org.hhn.topicgrouper.tg.TGSolutionListener;
+import org.hhn.topicgrouper.tg.TGSolutionListenerMultiplexer;
 import org.hhn.topicgrouper.tg.impl.AbstractTopicGrouper;
 import org.hhn.topicgrouper.tg.impl.TopicGrouperWithTreeSet;
+import org.hhn.topicgrouper.tg.report.MindMapSolutionReporter;
+import org.hhn.topicgrouper.tg.report.store.MapNode;
 
 public class APExtractPerplexityNTopics extends TWCPerplexityErrorRateNDocs {
+	protected final double concAlpha;
+	protected final double concBeta;
+
 	protected final DocumentProvider<String> apExtractDocumentProvider;
 	protected double[] tgPerplexityPerNTopics;
 	protected int maxTopicsToReport;
 	protected HoldOutSplitter<String> holdOutSplitter;
 
-	public APExtractPerplexityNTopics(Random random) {
+	protected final MindMapSolutionReporter<String> mindMapSolutionReporter;
+	protected List<MapNode<String>> allNodes;
+
+	public APExtractPerplexityNTopics(Random random, double concAlpha,
+			double concBeta, boolean fast) {
 		super(random);
+		this.concAlpha = concAlpha;
+		this.concBeta = concBeta;
 		apExtractDocumentProvider = new APParser(true, true)
 				.getCorpusDocumentProvider(new File(
 						"src/test/resources/ap-corpus/extract/ap.txt"));
+		if (fast) {
+			allNodes = loadFile(new File(getSerializationFileName()));
+			mindMapSolutionReporter = null;
+		} else {
+			mindMapSolutionReporter = new MindMapSolutionReporter<String>(10,
+					false, 1.1, 20);
+		}
 	}
 
 	@Override
@@ -39,8 +65,41 @@ public class APExtractPerplexityNTopics extends TWCPerplexityErrorRateNDocs {
 		super.run(gibbsIterations, steps, avgC);
 	}
 
+	protected String createAlphaBetaFileNameExtension() {
+		return "_a" + getConcAlpha() + "_b" + getConcBeta();
+	}
+
 	protected int nTopicFromStep(int step) {
 		return (step + 1) * 10;
+	}
+
+	protected List<MapNode<String>> getNodesByHistory(int topicId) {
+		List<MapNode<String>> res = new ArrayList<MapNode<String>>();
+		if (allNodes != null) {
+			BitSet bitSet = new BitSet(allNodes.size() - topicId);
+			for (int i = topicId; i <= allNodes.size(); i++) {
+				if (!bitSet.get(i - topicId)) {
+					int nodeIndex = allNodes.size() - i;
+					MapNode<String> node = allNodes.get(nodeIndex);
+					res.add(node);
+					markDeps(node, bitSet, topicId);
+				}
+			}
+		}
+		return res;
+	}
+
+	protected void markDeps(MapNode<String> node, BitSet bitSet, int topicId) {
+		if (node == null || node.getId() < 1) {
+			return;
+		}
+		bitSet.set(node.getId() - topicId);
+		markDeps(node.getLeftNode(), bitSet, topicId);
+		markDeps(node.getRightNode(), bitSet, topicId);
+	}
+
+	protected String getSerializationFileName() {
+		return "./target/APExtract.ser";
 	}
 
 	@Override
@@ -72,7 +131,7 @@ public class APExtractPerplexityNTopics extends TWCPerplexityErrorRateNDocs {
 	// and
 	// http://stats.stackexchange.com/questions/59684/what-are-typical-values-to-use-for-alpha-and-beta-in-latent-dirichlet-allocation
 	protected double[] createAlpha(int topics) {
-		return LDAGibbsSampler.symmetricAlpha(50.d / topics, topics);
+		return LDAGibbsSampler.symmetricAlpha(getConcAlpha() / topics, topics);
 	}
 
 	// Like in: http://psiexp.ss.uci.edu/research/papers/sciencetopics.pdf
@@ -80,13 +139,22 @@ public class APExtractPerplexityNTopics extends TWCPerplexityErrorRateNDocs {
 	// http://stats.stackexchange.com/questions/59684/what-are-typical-values-to-use-for-alpha-and-beta-in-latent-dirichlet-allocation
 	protected double createBeta(int topics,
 			DocumentProvider<String> documentProvider) {
-		return 0.1;
+		return getConcBeta() / documentProvider.getNumberOfWords();
+	}
+
+	public double getConcAlpha() {
+		return concAlpha;
+	}
+
+	public double getConcBeta() {
+		return concBeta;
 	}
 
 	@Override
 	protected PrintStream prepareLDAPrintStream() throws IOException {
 		PrintStream pw = new PrintStream(new FileOutputStream(new File(
-				"./target/APExtractPerplexityNTopicsLDA.csv")));
+				"./target/APExtractPerplexityNTopicsLDA"
+						+ createAlphaBetaFileNameExtension() + ".csv")));
 
 		pw.print("ntopics;");
 		pw.print("perplexity;");
@@ -117,7 +185,8 @@ public class APExtractPerplexityNTopics extends TWCPerplexityErrorRateNDocs {
 		if (step == 0 && repeat == 0) {
 			AbstractTopicGrouper<String> topicGrouper = new TopicGrouperWithTreeSet<String>(
 					1, documentProvider, 1);
-			topicGrouper.solve(new TGSolutionListener<String>() {
+
+			TGSolutionListener<String> tgSolutionListener = new TGSolutionListener<String>() {
 				@Override
 				public void updatedSolution(int newTopicIndex,
 						int oldTopicIndex, double improvement, int t1Size,
@@ -144,7 +213,18 @@ public class APExtractPerplexityNTopics extends TWCPerplexityErrorRateNDocs {
 				@Override
 				public void beforeInitialization(int maxTopics, int documents) {
 				}
-			});
+			};
+			if (mindMapSolutionReporter != null) {
+				TGSolutionListenerMultiplexer<String> multiplexer = new TGSolutionListenerMultiplexer<String>();
+				multiplexer.addSolutionListener(mindMapSolutionReporter);
+				multiplexer.addSolutionListener(tgSolutionListener);
+				topicGrouper.solve(multiplexer);
+				allNodes = mindMapSolutionReporter.getAllNodes();
+				saveFile(new File(getSerializationFileName()), allNodes);
+			}
+			else {
+				topicGrouper.solve(tgSolutionListener);
+			}
 		}
 	}
 
@@ -194,7 +274,38 @@ public class APExtractPerplexityNTopics extends TWCPerplexityErrorRateNDocs {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
+	protected List<MapNode<String>> loadFile(File file) {
+		try {
+			ObjectInputStream oi = new ObjectInputStream(new FileInputStream(
+					file));
+			List<MapNode<String>> res = (List<MapNode<String>>) oi.readObject();
+			oi.close();
+			return res;
+		} catch (ClassNotFoundException e) {
+			throw new RuntimeException(e);
+		} catch (FileNotFoundException e) {
+			throw new RuntimeException(e);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected void saveFile(File file, Object o) {
+		try {
+			ObjectOutputStream oo = new ObjectOutputStream(
+					new FileOutputStream(file));
+			oo.writeObject(o);
+			oo.close();
+		} catch (FileNotFoundException e) {
+			throw new RuntimeException(e);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	public static void main(String[] args) throws IOException {
-		new APExtractPerplexityNTopics(new Random(42)).run(1000, 20, 1);
+		new APExtractPerplexityNTopics(new Random(42), 50, 2000, false).run(
+				1000, 20, 1);
 	}
 }
