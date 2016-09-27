@@ -1,23 +1,22 @@
-package org.hhn.topicgrouper.paper;
+package org.hhn.topicgrouper.bin;
 
 import java.io.IOException;
 import java.util.Random;
 
 import org.hhn.topicgrouper.doc.DocumentProvider;
 import org.hhn.topicgrouper.eval.TWCLDAPaperDocumentGenerator;
-import org.hhn.topicgrouper.lda.impl.SimpleEMAlphaOptimizer;
 
 public class TWCAlphaOptimizationTest  {
 	protected final Random random;
-	protected final SimpleEMAlphaOptimizer<String> alphaOptimizer;
+	protected final SimpleEMAlphaBetaOptimizer<String> alphaOptimizer;
 	
 	public TWCAlphaOptimizationTest(Random random) {
 		this.random = random;
-		alphaOptimizer = new SimpleEMAlphaOptimizer<String>(random);
+		alphaOptimizer = new SimpleEMAlphaBetaOptimizer<String>(random);
 	}
 	
 	public void run() {
-		alphaOptimizer.run(createDocumentProvider(), 1, 4, 100, 0.001, 100);
+		alphaOptimizer.run(createDocumentProvider(), 10, 1, 4, 0.0001, 100);
 	}
 	
 
