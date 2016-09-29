@@ -18,7 +18,8 @@ public class TGPerplexityCalculator<T> {
 		this.bowFactor = bowFactor;
 	}
 
-	public double computePerplexity(DocumentProvider<T> testDocumentProvider, TGSolution<T> s) {
+	public double computePerplexity(DocumentProvider<T> testDocumentProvider,
+			TGSolution<T> s) {
 		double sumA = 0;
 		long sumB = 0;
 		for (Document<T> d : testDocumentProvider.getDocuments()) {
@@ -38,7 +39,8 @@ public class TGPerplexityCalculator<T> {
 		return Math.exp(-sumA / sumB);
 	}
 
-	public double computeLogProbability(Document<T> d, int dSize, TGSolution<T> s) {
+	public double computeLogProbability(Document<T> d, int dSize,
+			TGSolution<T> s) {
 		double res = bowFactor ? logFacN(dSize) : 0;
 
 		TIntIterator it = d.getWordIndices().iterator();
@@ -48,7 +50,7 @@ public class TGPerplexityCalculator<T> {
 			int sIndex = s.getIndex(word);
 			if (sIndex >= 0) {
 				int wordFr = d.getWordFrequency(index);
-				if (wordFr > 0 /*&& words != null*/) {
+				if (wordFr > 0 /* && words != null */) {
 					if (bowFactor) {
 						res -= logFacN(wordFr);
 					}
@@ -75,18 +77,19 @@ public class TGPerplexityCalculator<T> {
 			}
 		}
 		return Math.log(correctTopicFrInDoc(topicFrInDoc))
-				+ Math.log(s.getGlobalWordFrequency(sIndex)) - Math.log(correctDocSize(dSize, s.getNumberOfTopics()))
+				+ Math.log(s.getGlobalWordFrequency(sIndex))
+				- Math.log(correctDocSize(dSize, s.getNumberOfTopics()))
 				- Math.log(s.getTopicFrequency(topicIndex));
 	}
-	
+
 	protected int correctTopicFrInDoc(int topicFrInDoc) {
 		return topicFrInDoc;
 	}
-	
+
 	protected int correctDocSize(int docSize, int nTopics) {
 		return docSize;
 	}
-	
+
 	public static double logFacN(int n) {
 		double sum = 0;
 		for (int i = 1; i <= n; i++) {
