@@ -63,7 +63,7 @@ public class TGPerplexityCalculator<T> {
 		return res;
 	}
 
-	private double computeWordLogProbability(int sIndex, Document<T> d,
+	protected double computeWordLogProbability(int sIndex, Document<T> d,
 			int dSize, TGSolution<T> s, TIntCollection words, int topicIndex) {
 		int topicFrInDoc = 0;
 		TIntIterator it = words.iterator();
@@ -74,11 +74,19 @@ public class TGPerplexityCalculator<T> {
 				topicFrInDoc += d.getWordFrequency(dIndex);
 			}
 		}
-		return Math.log(topicFrInDoc)
-				+ Math.log(s.getGlobalWordFrequency(sIndex)) - Math.log(dSize)
+		return Math.log(correctTopicFrInDoc(topicFrInDoc))
+				+ Math.log(s.getGlobalWordFrequency(sIndex)) - Math.log(correctDocSize(dSize, s.getNumberOfTopics()))
 				- Math.log(s.getTopicFrequency(topicIndex));
 	}
-
+	
+	protected int correctTopicFrInDoc(int topicFrInDoc) {
+		return topicFrInDoc;
+	}
+	
+	protected int correctDocSize(int docSize, int nTopics) {
+		return docSize;
+	}
+	
 	public static double logFacN(int n) {
 		double sum = 0;
 		for (int i = 1; i <= n; i++) {
