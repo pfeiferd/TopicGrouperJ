@@ -11,7 +11,7 @@ import org.hhn.topicgrouper.doc.Document;
 import org.hhn.topicgrouper.doc.DocumentProvider;
 import org.hhn.topicgrouper.doc.impl.DefaultDocumentProvider;
 
-public class EachMovieParser {
+public class EachMovieParser<T> {
 	private final int minVoteSize;
 	private final double minRatingLevel;
 
@@ -20,11 +20,11 @@ public class EachMovieParser {
 		this.minRatingLevel = minRatingLevel;
 	}
 
-	public DocumentProvider<Integer> getCorpusDocumentProvider(File file)
+	public DocumentProvider<T> getCorpusDocumentProvider(File file)
 			throws IOException {
-		Map<Integer, DefaultDocumentProvider<Integer>.DefaultDocument> userIdToRating = new HashMap<Integer, DefaultDocumentProvider<Integer>.DefaultDocument>();
+		Map<Integer, DefaultDocumentProvider<T>.DefaultDocument> userIdToRating = new HashMap<Integer, DefaultDocumentProvider<T>.DefaultDocument>();
 
-		DefaultDocumentProvider<Integer> provider = new DefaultDocumentProvider<Integer>();
+		DefaultDocumentProvider<T> provider = new DefaultDocumentProvider<T>();
 		LineNumberReader lineNumberReader = new LineNumberReader(
 				new FileReader(file));
 		String line = lineNumberReader.readLine();
@@ -35,18 +35,18 @@ public class EachMovieParser {
 			double rating = Double.valueOf(values[2]);
 			// Just keep positive ratings;
 			if (rating >= minRatingLevel) {
-				DefaultDocumentProvider<Integer>.DefaultDocument d = userIdToRating
+				DefaultDocumentProvider<T>.DefaultDocument d = userIdToRating
 						.get(userId);
 				if (d == null) {
 					d = provider.newDocument();
 					userIdToRating.put(userId, d);
 				}
-				d.addWord(movieId);
+				d.addWord(convertMovieId(movieId));
 			}
 			line = lineNumberReader.readLine();
 		}
-		DefaultDocumentProvider<Integer> provider2 = new DefaultDocumentProvider<Integer>();
-		for (Document<Integer> d : userIdToRating.values()) {
+		DefaultDocumentProvider<T> provider2 = new DefaultDocumentProvider<T>();
+		for (Document<T> d : userIdToRating.values()) {
 			if (d.getSize() >= minVoteSize) {
 				provider2.addDocument(d);
 			}
@@ -56,9 +56,14 @@ public class EachMovieParser {
 
 		return provider2;
 	}
+	
+	@SuppressWarnings("unchecked")
+	protected T convertMovieId(int movieId) {
+		return (T) Integer.valueOf(movieId);
+	}
 
 	public static void main(String[] args) throws IOException {
-		EachMovieParser parser = new EachMovieParser(100, 0.6);
+		EachMovieParser<Integer> parser = new EachMovieParser<Integer>(100, 0.6);
 		DocumentProvider<Integer> entryProvider = parser
 				.getCorpusDocumentProvider(new File(
 						"src/test/resources/EachMovie/Vote.txt"));
