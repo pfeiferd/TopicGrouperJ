@@ -32,7 +32,7 @@ public class APExtractPerplexityNTopics extends TWCPerplexityErrorRateNDocs {
 	protected final double concAlpha;
 	protected final double concBeta;
 
-	protected final DocumentProvider<String> apExtractDocumentProvider;
+	protected final DocumentProvider<String> basicDocumentProvider;
 	protected double[] tgPerplexityPerNTopics;
 	protected int maxTopicsToReport;
 	protected HoldOutSplitter<String> holdOutSplitter;
@@ -45,9 +45,7 @@ public class APExtractPerplexityNTopics extends TWCPerplexityErrorRateNDocs {
 		super(random);
 		this.concAlpha = concAlpha;
 		this.concBeta = concBeta;
-		apExtractDocumentProvider = new APParser(true, true)
-				.getCorpusDocumentProvider(new File(
-						"src/test/resources/ap-corpus/extract/ap.txt"));
+		basicDocumentProvider = initBasicDocumentProvider();
 		if (fast) {
 			allNodes = loadFile(new File(getSerializationFileName()));
 			mindMapSolutionReporter = null;
@@ -55,6 +53,12 @@ public class APExtractPerplexityNTopics extends TWCPerplexityErrorRateNDocs {
 			mindMapSolutionReporter = new MindMapSolutionReporter<String>(10,
 					false, 1.1, 20);
 		}
+	}
+	
+	protected DocumentProvider<String> initBasicDocumentProvider() {
+		return  new APParser(true, true)
+		.getCorpusDocumentProvider(new File(
+				"src/test/resources/ap-corpus/extract/ap.txt"));		
 	}
 
 	@Override
@@ -115,7 +119,7 @@ public class APExtractPerplexityNTopics extends TWCPerplexityErrorRateNDocs {
 
 	@Override
 	protected DocumentProvider<String> createDocumentProvider(int step) {
-		return apExtractDocumentProvider;
+		return basicDocumentProvider;
 	}
 
 	@Override
