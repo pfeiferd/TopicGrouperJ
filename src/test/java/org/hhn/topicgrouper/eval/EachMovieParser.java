@@ -20,43 +20,46 @@ public class EachMovieParser<T> {
 		this.minRatingLevel = minRatingLevel;
 	}
 
-	public DocumentProvider<T> getCorpusDocumentProvider(File file)
-			throws IOException {
-		Map<Integer, DefaultDocumentProvider<T>.DefaultDocument> userIdToRating = new HashMap<Integer, DefaultDocumentProvider<T>.DefaultDocument>();
+	public DocumentProvider<T> getCorpusDocumentProvider(File file) {
+		try {
+			Map<Integer, DefaultDocumentProvider<T>.DefaultDocument> userIdToRating = new HashMap<Integer, DefaultDocumentProvider<T>.DefaultDocument>();
 
-		DefaultDocumentProvider<T> provider = new DefaultDocumentProvider<T>();
-		LineNumberReader lineNumberReader = new LineNumberReader(
-				new FileReader(file));
-		String line = lineNumberReader.readLine();
-		while (line != null) {
-			String[] values = line.split("\t");
-			int userId = Integer.valueOf(values[0]);
-			int movieId = Integer.valueOf(values[1]);
-			double rating = Double.valueOf(values[2]);
-			// Just keep positive ratings;
-			if (rating >= minRatingLevel) {
-				DefaultDocumentProvider<T>.DefaultDocument d = userIdToRating
-						.get(userId);
-				if (d == null) {
-					d = provider.newDocument();
-					userIdToRating.put(userId, d);
+			DefaultDocumentProvider<T> provider = new DefaultDocumentProvider<T>();
+			LineNumberReader lineNumberReader = new LineNumberReader(
+					new FileReader(file));
+			String line = lineNumberReader.readLine();
+			while (line != null) {
+				String[] values = line.split("\t");
+				int userId = Integer.valueOf(values[0]);
+				int movieId = Integer.valueOf(values[1]);
+				double rating = Double.valueOf(values[2]);
+				// Just keep positive ratings;
+				if (rating >= minRatingLevel) {
+					DefaultDocumentProvider<T>.DefaultDocument d = userIdToRating
+							.get(userId);
+					if (d == null) {
+						d = provider.newDocument();
+						userIdToRating.put(userId, d);
+					}
+					d.addWord(convertMovieId(movieId));
 				}
-				d.addWord(convertMovieId(movieId));
+				line = lineNumberReader.readLine();
 			}
-			line = lineNumberReader.readLine();
-		}
-		DefaultDocumentProvider<T> provider2 = new DefaultDocumentProvider<T>();
-		for (Document<T> d : userIdToRating.values()) {
-			if (d.getSize() >= minVoteSize) {
-				provider2.addDocument(d);
+			DefaultDocumentProvider<T> provider2 = new DefaultDocumentProvider<T>();
+			for (Document<T> d : userIdToRating.values()) {
+				if (d.getSize() >= minVoteSize) {
+					provider2.addDocument(d);
+				}
 			}
+
+			lineNumberReader.close();
+
+			return provider2;
+		} catch (IOException e) {
+			throw new RuntimeException(e);
 		}
-
-		lineNumberReader.close();
-
-		return provider2;
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	protected T convertMovieId(int movieId) {
 		return (T) Integer.valueOf(movieId);
