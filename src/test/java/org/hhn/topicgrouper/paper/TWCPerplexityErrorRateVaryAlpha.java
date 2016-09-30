@@ -92,8 +92,12 @@ public class TWCPerplexityErrorRateVaryAlpha extends
 	@Override
 	protected PrintStream prepareLDAPrintStream() throws IOException {
 		PrintStream pw = new PrintStream(new FileOutputStream(new File(
-				"./target/TWCPerplexityErrorRateVaryAlphaLDA.csv")));
-
+				"./target/" + createLDACSVBaseFileName() + ".csv")));
+		printLDACSVFileHeader(pw);
+		return pw;
+	}
+	
+	protected void printLDACSVFileHeader(PrintStream pw) {
 		pw.print("alpha1;");
 		pw.print("perplexity;");
 		pw.print("perplexity_stddev;");
@@ -101,19 +105,30 @@ public class TWCPerplexityErrorRateVaryAlpha extends
 		pw.print("perplexityFoldIn_stddev;");
 		pw.print("err;");
 		pw.println("err_stddev;");
-		return pw;
 	}
-
+	
+	protected String createLDACSVBaseFileName() {
+		return "TWCPerplexityErrorRateVaryAlphaLDA";
+	}
+	
 	@Override
 	protected PrintStream prepareTGPrintStream() throws IOException {
 		PrintStream pw = new PrintStream(new FileOutputStream(new File(
-				"./target/TWCPerplexityErrorRateVaryAlphaTG.csv")));
+				"./target/" + createTGCSVBaseFileName() + ".csv")));
+		printTGCSVFileHeader(pw);
+		return pw;
+	}
+	
+	protected void printTGCSVFileHeader(PrintStream pw) {
 		pw.print("x;");
 		pw.print("perplexity;");
 		pw.print("perplexity_stddev;");
 		pw.print("err;");
 		pw.println("err_stddev;");
-		return pw;
+	}
+	
+	protected String createTGCSVBaseFileName() {
+		return "TWCPerplexityErrorRateVaryAlphaTG";
 	}
 
 	@Override

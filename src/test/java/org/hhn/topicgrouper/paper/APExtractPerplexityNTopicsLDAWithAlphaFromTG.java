@@ -106,19 +106,12 @@ public class APExtractPerplexityNTopicsLDAWithAlphaFromTG extends
 			collectLeafWordInfos(node.getRightNode(), list);
 		}
 	}
-
+	
 	@Override
-	protected PrintStream prepareLDAPrintStream() throws IOException {
-		PrintStream pw = new PrintStream(new FileOutputStream(new File(
-				"./target/APExtractPerplexityNTopicsLDAWithAlphaFromTG" + createAlphaBetaFileNameExtension() + ".csv")));
-
-		pw.print("ntopics;");
-		pw.print("perplexity;");
-		pw.println("perplexityFoldIn;");
-
-		return pw;
+	protected String createLDACSVBaseFileName() {
+		return "APExtractPerplexityNTopicsLDAWithAlphaFromTG" + createAlphaBetaFileNameExtension();
 	}
-
+	
 	@Override
 	protected PrintStream prepareTGPrintStream() throws IOException {
 		return null;

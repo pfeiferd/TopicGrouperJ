@@ -155,27 +155,28 @@ public class APExtractPerplexityNTopics extends TWCPerplexityErrorRateNDocs {
 	}
 
 	@Override
-	protected PrintStream prepareLDAPrintStream() throws IOException {
-		PrintStream pw = new PrintStream(new FileOutputStream(new File(
-				"./target/APExtractPerplexityNTopicsLDA"
-						+ createAlphaBetaFileNameExtension() + ".csv")));
-
+	protected void printLDACSVFileHeader(PrintStream pw) {
 		pw.print("ntopics;");
 		pw.print("perplexity;");
 		pw.println("perplexityFoldIn;");
-
-		return pw;
 	}
-
+	
 	@Override
-	protected PrintStream prepareTGPrintStream() throws IOException {
-		PrintStream pw = new PrintStream(new FileOutputStream(new File(
-				"./target/APExtractPerplexityNTopicsTG.csv")));
+	protected String createLDACSVBaseFileName() {
+		return "APExtractPerplexityNTopicsLDA";
+	}
+	
+	@Override
+	protected void printTGCSVFileHeader(PrintStream pw) {
 		pw.print("ntopics;");
 		pw.println("perplexity;");
-		return pw;
 	}
-
+	
+	@Override
+	protected String createTGCSVBaseFileName() {
+		return "APExtractPerplexityNTopicsTG";
+	}
+	
 	@Override
 	protected PrintStream prepareTGLikelihoodPrintStream() throws IOException {
 		return null;

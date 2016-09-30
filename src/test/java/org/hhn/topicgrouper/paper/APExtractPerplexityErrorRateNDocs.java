@@ -25,6 +25,16 @@ public class APExtractPerplexityErrorRateNDocs extends
 	}
 	
 	@Override
+	protected String createTGCSVBaseFileName() {
+		return "APExtractPerplexityErrorRateNDocsTG";
+	}
+	
+	@Override
+	protected String createLDACSVBaseFileName() {
+		return "APExtractPerplexityErrorRateNDocsLDA";
+	}
+	
+	@Override
 	protected double computeTGAccuracy(TGSolution<String> solution,
 			DocumentProvider<String> documentProvider) {
 		// Not applicable...
