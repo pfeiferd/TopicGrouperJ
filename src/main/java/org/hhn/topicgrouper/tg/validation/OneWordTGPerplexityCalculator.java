@@ -10,10 +10,18 @@ import org.hhn.topicgrouper.doc.DocumentProvider;
 import org.hhn.topicgrouper.tg.TGSolution;
 
 public class OneWordTGPerplexityCalculator<T> extends TGPerplexityCalculator<T> {
+	public static final double DEFAULT_LIDSTONE_LAMDA = 0.00000000000001d;
 	private final Random random;
 
+	private final double lidstoneLambda;
+
 	public OneWordTGPerplexityCalculator(Random random) {
+		this(random, DEFAULT_LIDSTONE_LAMDA);
+	}
+
+	public OneWordTGPerplexityCalculator(Random random, double lidstoneLambda) {
 		this.random = random;
+		this.lidstoneLambda = lidstoneLambda;
 	}
 
 	@Override
@@ -77,13 +85,13 @@ public class OneWordTGPerplexityCalculator<T> extends TGPerplexityCalculator<T> 
 	}
 
 	@Override
-	protected int correctTopicFrInDoc(int topicFrInDoc) {
-		return (topicFrInDoc - 1) + 1; // Exclude held out word (-1) and add 1
-										// for Laplace smoothing.
+	protected double correctTopicFrInDoc(int topicFrInDoc) {
+		return (topicFrInDoc - 1) + lidstoneLambda; // Exclude held out word (-1) and add 1
+										// for Lidstone smoothing.
 	}
 
-	protected int correctDocSize(int docSize, int nTopics) {
-		return (docSize - 1) + nTopics; // Exclude held out word (-1) and add n
-										// topics for Laplace smoothing.
+	protected double correctDocSize(int docSize, int nTopics) {
+		return (docSize - 1) + lidstoneLambda * nTopics; // Exclude held out word (-1) and add n
+										// topics for Lidstone smoothing.
 	}
 }

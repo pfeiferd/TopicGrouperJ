@@ -82,11 +82,11 @@ public class TGPerplexityCalculator<T> {
 				- Math.log(s.getTopicFrequency(topicIndex));
 	}
 
-	protected int correctTopicFrInDoc(int topicFrInDoc) {
+	protected double correctTopicFrInDoc(int topicFrInDoc) {
 		return topicFrInDoc;
 	}
 
-	protected int correctDocSize(int docSize, int nTopics) {
+	protected double correctDocSize(int docSize, int nTopics) {
 		return docSize;
 	}
 
