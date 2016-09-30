@@ -1,6 +1,7 @@
 package org.hhn.topicgrouper.paper;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Random;
 
 import org.hhn.topicgrouper.doc.DocumentProvider;
@@ -84,4 +85,10 @@ public class EachMoviePerplexityPerOneUserMovie extends
 	protected int nTopicFromStep(int step) {
 		return step == 0 ? 2 : step == 1 ? 5 : (step - 1) * 10;
 	}
+	
+	public static void main(String[] args) throws IOException {
+		new EachMoviePerplexityPerOneUserMovie(new Random(42), 50, 300, false).run(
+				100, 20, 1);
+	}
+	
 }
