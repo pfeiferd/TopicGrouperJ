@@ -18,13 +18,17 @@ public abstract class AbstractLDAPerplexityCalculator<T> {
 		this.bowFactor = bowFactor;
 		helper = initComputationHelper();
 	}
-	
+
 	protected ComputationHelper initComputationHelper() {
 		return new ComputationHelper();
 	}
-	
+
 	public double computePerplexity(DocumentProvider<T> testDocumentProvider,
 			LDAGibbsSampler<T> sampler) {
+		if (ptd == null || ptd.length != sampler.getNTopics()) {
+			ptd = new double[sampler.getNTopics()];
+		}
+
 		return helper.computePerplexity(testDocumentProvider, sampler);
 	}
 
@@ -75,14 +79,11 @@ public abstract class AbstractLDAPerplexityCalculator<T> {
 		}
 		return Math.log(sum);
 	}
-	
-	protected class ComputationHelper {
-		public double computePerplexity(DocumentProvider<T> testDocumentProvider,
-				LDAGibbsSampler<T> sampler) {
-			if (ptd == null || ptd.length != sampler.getNTopics()) {
-				ptd = new double[sampler.getNTopics()];
-			}
 
+	protected class ComputationHelper {
+		public double computePerplexity(
+				DocumentProvider<T> testDocumentProvider,
+				LDAGibbsSampler<T> sampler) {
 			DocumentProvider<T> provider = sampler.getDocumentProvider();
 			double sumA = 0;
 			long sumB = 0;
@@ -110,12 +111,13 @@ public abstract class AbstractLDAPerplexityCalculator<T> {
 				i++;
 			}
 			return Math.exp(-sumA / sumB);
-		}		
+		}
 	}
-	
+
 	protected abstract class OneWordComputationHelper extends ComputationHelper {
 		@Override
-		public double computePerplexity(DocumentProvider<T> testDocumentProvider,
+		public double computePerplexity(
+				DocumentProvider<T> testDocumentProvider,
 				LDAGibbsSampler<T> sampler) {
 			DocumentProvider<T> provider = sampler.getDocumentProvider();
 			double sumA = 0;
@@ -125,7 +127,8 @@ public abstract class AbstractLDAPerplexityCalculator<T> {
 				int dSize = 0;
 				TIntIterator it = d.getWordIndices().iterator();
 
-				// Choose a random word to predict from the test document (uniform).
+				// Choose a random word to predict from the test document
+				// (uniform).
 				int positionOfHeldOutWord = getRandom().nextInt(d.getSize());
 				int handledWords = 0;
 				int heldOutWordIndex = -1;
@@ -137,7 +140,8 @@ public abstract class AbstractLDAPerplexityCalculator<T> {
 					if (sIndex >= 0) {
 						dSize += d.getWordFrequency(index);
 					}
-					// Get the index of the word to predict with regard to solution.
+					// Get the index of the word to predict with regard to
+					// solution.
 					handledWords += d.getWordFrequency(sIndex);
 					if (handledWords >= positionOfHeldOutWord
 							&& heldOutWordIndex == -1) {
@@ -164,11 +168,13 @@ public abstract class AbstractLDAPerplexityCalculator<T> {
 					// Exclude word to predict.
 					// update ptd for d
 					updatePtd(sampler, d, dSize, i);
-					
-					sumA += computeWordLogProbability(sampler, heldOutWordIndex, d);
+
+					sumA += computeWordLogProbability(sampler,
+							heldOutWordIndex, d);
 					sumB++;
 				} else {
-					// This means no word from test document occurs in the training
+					// This means no word from test document occurs in the
+					// training
 					// vocabulary. Just do nothing and omit this test document.
 					// (Should be rare...)
 				}
@@ -176,7 +182,7 @@ public abstract class AbstractLDAPerplexityCalculator<T> {
 			}
 			return Math.exp(-sumA / sumB);
 		}
-		
+
 		protected abstract Random getRandom();
 	}
 }
