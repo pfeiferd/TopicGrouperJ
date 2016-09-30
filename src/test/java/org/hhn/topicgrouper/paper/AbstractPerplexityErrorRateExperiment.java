@@ -18,8 +18,16 @@ public abstract class AbstractPerplexityErrorRateExperiment<T> {
 
 	public AbstractPerplexityErrorRateExperiment(Random random) {
 		this.random = random;
-		calc1 = new LDAPerplexityCalculatorAlt<T>(false);
-		perplexityCalculator = new TGPerplexityCalculator<T>(false);
+		calc1 = initLDAPerplexityCalculator1();
+		perplexityCalculator = initPerplexityCalculator();
+	}
+	
+	protected TGPerplexityCalculator<T> initPerplexityCalculator() {
+		return new TGPerplexityCalculator<T>(false);
+	}
+	
+	protected AbstractLDAPerplexityCalculator<T> initLDAPerplexityCalculator1() {
+		return new LDAPerplexityCalculatorAlt<T>(false); 
 	}
 
 	public void run(int gibbsIterations, int steps, int avgC)

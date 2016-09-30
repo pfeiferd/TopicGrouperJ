@@ -57,8 +57,7 @@ public class TWCPerplexityErrorRateVaryAlpha extends
 
 		gibbsSampler.solve(gibbsIterations, new BasicLDAResultReporter<String>(
 				System.out, 10));
-		AbstractLDAPerplexityCalculator<String> calc2 = new LDAPerplexityCalculatorWithFoldIn<String>(
-				false, gibbsIterations);
+		AbstractLDAPerplexityCalculator<String> calc2 = createLDAPerplexityCalculator2(gibbsIterations);
 
 		perplexity1[repeat] = calc1.computePerplexity(testDocumentProvider,
 				gibbsSampler);
@@ -82,6 +81,12 @@ public class TWCPerplexityErrorRateVaryAlpha extends
 
 		acc[repeat] = accuracyCalculator.computeAccuracy(documentProvider,
 				gibbsSampler.getNTopics(), ldaFrequencyProvider);
+	}
+
+	protected AbstractLDAPerplexityCalculator<String> createLDAPerplexityCalculator2(
+			int gibbsIterations) {
+		return new LDAPerplexityCalculatorWithFoldIn<String>(false,
+				gibbsIterations);
 	}
 
 	@Override
