@@ -1,11 +1,11 @@
 package org.hhn.topicgrouper.tg.validation;
 
+import gnu.trove.TIntCollection;
+import gnu.trove.iterator.TIntIterator;
+
 import org.hhn.topicgrouper.doc.Document;
 import org.hhn.topicgrouper.doc.DocumentProvider;
 import org.hhn.topicgrouper.tg.TGSolution;
-
-import gnu.trove.TIntCollection;
-import gnu.trove.iterator.TIntIterator;
 
 public class TGPerplexityCalculator<T> {
 	private final boolean bowFactor;
@@ -18,30 +18,40 @@ public class TGPerplexityCalculator<T> {
 		this.bowFactor = bowFactor;
 	}
 
-	public double computePerplexity(DocumentProvider<T> testDocumentProvider,
-			TGSolution<T> s) {
+	public double computePerplexity(DocumentProvider<T> testDocumentProvider, TGSolution<T> s) {
 		double sumA = 0;
 		long sumB = 0;
-		for (Document<T> d : testDocumentProvider.getDocuments()) {
-			int dSize = 0;
-			TIntIterator it = d.getWordIndices().iterator();
-			while (it.hasNext()) {
-				int index = it.next();
-				T word = testDocumentProvider.getWord(index);
-				int sIndex = s.getIndex(word);
-				if (sIndex >= 0) {
-					dSize += d.getWordFrequency(index);
-				}
+
+		for (Document<T> doc : testDocumentProvider.getDocuments()) {
+			for (int i = 0; i < getInDocSplits(doc); i++) {
+				Document<T> rd = createReferenceDoc(i, doc);
+				Document<T> d = createTestDoc(i, doc, rd);
+				sumA += computeLogProbability(rd, d, s);
+				sumB += d.getSize();
 			}
-			sumA += computeLogProbability(d, dSize, s);
-			sumB += dSize;
 		}
-		return Math.exp(-sumA / sumB);
+		return Math.exp(sumA / sumB);
+	}
+	
+	protected int getInDocSplits(Document<T> d) {
+		return 1;
 	}
 
-	public double computeLogProbability(Document<T> d, int dSize,
+	protected Document<T> createReferenceDoc(int i, Document<T> d) {
+		return d;
+	}
+
+	protected Document<T> createTestDoc(int i, Document<T> d, Document<T> rd) {
+		return d;
+	}
+
+	protected int correctAddendForB(int dSize) {
+		return dSize;
+	}
+
+	public double computeLogProbability(Document<T> refD, Document<T> d,
 			TGSolution<T> s) {
-		double res = bowFactor ? logFacN(dSize) : 0;
+		double res = bowFactor ? logFacN(d.getSize()) : 0;
 
 		TIntIterator it = d.getWordIndices().iterator();
 		while (it.hasNext()) {
@@ -57,8 +67,8 @@ public class TGPerplexityCalculator<T> {
 					int topicIndex = s.getTopicForWord(sIndex);
 					TIntCollection words = s.getTopics()[topicIndex];
 					res += wordFr
-							* computeWordLogProbability(sIndex, d, dSize, s,
-									words, topicIndex);
+							* computeWordLogProbability(sIndex, refD, s, words,
+									topicIndex);
 				}
 			}
 		}
@@ -66,7 +76,7 @@ public class TGPerplexityCalculator<T> {
 	}
 
 	protected double computeWordLogProbability(int sIndex, Document<T> d,
-			int dSize, TGSolution<T> s, TIntCollection words, int topicIndex) {
+			TGSolution<T> s, TIntCollection words, int topicIndex) {
 		int topicFrInDoc = 0;
 		TIntIterator it = words.iterator();
 		while (it.hasNext()) {
@@ -76,18 +86,25 @@ public class TGPerplexityCalculator<T> {
 				topicFrInDoc += d.getWordFrequency(dIndex);
 			}
 		}
-		return Math.log(correctTopicFrInDoc(topicFrInDoc))
-				+ Math.log(s.getGlobalWordFrequency(sIndex))
-				- Math.log(correctDocSize(dSize, s.getNumberOfTopics()))
-				- Math.log(s.getTopicFrequency(topicIndex));
+		return // Estimate log p(t|d):
+		Math.log(smoothedPtd(topicFrInDoc, d.getSize(), sIndex, topicIndex, s))
+				+
+				// Estimate log p(w|t):
+				Math.log(((double) s.getGlobalWordFrequency(sIndex))
+						/ s.getTopicFrequency(topicIndex));
 	}
 
-	protected double correctTopicFrInDoc(int topicFrInDoc) {
-		return topicFrInDoc;
+	protected double smoothedPtd(int topicFrInDoc, int docSize, int wordIndex,
+			int topicIndex, TGSolution<T> s) {
+		double lambda = getSmoothingLambda();
+		return ((1 - lambda) * topicFrInDoc / docSize)
+				// Smoothing via global frequency of topic;
+				+ (lambda * s.getTopicFrequency(topicIndex))
+				/ s.getSize();
 	}
-
-	protected double correctDocSize(int docSize, int nTopics) {
-		return docSize;
+	
+	protected double getSmoothingLambda() {
+		return 0;
 	}
 
 	public static double logFacN(int n) {
