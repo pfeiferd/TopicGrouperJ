@@ -11,6 +11,8 @@ public interface TGSolution<T> {
 		
 	public int getTopicFrequency(int topicIndex);
 	
+	public int getSize();
+	
 	public int getTopicForWord(int wordIndex);
 	
 	public int getGlobalWordFrequency(int wordIndex);

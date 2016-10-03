@@ -32,6 +32,7 @@ public abstract class AbstractTopicGrouper<T> implements TGSolver<T> {
 	protected final UnionFind topicUnionFind;
 	protected final int[] wordToInitialTopic;
 	protected final int[] topicSizes;
+	protected int totalSize;
 	protected final double[] topicLogLikelihoods;
 	protected double totalLogLikelihood;
 	protected final int[] nTopics;
@@ -107,7 +108,7 @@ public abstract class AbstractTopicGrouper<T> implements TGSolver<T> {
 			public TIntCollection[] getTopics() {
 				return topics;
 			}
-
+			
 			@Override
 			public int getTopicForWord(int wordIndex) {
 				int topic = wordToInitialTopic[wordIndex];
@@ -147,6 +148,11 @@ public abstract class AbstractTopicGrouper<T> implements TGSolver<T> {
 			@Override
 			public int getTopicFrequency(int topicIndex) {
 				return topicSizes[topicIndex];
+			}
+			
+			@Override
+			public int getSize() {
+				return totalSize;
 			}
 
 			@Override
@@ -250,6 +256,7 @@ public abstract class AbstractTopicGrouper<T> implements TGSolver<T> {
 				// at position i
 				topics[counter] = topic;
 				topicSizes[counter] = documentProvider.getWordFrequency(i);
+				totalSize += topicSizes[counter];
 				topicLogLikelihoods[counter] = computeOneWordTopicLogLikelihood(i);
 				totalLogLikelihood += topicLogLikelihoods[counter];
 
