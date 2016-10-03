@@ -46,8 +46,7 @@ public class LDAGibbsSampler<T> {
 		documentWordOccurrenceLastTopicAssignment = new int[documents.size()][][];
 		int h = 0;
 		for (Document<T> d : documents) {
-			documentWordOccurrenceLastTopicAssignment[h] = new int[d
-					.getWordIndices().size()][];
+			documentWordOccurrenceLastTopicAssignment[h] = new int[d.getWords()][];
 			TIntIterator it = d.getWordIndices().iterator();
 			int h2 = 0;
 			while (it.hasNext()) {
