@@ -7,6 +7,9 @@ import java.util.Random;
 import org.hhn.topicgrouper.doc.Document;
 import org.hhn.topicgrouper.doc.DocumentProvider;
 
+/**
+ * The vocubulary of the hold out is guaranteed to be a subset of the rest (training).
+ */
 public class HoldOutSplitter<T> {
 	private DefaultDocumentProvider<T> holdOut;
 	private DefaultDocumentProvider<T> rest;
@@ -31,9 +34,15 @@ public class HoldOutSplitter<T> {
 		for (Document<T> d : documents) {
 			rest.addDocument(d, minGlobalWordFrequency);
 		}
+		DefaultDocumentProvider.DocumentWordFilter<T> filter = new DefaultDocumentProvider.DocumentWordFilter<T>() {
+			@Override
+			public boolean acceptWord(T word) {
+				return rest.getIndex(word) != -1;
+			}
+		};
 		holdOut = new DefaultDocumentProvider<T>();
 		for (Document<T> d : holdOutDocuments) {
-			holdOut.addDocument(d, minGlobalWordFrequency);
+			holdOut.addDocument(d, minGlobalWordFrequency, filter);
 		}
 	}
 

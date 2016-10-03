@@ -25,14 +25,21 @@ public class DefaultDocumentProvider<T> extends WordMapDocumentProvider<T> {
 	}
 
 	public DefaultDocument addDocument(Document<T> d, int minFrequency) {
+		return addDocument(d, minFrequency, null);
+	}
+
+	public DefaultDocument addDocument(Document<T> d, int minFrequency,
+			DocumentWordFilter<T> filter) {
 		DefaultDocument r = newDocument();
 		TIntIterator it = d.getWordIndices().iterator();
 		while (it.hasNext()) {
 			int index = it.next();
-			if (minFrequency == 0
-					|| d.getProvider().getWordFrequency(index) >= minFrequency) {
-				r.addWord(d.getProvider().getWord(index),
-						d.getWordFrequency(index));
+			T word = d.getProvider().getWord(index);
+			if (filter == null || filter.acceptWord(word)) {
+				int fr = d.getProvider().getWordFrequency(index);
+				if (minFrequency == 0 || fr >= minFrequency) {
+					r.addWord(word, fr);
+				}
 			}
 		}
 		return r;
@@ -87,5 +94,9 @@ public class DefaultDocumentProvider<T> extends WordMapDocumentProvider<T> {
 		public DocumentProvider<T> getProvider() {
 			return DefaultDocumentProvider.this;
 		}
+	}
+
+	public interface DocumentWordFilter<T> {
+		public boolean acceptWord(T word);
 	}
 }
