@@ -51,22 +51,23 @@ public class EachMoviePerplexityPerOneUserMovie extends
 		return parser.getCorpusDocumentProvider(new File(
 				"src/test/resources/EachMovie/Vote.txt"));
 	}
-	
-	@Override
-	protected AbstractLDAPerplexityCalculator<String> createLDAPerplexityCalculator2(
-			int gibbsIterations) {
-		return new LDAPerplexityCalculatorWithFoldIn<String>(false, gibbsIterations) {
-			@Override
-			protected AbstractLDAPerplexityCalculator<String>.ComputationHelper initComputationHelper() {
-				return new OneWordComputationHelper() {
-					@Override
-					protected Random getRandom() {
-						return random;
-					}
-				};
-			}
-		};
-	}
+
+// TODO	
+//	@Override
+//	protected AbstractLDAPerplexityCalculator<String> createLDAPerplexityCalculator2(
+//			int gibbsIterations) {
+//		return new LDAPerplexityCalculatorWithFoldIn<String>(false, gibbsIterations) {
+//			@Override
+//			protected AbstractLDAPerplexityCalculator<String>.ComputationHelper initComputationHelper() {
+//				return new OneWordComputationHelper() {
+//					@Override
+//					protected Random getRandom() {
+//						return random;
+//					}
+//				};
+//			}
+//		};
+//	}
 	
 	@Override
 	protected String createTGCSVBaseFileName() {
