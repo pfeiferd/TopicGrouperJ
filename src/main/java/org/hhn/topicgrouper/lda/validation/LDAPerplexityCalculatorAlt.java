@@ -12,7 +12,7 @@ public class LDAPerplexityCalculatorAlt<T> extends
 	}
 	
 	@Override
-	protected void updatePtd(LDAGibbsSampler<T> sampler, Document<T> d, int dSize, int dIndex) {
+	protected void updatePtd(Document<T> d, LDAGibbsSampler<T> sampler) {
 		DocumentProvider<T> provider = sampler.getDocumentProvider();
 		for (int i = 0; i < ptd.length; i++) {
 			ptd[i] = 0;
@@ -25,7 +25,7 @@ public class LDAPerplexityCalculatorAlt<T> extends
 							/ (provider.getWordFrequency(j) + ptd.length); // Laplace smoothing to avoid division by zero.
 				}
 			}
-			ptd[i] /= dSize;
+			ptd[i] /= d.getSize();
 		}		
 	}	
 }

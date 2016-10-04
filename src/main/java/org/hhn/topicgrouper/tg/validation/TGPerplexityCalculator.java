@@ -45,10 +45,6 @@ public class TGPerplexityCalculator<T> {
 		return d;
 	}
 
-	protected int correctAddendForB(int dSize) {
-		return dSize;
-	}
-
 	public double computeLogProbability(Document<T> refD, Document<T> d,
 			TGSolution<T> s) {
 		double res = bowFactor ? logFacN(d.getSize()) : 0;
