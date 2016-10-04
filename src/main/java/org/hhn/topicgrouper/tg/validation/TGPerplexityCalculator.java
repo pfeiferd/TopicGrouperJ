@@ -18,7 +18,8 @@ public class TGPerplexityCalculator<T> {
 		this.bowFactor = bowFactor;
 	}
 
-	public double computePerplexity(DocumentProvider<T> testDocumentProvider, TGSolution<T> s) {
+	public double computePerplexity(DocumentProvider<T> testDocumentProvider,
+			TGSolution<T> s) {
 		double sumA = 0;
 		long sumB = 0;
 
@@ -32,13 +33,13 @@ public class TGPerplexityCalculator<T> {
 		}
 		return Math.exp(sumA / sumB);
 	}
-	
+
 	protected int getInDocSplits(Document<T> d) {
 		return 1;
 	}
 
 	protected Document<T> createReferenceDoc(int i, Document<T> d) {
-		return d;
+		return null;
 	}
 
 	protected Document<T> createTestDoc(int i, Document<T> d, Document<T> rd) {
@@ -73,32 +74,39 @@ public class TGPerplexityCalculator<T> {
 
 	protected double computeWordLogProbability(int sIndex, Document<T> d,
 			TGSolution<T> s, TIntCollection words, int topicIndex) {
-		int topicFrInDoc = 0;
-		TIntIterator it = words.iterator();
-		while (it.hasNext()) {
-			int swIndex = it.next();
-			int dIndex = d.getProvider().getIndex(s.getWord(swIndex));
-			if (dIndex >= 0) {
-				topicFrInDoc += d.getWordFrequency(dIndex);
+		// Estimate log p(w|t):
+		double logpwt = Math.log(((double) s.getGlobalWordFrequency(sIndex))
+				/ s.getTopicFrequency(topicIndex));
+		double logptd;
+
+		if (d == null) {
+			// No reference document available: Estimat log ptd via log pt
+			logptd = Math.log(s.getTopicFrequency(topicIndex) / s.getSize());
+		} else {
+			int topicFrInDoc = 0;
+			TIntIterator it = words.iterator();
+			while (it.hasNext()) {
+				int swIndex = it.next();
+				int dIndex = d.getProvider().getIndex(s.getWord(swIndex));
+				if (dIndex >= 0) {
+					topicFrInDoc += d.getWordFrequency(dIndex);
+				}
 			}
+			// Estimate log p(t|d)
+			logptd = Math.log(smoothedPtd(topicFrInDoc, d.getSize(), sIndex,
+					topicIndex, s));
 		}
-		return // Estimate log p(t|d):
-		Math.log(smoothedPtd(topicFrInDoc, d.getSize(), sIndex, topicIndex, s))
-				+
-				// Estimate log p(w|t):
-				Math.log(((double) s.getGlobalWordFrequency(sIndex))
-						/ s.getTopicFrequency(topicIndex));
+		return logpwt + logptd;
 	}
 
 	protected double smoothedPtd(int topicFrInDoc, int docSize, int wordIndex,
 			int topicIndex, TGSolution<T> s) {
 		double lambda = getSmoothingLambda();
 		return ((1 - lambda) * topicFrInDoc / docSize)
-				// Smoothing via global frequency of topic;
-				+ (lambda * s.getTopicFrequency(topicIndex))
-				/ s.getSize();
+		// Smoothing via global frequency of topic;
+				+ (lambda * s.getTopicFrequency(topicIndex)) / s.getSize();
 	}
-	
+
 	protected double getSmoothingLambda() {
 		return 0;
 	}

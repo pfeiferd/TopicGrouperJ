@@ -8,7 +8,7 @@ import org.hhn.topicgrouper.doc.Document;
 import org.hhn.topicgrouper.doc.DocumentProvider;
 
 /**
- * The vocubulary of the hold out is guaranteed to be a subset of the rest (training).
+ * The vocabulary of the hold out is guaranteed to be a subset of the rest (training).
  */
 public class HoldOutSplitter<T> {
 	private DefaultDocumentProvider<T> holdOut;
