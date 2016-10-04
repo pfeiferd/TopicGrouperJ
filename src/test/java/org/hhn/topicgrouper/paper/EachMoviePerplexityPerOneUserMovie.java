@@ -10,7 +10,6 @@ import org.hhn.topicgrouper.eval.EachMovieParser;
 import org.hhn.topicgrouper.lda.validation.AbstractLDAPerplexityCalculator;
 import org.hhn.topicgrouper.lda.validation.LDAPerplexityCalculatorAlt;
 import org.hhn.topicgrouper.lda.validation.LDAPerplexityCalculatorWithFoldIn;
-import org.hhn.topicgrouper.tg.validation.OneWordTGPerplexityCalculator;
 import org.hhn.topicgrouper.tg.validation.TGPerplexityCalculator;
 
 public class EachMoviePerplexityPerOneUserMovie extends
@@ -20,25 +19,27 @@ public class EachMoviePerplexityPerOneUserMovie extends
 		super(random, concAlpha, concBeta, fast);
 	}
 
-	@Override
-	protected TGPerplexityCalculator<String> initPerplexityCalculator() {
-		return new OneWordTGPerplexityCalculator<String>(random);
-	}
+// TODO	
+//	@Override
+//	protected TGPerplexityCalculator<String> initPerplexityCalculator() {
+//		return new TGPerplexityCalculator<String>(0.01);
+//	}
 
-	@Override
-	protected AbstractLDAPerplexityCalculator<String> initLDAPerplexityCalculator1() {
-		return new LDAPerplexityCalculatorAlt<String>(false) {
-			@Override
-			protected AbstractLDAPerplexityCalculator<String>.ComputationHelper initComputationHelper() {
-				return new OneWordComputationHelper() {
-					@Override
-					protected Random getRandom() {
-						return random;
-					}
-				};
-			}
-		};
-	}
+// TODO	
+//	@Override
+//	protected AbstractLDAPerplexityCalculator<String> initLDAPerplexityCalculator1() {
+//		return new LDAPerplexityCalculatorAlt<String>(false) {
+//			@Override
+//			protected AbstractLDAPerplexityCalculator<String>.ComputationHelper initComputationHelper() {
+//				return new OneWordComputationHelper() {
+//					@Override
+//					protected Random getRandom() {
+//						return random;
+//					}
+//				};
+//			}
+//		};
+//	}
 
 	@Override
 	protected DocumentProvider<String> initBasicDocumentProvider() {
@@ -95,6 +96,13 @@ public class EachMoviePerplexityPerOneUserMovie extends
 	protected int nTopicFromStep(int step) {
 		return step == 0 ? 2 : step == 1 ? 5 : (step - 1) * 10;
 	}
+	
+//	@Override
+//	protected void runTopicGrouper(PrintStream pw3, int step, int repeat,
+//			DocumentProvider<String> documentProvider,
+//			DocumentProvider<String> testDocumentProvider,
+//			double[] tgPerplexity, double[] tgAcc) {
+//	}
 	
 	public static void main(String[] args) throws IOException {
 		new EachMoviePerplexityPerOneUserMovie(new Random(42), 50, 300, true).run(
