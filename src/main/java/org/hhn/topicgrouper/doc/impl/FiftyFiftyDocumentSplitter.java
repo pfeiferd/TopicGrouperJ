@@ -7,17 +7,47 @@ import java.util.Random;
 import org.hhn.topicgrouper.doc.Document;
 import org.hhn.topicgrouper.doc.DocumentProvider;
 
-public class FiftyFiftyDocumentSplitter<T> {
+public class FiftyFiftyDocumentSplitter<T> implements DocumentSplitter<T> {
 	private final Random random;
+	private final Split<T> splitA;
+	private final Split<T> splitB;
+	private Document<T> d;
+	private SplitDocument a;
+	private SplitDocument b;
+	private int split2;
 
 	public FiftyFiftyDocumentSplitter(Random random) {
 		this.random = random;
+		splitA = new Split<T>() {
+			@Override
+			public Document<T> getRefDoc() {
+				return a;
+			}
+
+			@Override
+			public Document<T> getTestDoc() {
+				return b;
+			}
+		};
+		splitB = new Split<T>() {
+			@Override
+			public Document<T> getRefDoc() {
+				return b;
+			}
+
+			@Override
+			public Document<T> getTestDoc() {
+				return a;
+			}
+		};
 	}
 
-	@SuppressWarnings("unchecked")
-	public Document<T>[] split(Document<T> d) {
-		SplitDocument<T> a = new SplitDocument<T>(d);
-		SplitDocument<T> b = new SplitDocument<T>(d);
+	@Override
+	public void setDocument(Document<T> d) {
+		split2 = 0;
+		this.d = d;
+		a = new SplitDocument();
+		b = new SplitDocument();
 
 		int half = d.getSize() / 2;
 		int fillA = 0;
@@ -38,19 +68,34 @@ public class FiftyFiftyDocumentSplitter<T> {
 				}
 			}
 		}
-		return new Document[] { a, b };
 	}
 
-	protected static class SplitDocument<T> extends AbstractDocumentImpl<T> {
-		private final Document<T> baseDocument;
+	@Override
+	public Document<T> getDocument() {
+		return d;
+	}
 
-		public SplitDocument(Document<T> d) {
-			baseDocument = d;
+	@Override
+	public int getSplits() {
+		return 2;
+	}
+
+	@Override
+	public Split<T> nextSplit() {
+		if (split2 == 0) {
+			split2 = 1;
+			return splitA;
+		} else if (split2 == 1) {
+			split2 = 2;
+			return splitB;
 		}
+		return null;
+	}
 
+	protected class SplitDocument extends AbstractDocumentImpl<T> {
 		@Override
 		public DocumentProvider<T> getProvider() {
-			return baseDocument.getProvider();
+			return d.getProvider();
 		}
 	}
 }
