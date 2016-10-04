@@ -1,16 +1,13 @@
 package org.hhn.topicgrouper.lda.validation;
 
 import gnu.trove.iterator.TIntIterator;
-import gnu.trove.set.TIntSet;
-
-import java.util.Random;
 
 import org.hhn.topicgrouper.doc.Document;
 import org.hhn.topicgrouper.doc.DocumentProvider;
 import org.hhn.topicgrouper.lda.impl.LDAGibbsSampler;
 import org.hhn.topicgrouper.tg.validation.TGPerplexityCalculator;
 
-public abstract class AbstractLDAPerplexityCalculator<T> {
+public class AbstractLDAPerplexityCalculator<T> {
 	protected final boolean bowFactor;
 	protected double[] ptd;
 
@@ -40,9 +37,9 @@ public abstract class AbstractLDAPerplexityCalculator<T> {
 	protected int getInDocSplits(Document<T> d) {
 		return 1;
 	}
-	
+
 	protected Document<T> createReferenceDoc(int i, Document<T> d) {
-		return d;
+		return null;
 	}
 
 	protected Document<T> createTestDoc(int i, Document<T> d, Document<T> rd) {
@@ -82,9 +79,18 @@ public abstract class AbstractLDAPerplexityCalculator<T> {
 		return res;
 	}
 
-	protected abstract void updatePtd(Document<T> d, LDAGibbsSampler<T> sampler);
+	protected void updatePtd(Document<T> d, LDAGibbsSampler<T> sampler) {
+		double sum = 0;
+		for (int i = 0; i < ptd.length; i++) {
+			ptd[i] = sampler.getTopicFrCount(i);
+			sum += ptd[i];
+		}
+		for (int i = 0; i < ptd.length; i++) {
+			ptd[i] /= sum;
+		}
+	}
 
-	private double computeWordLogProbability(int sIndex, Document<T> refD,
+	protected double computeWordLogProbability(int sIndex, Document<T> refD,
 			LDAGibbsSampler<T> sampler) {
 		double sum = 0;
 		for (int i = 0; i < ptd.length; i++) {

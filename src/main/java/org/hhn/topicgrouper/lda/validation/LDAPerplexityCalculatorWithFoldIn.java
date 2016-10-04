@@ -25,14 +25,19 @@ public class LDAPerplexityCalculatorWithFoldIn<T> extends
 
 	@Override
 	protected void updatePtd(Document<T> d, LDAGibbsSampler<T> sampler) {
-		int[] topicAssignmentCount = sampler.foldIn(foldInIterations, d);
-
-		for (int i = 0; i < ptd.length; i++) {
-			// Smoothing is necessary because no ptd element must be zero.
-			// Otherwise the sum in computeWordLogProbability() may become zero which leads
-			// to negative infinity for Math.log(sum) ...
-			ptd[i] = ((double) topicAssignmentCount[i] + lidstoneLambda)
-					/ (d.getSize() + lidstoneLambda * ptd.length); // Lidstone smoothing.
+		if (d == null) {
+			super.updatePtd(d, sampler);
+		}
+		else {
+			int[] topicAssignmentCount = sampler.foldIn(foldInIterations, d);
+			
+			for (int i = 0; i < ptd.length; i++) {
+				// Smoothing is necessary because no ptd element must be zero.
+				// Otherwise the sum in computeWordLogProbability() may become zero which leads
+				// to negative infinity for Math.log(sum) ...
+				ptd[i] = ((double) topicAssignmentCount[i] + lidstoneLambda)
+						/ (d.getSize() + lidstoneLambda * ptd.length); // Lidstone smoothing.
+			}
 		}
 	}
 }
