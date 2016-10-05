@@ -31,7 +31,7 @@ public class TGPerplexityCalculator<T> {
 				sumB += d.getSize();
 			}
 		}
-		return Math.exp(sumA / sumB);
+		return Math.exp(-sumA / sumB);
 	}
 
 	protected int getInDocSplits(Document<T> d) {
@@ -81,7 +81,8 @@ public class TGPerplexityCalculator<T> {
 
 		if (d == null) {
 			// No reference document available: Estimat log ptd via log pt
-			logptd = Math.log(s.getTopicFrequency(topicIndex) / s.getSize());
+			logptd = Math.log(((double) s.getTopicFrequency(topicIndex))
+					/ s.getSize());
 		} else {
 			int topicFrInDoc = 0;
 			TIntIterator it = words.iterator();

@@ -31,7 +31,7 @@ public class AbstractLDAPerplexityCalculator<T> {
 				sumB += d.getSize();
 			}
 		}
-		return Math.exp(sumA / sumB);
+		return Math.exp(- sumA / sumB);
 	}
 
 	protected int getInDocSplits(Document<T> d) {
