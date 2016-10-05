@@ -112,7 +112,7 @@ public class APExtractPerplexityNTopics extends TWCPerplexityErrorRateNDocs {
 		// Use always the same hold out splitter at every step.
 		if (holdOutSplitter == null) {
 			holdOutSplitter = new HoldOutSplitter<String>(random,
-					documentProvider, 0.1, 1);
+					documentProvider, 0.1, 20);
 		}
 		return holdOutSplitter;
 	}
