@@ -36,9 +36,9 @@ public class DefaultDocumentProvider<T> extends WordMapDocumentProvider<T> {
 			int index = it.next();
 			T word = d.getProvider().getWord(index);
 			if (filter == null || filter.acceptWord(word)) {
-				int fr = d.getProvider().getWordFrequency(index);
-				if (minFrequency == 0 || fr >= minFrequency) {
-					r.addWord(word, fr);
+				int globalFr = d.getProvider().getWordFrequency(index);
+				if (minFrequency == 0 || globalFr >= minFrequency) {
+					r.addWord(word, d.getWordFrequency(index));
 				}
 			}
 		}
