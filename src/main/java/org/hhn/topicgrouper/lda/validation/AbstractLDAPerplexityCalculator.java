@@ -4,15 +4,26 @@ import gnu.trove.iterator.TIntIterator;
 
 import org.hhn.topicgrouper.doc.Document;
 import org.hhn.topicgrouper.doc.DocumentProvider;
+import org.hhn.topicgrouper.doc.DocumentSplitter;
+import org.hhn.topicgrouper.doc.DocumentSplitter.Split;
 import org.hhn.topicgrouper.lda.impl.LDAGibbsSampler;
 import org.hhn.topicgrouper.tg.validation.TGPerplexityCalculator;
 
 public class AbstractLDAPerplexityCalculator<T> {
 	protected final boolean bowFactor;
 	protected double[] ptd;
+	private final DocumentSplitter<T> documentSplitter;
+
+	private Split<T> nextSplit;
 
 	public AbstractLDAPerplexityCalculator(boolean bowFactor) {
+		this(bowFactor, null);
+	}
+	
+	public AbstractLDAPerplexityCalculator(boolean bowFactor,
+			DocumentSplitter<T> documentSplitter) {
 		this.bowFactor = bowFactor;
+		this.documentSplitter = documentSplitter;
 	}
 
 	public double computePerplexity(DocumentProvider<T> testDocumentProvider,
@@ -31,23 +42,33 @@ public class AbstractLDAPerplexityCalculator<T> {
 				sumB += d.getSize();
 			}
 		}
-		return Math.exp(- sumA / sumB);
+		return Math.exp(-sumA / sumB);
 	}
 
 	protected int getInDocSplits(Document<T> d) {
-		return 1;
+		if (documentSplitter != null) {
+			documentSplitter.setDocument(d);
+			return documentSplitter.getSplits();
+		} else {
+			return 1;
+		}
 	}
 
 	protected Document<T> createReferenceDoc(int i, Document<T> d) {
-		return null;
+		if (documentSplitter != null) {
+			nextSplit = documentSplitter.nextSplit();
+			return nextSplit.getRefDoc();
+		} else {
+			return d;
+		}
 	}
 
 	protected Document<T> createTestDoc(int i, Document<T> d, Document<T> rd) {
-		return d;
-	}
-
-	protected int correctAddendForB(int dSize) {
-		return dSize;
+		if (documentSplitter != null) {
+			return nextSplit.getTestDoc();
+		} else {
+			return d;
+		}
 	}
 
 	protected double computeLogProbability(Document<T> refD, Document<T> d,

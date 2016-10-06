@@ -6,6 +6,7 @@ import java.util.Random;
 
 import org.hhn.topicgrouper.doc.Document;
 import org.hhn.topicgrouper.doc.DocumentProvider;
+import org.hhn.topicgrouper.doc.DocumentSplitter;
 
 public class FiftyFiftyDocumentSplitter<T> implements DocumentSplitter<T> {
 	private final Random random;

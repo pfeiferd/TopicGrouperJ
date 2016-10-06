@@ -1,6 +1,5 @@
-package org.hhn.topicgrouper.doc.impl;
+package org.hhn.topicgrouper.doc;
 
-import org.hhn.topicgrouper.doc.Document;
 
 public interface DocumentSplitter<T> {
 	public void setDocument(Document<T> d);

@@ -2,6 +2,7 @@ package org.hhn.topicgrouper.lda.validation;
 
 import org.hhn.topicgrouper.doc.Document;
 import org.hhn.topicgrouper.doc.DocumentProvider;
+import org.hhn.topicgrouper.doc.DocumentSplitter;
 import org.hhn.topicgrouper.lda.impl.LDAGibbsSampler;
 
 
@@ -11,6 +12,11 @@ public class LDAPerplexityCalculatorAlt<T> extends
 		super(bowFactor);
 	}
 	
+	public LDAPerplexityCalculatorAlt(boolean bowFactor,
+			DocumentSplitter<T> documentSplitter) {
+		super(bowFactor, documentSplitter);
+	}
+
 	@Override
 	protected void updatePtd(Document<T> d, LDAGibbsSampler<T> sampler) {
 		if (d == null) {
