@@ -5,6 +5,7 @@ import gnu.trove.set.TIntSet;
 
 import org.hhn.topicgrouper.doc.Document;
 import org.hhn.topicgrouper.doc.DocumentProvider;
+import org.hhn.topicgrouper.doc.DocumentSplitter;
 
 public class EachWordDocumentSplitter<T> implements DocumentSplitter<T> {
 	protected final Document<T> reducedDocument;
@@ -12,7 +13,6 @@ public class EachWordDocumentSplitter<T> implements DocumentSplitter<T> {
 	protected final Split<T> currentSplit;
 
 	private Document<T> d;
-	protected int toExcludeIndex;
 	protected int currentIndex;
 	protected int currentFr;
 	protected TIntIterator it;
@@ -37,7 +37,7 @@ public class EachWordDocumentSplitter<T> implements DocumentSplitter<T> {
 			@Override
 			public int getWordFrequency(int index) {
 				int fr = d.getWordFrequency(index);
-				return index == toExcludeIndex ? fr - 1 : fr;
+				return index == currentIndex ? fr - 1 : fr;
 			}
 
 			@Override
