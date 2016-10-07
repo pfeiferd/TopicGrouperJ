@@ -17,7 +17,7 @@ public class EachWordDocumentSplitter<T> implements DocumentSplitter<T> {
 	protected int currentFr;
 	protected TIntIterator it;
 
-	public EachWordDocumentSplitter() {
+	public EachWordDocumentSplitter(final boolean reduceRefDoc) {
 		reducedDocument = new Document<T>() {
 			@Override
 			public int getWords() {
@@ -26,7 +26,7 @@ public class EachWordDocumentSplitter<T> implements DocumentSplitter<T> {
 
 			@Override
 			public int getSize() {
-				return d.getSize() - 1;
+				return d.getSize() - (reduceRefDoc ? 1 : 0);
 			}
 
 			@Override
@@ -37,7 +37,7 @@ public class EachWordDocumentSplitter<T> implements DocumentSplitter<T> {
 			@Override
 			public int getWordFrequency(int index) {
 				int fr = d.getWordFrequency(index);
-				return index == currentIndex ? fr - 1 : fr;
+				return (reduceRefDoc && index == currentIndex) ? fr - 1 : fr;
 			}
 
 			@Override

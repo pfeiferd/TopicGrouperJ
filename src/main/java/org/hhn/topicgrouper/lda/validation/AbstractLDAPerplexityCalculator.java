@@ -6,6 +6,7 @@ import org.hhn.topicgrouper.doc.Document;
 import org.hhn.topicgrouper.doc.DocumentProvider;
 import org.hhn.topicgrouper.doc.DocumentSplitter;
 import org.hhn.topicgrouper.doc.DocumentSplitter.Split;
+import org.hhn.topicgrouper.doc.impl.DefaultDocumentSplitter;
 import org.hhn.topicgrouper.lda.impl.LDAGibbsSampler;
 import org.hhn.topicgrouper.tg.validation.TGPerplexityCalculator;
 
@@ -17,7 +18,7 @@ public class AbstractLDAPerplexityCalculator<T> {
 	private Split<T> nextSplit;
 
 	public AbstractLDAPerplexityCalculator(boolean bowFactor) {
-		this(bowFactor, null);
+		this(bowFactor, new DefaultDocumentSplitter<T>());
 	}
 	
 	public AbstractLDAPerplexityCalculator(boolean bowFactor,
@@ -35,9 +36,12 @@ public class AbstractLDAPerplexityCalculator<T> {
 		long sumB = 0;
 
 		for (Document<T> doc : testDocumentProvider.getDocuments()) {
-			for (int i = 0; i < getInDocSplits(doc); i++) {
-				Document<T> rd = createReferenceDoc(i, doc);
-				Document<T> d = createTestDoc(i, doc, rd);
+			documentSplitter.setDocument(doc);
+			int splits = documentSplitter.getSplits();
+			for (int i = 0; i < splits; i++) {
+				nextSplit = documentSplitter.nextSplit();
+				Document<T> rd = nextSplit.getRefDoc();
+				Document<T> d = nextSplit.getTestDoc();
 				sumA += computeLogProbability(rd, d, sampler);
 				sumB += d.getSize();
 			}
@@ -45,31 +49,6 @@ public class AbstractLDAPerplexityCalculator<T> {
 		return Math.exp(-sumA / sumB);
 	}
 
-	protected int getInDocSplits(Document<T> d) {
-		if (documentSplitter != null) {
-			documentSplitter.setDocument(d);
-			return documentSplitter.getSplits();
-		} else {
-			return 1;
-		}
-	}
-
-	protected Document<T> createReferenceDoc(int i, Document<T> d) {
-		if (documentSplitter != null) {
-			nextSplit = documentSplitter.nextSplit();
-			return nextSplit.getRefDoc();
-		} else {
-			return d;
-		}
-	}
-
-	protected Document<T> createTestDoc(int i, Document<T> d, Document<T> rd) {
-		if (documentSplitter != null) {
-			return nextSplit.getTestDoc();
-		} else {
-			return d;
-		}
-	}
 
 	protected double computeLogProbability(Document<T> refD, Document<T> d,
 			LDAGibbsSampler<T> sampler) {

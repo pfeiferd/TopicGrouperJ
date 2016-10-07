@@ -7,6 +7,7 @@ import org.hhn.topicgrouper.doc.Document;
 import org.hhn.topicgrouper.doc.DocumentProvider;
 import org.hhn.topicgrouper.doc.DocumentSplitter;
 import org.hhn.topicgrouper.doc.DocumentSplitter.Split;
+import org.hhn.topicgrouper.doc.impl.DefaultDocumentSplitter;
 import org.hhn.topicgrouper.tg.TGSolution;
 
 public class TGPerplexityCalculator<T> {
@@ -16,7 +17,7 @@ public class TGPerplexityCalculator<T> {
 	private Split<T> nextSplit;
 
 	public TGPerplexityCalculator() {
-		this(true, null);
+		this(true, new DefaultDocumentSplitter<T>());
 	}
 
 	public TGPerplexityCalculator(boolean bowFactor,
@@ -31,42 +32,19 @@ public class TGPerplexityCalculator<T> {
 		long sumB = 0;
 
 		for (Document<T> doc : testDocumentProvider.getDocuments()) {
-			for (int i = 0; i < getInDocSplits(doc); i++) {
-				Document<T> rd = createReferenceDoc(i, doc);
-				Document<T> d = createTestDoc(i, doc, rd);
+			documentSplitter.setDocument(doc);
+			int splits = documentSplitter.getSplits();
+			for (int i = 0; i < splits; i++) {
+				nextSplit = documentSplitter.nextSplit();
+				Document<T> rd = nextSplit.getRefDoc();
+				Document<T> d = nextSplit.getTestDoc();
 				sumA += computeLogProbability(rd, d, s);
 				sumB += d.getSize();
+				// splitLogSum += computeLogProbability(rd, d, s);
+				// splitSizeSum += d.getSize();
 			}
 		}
 		return Math.exp(-sumA / sumB);
-	}
-
-	protected int getInDocSplits(Document<T> d) {
-		if (documentSplitter != null) {
-			documentSplitter.setDocument(d);
-			return documentSplitter.getSplits();
-		} else {
-			return 1;
-		}
-	}
-
-	protected Document<T> createReferenceDoc(int i, Document<T> d) {
-		if (documentSplitter != null) {
-			nextSplit = documentSplitter.nextSplit();
-			return nextSplit.getRefDoc();
-		}
-		else {
-			return d;
-		}
-	}
-
-	protected Document<T> createTestDoc(int i, Document<T> d, Document<T> rd) {
-		if (documentSplitter != null) {
-			return nextSplit.getTestDoc();
-		}
-		else {
-			return d;
-		}
 	}
 
 	public double computeLogProbability(Document<T> refD, Document<T> d,
@@ -80,7 +58,7 @@ public class TGPerplexityCalculator<T> {
 			int sIndex = s.getIndex(word);
 			if (sIndex >= 0) {
 				int wordFr = d.getWordFrequency(index);
-				if (wordFr > 0 /* && words != null */) {
+				if (wordFr > 0) {
 					if (bowFactor) {
 						res -= logFacN(wordFr);
 					}
@@ -95,14 +73,14 @@ public class TGPerplexityCalculator<T> {
 		return res;
 	}
 
-	protected double computeWordLogProbability(int sIndex, Document<T> d,
+	protected double computeWordLogProbability(int sIndex, Document<T> refD,
 			TGSolution<T> s, TIntCollection words, int topicIndex) {
 		// Estimate log p(w|t):
 		double logpwt = Math.log(((double) s.getGlobalWordFrequency(sIndex))
 				/ s.getTopicFrequency(topicIndex));
 		double logptd;
 
-		if (d == null) {
+		if (refD == null) {
 			// No reference document available: Estimat log ptd via log pt
 			logptd = Math.log(((double) s.getTopicFrequency(topicIndex))
 					/ s.getSize());
@@ -111,14 +89,17 @@ public class TGPerplexityCalculator<T> {
 			TIntIterator it = words.iterator();
 			while (it.hasNext()) {
 				int swIndex = it.next();
-				int dIndex = d.getProvider().getIndex(s.getWord(swIndex));
+				int dIndex = refD.getProvider().getIndex(s.getWord(swIndex));
 				if (dIndex >= 0) {
-					topicFrInDoc += d.getWordFrequency(dIndex);
+					topicFrInDoc += refD.getWordFrequency(dIndex);
 				}
 			}
 			// Estimate log p(t|d)
-			logptd = Math.log(smoothedPtd(topicFrInDoc, d.getSize(), sIndex,
+			logptd = Math.log(smoothedPtd(topicFrInDoc, refD.getSize(), sIndex,
 					topicIndex, s));
+		}
+		if (logpwt > 0 || logptd > 0) {
+			throw new IllegalStateException("Is there bug?");
 		}
 		return logpwt + logptd;
 	}
@@ -126,7 +107,7 @@ public class TGPerplexityCalculator<T> {
 	protected double smoothedPtd(int topicFrInDoc, int docSize, int wordIndex,
 			int topicIndex, TGSolution<T> s) {
 		double lambda = getSmoothingLambda();
-		return ((1 - lambda) * topicFrInDoc / docSize)
+		return (((1 - lambda) * topicFrInDoc) / docSize)
 		// Smoothing via global frequency of topic;
 				+ (lambda * s.getTopicFrequency(topicIndex)) / s.getSize();
 	}
