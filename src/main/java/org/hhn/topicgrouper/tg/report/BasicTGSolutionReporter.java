@@ -44,7 +44,7 @@ public class BasicTGSolutionReporter<T> implements TGSolutionListener<T> {
 		this.verbose = verbose;
 
 		this.assessor = new ImprovementAssessor(5);
-		this.perplexityCalculator = new TGPerplexityCalculator<T>(bowFactor);
+		this.perplexityCalculator = new TGPerplexityCalculator<T>(bowFactor, null);
 
 		this.reportDetailsAtTopicSize = reportDetailsAtTopicSize;
 

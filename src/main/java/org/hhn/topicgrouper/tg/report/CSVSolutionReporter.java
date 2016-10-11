@@ -14,7 +14,7 @@ public class CSVSolutionReporter<T> implements TGSolutionListener<T> {
 
 	public CSVSolutionReporter(PrintStream pw, boolean bowFactor) {
 		this.pw = pw;
-		this.perplexityCalculator = new TGPerplexityCalculator<T>(bowFactor);
+		this.perplexityCalculator = new TGPerplexityCalculator<T>(bowFactor, null);
 	}
 
 	public void setTestDocumentProvider(DocumentProvider<T> documentProvider) {
