@@ -21,12 +21,12 @@ public class LDAFullBetaGibbsSampler<T> extends LDAGibbsSampler<T> {
 	}
 	
 	@Override
-	protected double getBeta(int topicIndex, int wordIndex) {
+	public double getBeta(int topicIndex, int wordIndex) {
 		return fullBeta[topicIndex][wordIndex];
 	}
 	
 	@Override
-	protected double getBetaSum(int topicIndex) {
+	public double getBetaSum(int topicIndex) {
 		return fullBetaSum[topicIndex];
 	}
 }

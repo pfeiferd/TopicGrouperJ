@@ -14,8 +14,6 @@ public class TGPerplexityCalculator<T> {
 	private final boolean bowFactor;
 	private final DocumentSplitter<T> documentSplitter;
 
-	private Split<T> nextSplit;
-
 	public TGPerplexityCalculator() {
 		this(true, new DefaultDocumentSplitter<T>());
 	}
@@ -35,7 +33,7 @@ public class TGPerplexityCalculator<T> {
 			documentSplitter.setDocument(doc);
 			int splits = documentSplitter.getSplits();
 			for (int i = 0; i < splits; i++) {
-				nextSplit = documentSplitter.nextSplit();
+				Split<T> nextSplit = documentSplitter.nextSplit();
 				Document<T> rd = nextSplit.getRefDoc();
 				Document<T> d = nextSplit.getTestDoc();
 				sumA += computeLogProbability(rd, d, s);
@@ -98,21 +96,21 @@ public class TGPerplexityCalculator<T> {
 			logptd = Math.log(smoothedPtd(topicFrInDoc, refD.getSize(), sIndex,
 					topicIndex, s));
 		}
-		if (logpwt > 0 || logptd > 0) {
-			throw new IllegalStateException("Is there bug?");
-		}
+		// if (logpwt > 0 || logptd > 0) {
+		// throw new IllegalStateException("Is there bug?");
+		// }
 		return logpwt + logptd;
 	}
 
 	protected double smoothedPtd(int topicFrInDoc, int docSize, int wordIndex,
 			int topicIndex, TGSolution<T> s) {
-		double lambda = getSmoothingLambda();
+		double lambda = getSmoothingLambda(s);
 		return (((1 - lambda) * topicFrInDoc) / docSize)
 		// Smoothing via global frequency of topic;
 				+ (lambda * s.getTopicFrequency(topicIndex)) / s.getSize();
 	}
 
-	protected double getSmoothingLambda() {
+	protected double getSmoothingLambda(TGSolution<T> s) {
 		return 0;
 	}
 

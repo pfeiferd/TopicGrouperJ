@@ -13,7 +13,7 @@ public class LDAGibbsSampler<T> {
 	private final Random random;
 	private final double[] alpha;
 	private final double beta;
-	private final double betaSum;
+	private final double betaSum;	
 	private final DocumentProvider<T> provider;
 
 	private final int[][] documentTopicAssignmentCount;
@@ -115,11 +115,19 @@ public class LDAGibbsSampler<T> {
 		}
 	}
 	
-	protected double getBeta(int topicIndex, int wordIndex) {
+	public double getBetaForFoldIn(int topicIndex, int wordIndex) {
+		return 1d / provider.getNumberOfWords();
+	}
+	
+	public double getBetaSumForFoldIn(int topicIndex) {
+		return 1;
+	}
+	
+	public double getBeta(int topicIndex, int wordIndex) {
 		return beta;
 	}
 	
-	protected double getBetaSum(int topicIndex) {
+	public double getBetaSum(int topicIndex) {
 		return betaSum;
 	}
 
@@ -218,8 +226,8 @@ public class LDAGibbsSampler<T> {
 						topicFrCountCopy[topic]--;
 						for (int k = 0; k < alpha.length; k++) {
 							samplingRatios[k] = (dTopicAssignmentCount[k] + alpha[k])
-									* (topicWordAssignmentCountCopy[k][tIndex] + getBeta(k, wordIndex))
-									/ (topicFrCountCopy[k] + getBetaSum(k));
+									* (topicWordAssignmentCountCopy[k][tIndex] + getBetaForFoldIn(k, wordIndex))
+									/ (topicFrCountCopy[k] + getBetaSumForFoldIn(k));
 						}
 						topic = nextDiscrete(samplingRatios);
 						dWordOccurrenceLastTopicAssignment[h2][j] = topic;
@@ -256,6 +264,14 @@ public class LDAGibbsSampler<T> {
 		return topicFrCount[i];
 	}
 
+	public int[] getTopicFrCountCopy() {
+		return Arrays.copyOf(topicFrCount, topicFrCount.length);
+	}
+	
+	public double[] getAlphaCopy() {
+		return Arrays.copyOf(alpha, alpha.length);
+	}
+	
 	public int getTopicWordAssignmentCount(int i, int j) {
 		return topicWordAssignmentCount[i][j];
 	}

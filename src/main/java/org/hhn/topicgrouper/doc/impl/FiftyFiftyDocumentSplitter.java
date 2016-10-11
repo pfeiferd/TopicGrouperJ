@@ -15,7 +15,8 @@ public class FiftyFiftyDocumentSplitter<T> implements DocumentSplitter<T> {
 	private Document<T> d;
 	private SplitDocument a;
 	private SplitDocument b;
-	private int split2;
+	private int splitCount;
+	private int counter;
 
 	public FiftyFiftyDocumentSplitter(Random random) {
 		this.random = random;
@@ -45,7 +46,8 @@ public class FiftyFiftyDocumentSplitter<T> implements DocumentSplitter<T> {
 
 	@Override
 	public void setDocument(Document<T> d) {
-		split2 = 0;
+		counter++;
+		splitCount = 0;
 		this.d = d;
 		a = new SplitDocument();
 		b = new SplitDocument();
@@ -83,11 +85,11 @@ public class FiftyFiftyDocumentSplitter<T> implements DocumentSplitter<T> {
 
 	@Override
 	public Split<T> nextSplit() {
-		if (split2 == 0) {
-			split2 = 1;
+		if (splitCount == 0) {
+			splitCount = 1;
 			return splitA;
-		} else if (split2 == 1) {
-			split2 = 2;
+		} else if (splitCount == 1) {
+			splitCount = 2;
 			return splitB;
 		}
 		return null;
