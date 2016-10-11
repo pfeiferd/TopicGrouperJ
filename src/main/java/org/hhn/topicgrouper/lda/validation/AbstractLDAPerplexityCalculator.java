@@ -13,9 +13,7 @@ import org.hhn.topicgrouper.tg.validation.TGPerplexityCalculator;
 public class AbstractLDAPerplexityCalculator<T> {
 	protected final boolean bowFactor;
 	protected double[] ptd;
-	private final DocumentSplitter<T> documentSplitter;
-
-	private Split<T> nextSplit;
+	protected final DocumentSplitter<T> documentSplitter;
 
 	public AbstractLDAPerplexityCalculator(boolean bowFactor) {
 		this(bowFactor, new DefaultDocumentSplitter<T>());
@@ -39,7 +37,7 @@ public class AbstractLDAPerplexityCalculator<T> {
 			documentSplitter.setDocument(doc);
 			int splits = documentSplitter.getSplits();
 			for (int i = 0; i < splits; i++) {
-				nextSplit = documentSplitter.nextSplit();
+				Split<T> nextSplit = documentSplitter.nextSplit();
 				Document<T> rd = nextSplit.getRefDoc();
 				Document<T> d = nextSplit.getTestDoc();
 				sumA += computeLogProbability(rd, d, sampler);
