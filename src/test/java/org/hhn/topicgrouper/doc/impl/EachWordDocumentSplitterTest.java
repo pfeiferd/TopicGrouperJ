@@ -16,7 +16,7 @@ public class EachWordDocumentSplitterTest extends TestCase {
 		}
 		assertEquals(55, d.getSize());
 
-		EachWordDocumentSplitter<Integer> ds = new EachWordDocumentSplitter<Integer>();
+		EachWordDocumentSplitter<Integer> ds = new EachWordDocumentSplitter<Integer>(true);
 		ds.setDocument(d);
 
 		int splits = ds.getSplits();
