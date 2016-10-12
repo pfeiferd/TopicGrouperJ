@@ -12,18 +12,22 @@ import org.hhn.topicgrouper.doc.DocumentProvider;
 public class LDAGibbsSampler<T> {
 	private final Random random;
 	private final double[] alpha;
+	private final double alphaSum;
 	private final double beta;
-	private final double betaSum;	
+	private final double betaSum;
 	private final DocumentProvider<T> provider;
 
 	private final int[][] documentTopicAssignmentCount;
 	private final int[] documentSize;
 	private final int[][] topicWordAssignmentCount;
+
 	private final int[] topicFrCount;
 	private final int[][][] documentWordOccurrenceLastTopicAssignment;
 	private final List<Document<T>> documents;
 
 	private double samplingRatios[];
+
+	private double psi[][];
 
 	public LDAGibbsSampler(DocumentProvider<T> documentProvider, int topics,
 			double alpha, double beta, Random random) {
@@ -33,6 +37,11 @@ public class LDAGibbsSampler<T> {
 	public LDAGibbsSampler(DocumentProvider<T> documentProvider,
 			double[] alpha, double beta, Random random) {
 		this.alpha = alpha;
+		double aSum = 0;
+		for (int i = 0; i < alpha.length; i++) {
+			aSum += alpha[i];
+		}
+		this.alphaSum = aSum;
 		this.beta = beta;
 		this.betaSum = beta * documentProvider.getNumberOfWords();
 		this.provider = documentProvider;
@@ -66,7 +75,8 @@ public class LDAGibbsSampler<T> {
 		return v;
 	}
 
-	public void solve(int iterations, LDASolutionListener<T> solutionListener) {
+	public void solve(int burnIn, int iterations,
+			LDASolutionListener<T> solutionListener) {
 		if (solutionListener != null) {
 			solutionListener.beforeInitialization(this);
 		}
@@ -75,7 +85,8 @@ public class LDAGibbsSampler<T> {
 			solutionListener.initialized(this);
 		}
 
-		for (int i = 0; i < iterations; i++) {
+		int all = burnIn + iterations;
+		for (int i = 0; i < all; i++) {
 			int h = 0;
 			for (Document<T> d : documents) {
 				TIntIterator it = d.getWordIndices().iterator();
@@ -90,7 +101,8 @@ public class LDAGibbsSampler<T> {
 						topicFrCount[topic]--;
 						for (int k = 0; k < alpha.length; k++) {
 							samplingRatios[k] = (documentTopicAssignmentCount[h][k] + alpha[k])
-									* (topicWordAssignmentCount[k][wordIndex] + getBeta(k, wordIndex))
+									* (topicWordAssignmentCount[k][wordIndex] + getBeta(
+											k, wordIndex))
 									/ (topicFrCount[k] + getBetaSum(k));
 						}
 						topic = nextDiscrete(samplingRatios);
@@ -103,6 +115,16 @@ public class LDAGibbsSampler<T> {
 				}
 				h++;
 			}
+
+			if (i > burnIn) {
+				// Update psi by averaging over current counts.
+				for (int k = 0; k < topicWordAssignmentCount.length; k++) {
+					for (int j = 0; j < topicWordAssignmentCount[k].length; j++) {
+						psi[k][j] += topicWordAssignmentCount[k][j];
+					}
+				}
+			}
+
 			afterSampling(i, iterations);
 			if (solutionListener != null) {
 				if (solutionListener != null) {
@@ -110,23 +132,21 @@ public class LDAGibbsSampler<T> {
 				}
 			}
 		}
+		for (int k = 0; k < topicWordAssignmentCount.length; k++) {
+			for (int j = 0; j < topicWordAssignmentCount[k].length; j++) {
+				psi[k][j] /= (iterations * topicFrCount[k]);
+			}
+		}
+		
 		if (solutionListener != null) {
 			solutionListener.done(this);
 		}
 	}
-	
-	public double getBetaForFoldIn(int topicIndex, int wordIndex) {
-		return 1d / provider.getNumberOfWords();
-	}
-	
-	public double getBetaSumForFoldIn(int topicIndex) {
-		return 1;
-	}
-	
+
 	public double getBeta(int topicIndex, int wordIndex) {
 		return beta;
 	}
-	
+
 	public double getBetaSum(int topicIndex) {
 		return betaSum;
 	}
@@ -152,7 +172,7 @@ public class LDAGibbsSampler<T> {
 			int wordIndex = it.next();
 			int fr = d.getWordFrequency(wordIndex);
 			for (int j = 0; j < fr; j++) {
-				int topic = random.nextInt(alpha.length);
+				int topic = nextDiscrete(alpha);
 				documentWordOccurrenceLastTopicAssignment[index][h2][j] = topic;
 				documentTopicAssignmentCount[index][topic]++;
 				documentSize[index] = d.getSize();
@@ -163,84 +183,16 @@ public class LDAGibbsSampler<T> {
 		}
 	}
 
-	public int[] foldIn(int iterations, Document<T> d) {
-		int h2 = 0;
-		int[][] dWordOccurrenceLastTopicAssignment = new int[d.getWordIndices()
-				.size()][];
-		TIntIterator it = d.getWordIndices().iterator();
-		while (it.hasNext()) {
-			int wordIndex = it.next();
-			int fr = d.getWordFrequency(wordIndex);
-			dWordOccurrenceLastTopicAssignment[h2] = new int[fr];
-			h2++;
+	public FoldInStore foldIn(int iterations, Document<T> d, FoldInStore store) {
+		if (store == null) {
+			store = new FoldInStore();
 		}
-		int[] dTopicAssignmentCount = new int[alpha.length];
-
-		int[][] topicWordAssignmentCountCopy = new int[topicWordAssignmentCount.length][];
-		for (int i = 0; i < topicWordAssignmentCount.length; i++) {
-			topicWordAssignmentCountCopy[i] = Arrays.copyOf(
-					topicWordAssignmentCount[i],
-					topicWordAssignmentCount[i].length);
-
-		}
-		int[] topicFrCountCopy = Arrays.copyOf(topicFrCount,
-				topicFrCount.length);
-
-		// Initialize topics randomly
-		h2 = 0;
-		it = d.getWordIndices().iterator();
-		while (it.hasNext()) {
-			int wordIndex = it.next();
-			int fr = d.getWordFrequency(wordIndex);
-
-			T word = d.getProvider().getWord(wordIndex);
-			int tIndex = provider.getIndex(word);
-			// Ensure the word is in the training vocabulary.
-			if (tIndex >= 0) {
-				for (int j = 0; j < fr; j++) {
-					int topic = random.nextInt(alpha.length);
-					dWordOccurrenceLastTopicAssignment[h2][j] = topic;
-					dTopicAssignmentCount[topic]++;
-					topicWordAssignmentCountCopy[topic][tIndex]++;
-					topicFrCountCopy[topic]++;
-				}
-			}
-			h2++;
-		}
-
+		store.initialize(d);
 		for (int i = 0; i < iterations; i++) {
-			TIntIterator it2 = d.getWordIndices().iterator();
-			h2 = 0;
-			while (it2.hasNext()) {
-				int wordIndex = it2.next();
-				int fr = d.getWordFrequency(wordIndex);
-
-				T word = d.getProvider().getWord(wordIndex);
-				int tIndex = provider.getIndex(word);
-				// Ensure the word is in the training vocabulary.
-				if (tIndex >= 0) {
-					for (int j = 0; j < fr; j++) {
-						int topic = dWordOccurrenceLastTopicAssignment[h2][j];
-						dTopicAssignmentCount[topic]--;
-						topicWordAssignmentCountCopy[topic][tIndex]--;
-						topicFrCountCopy[topic]--;
-						for (int k = 0; k < alpha.length; k++) {
-							samplingRatios[k] = (dTopicAssignmentCount[k] + alpha[k])
-									* (topicWordAssignmentCountCopy[k][tIndex] + getBetaForFoldIn(k, wordIndex))
-									/ (topicFrCountCopy[k] + getBetaSumForFoldIn(k));
-						}
-						topic = nextDiscrete(samplingRatios);
-						dWordOccurrenceLastTopicAssignment[h2][j] = topic;
-						dTopicAssignmentCount[topic]++;
-						topicWordAssignmentCountCopy[topic][tIndex]++;
-						topicFrCountCopy[topic]++;
-					}
-				}
-				h2++;
-			}
+			store.nextFoldInPtdSample();
 		}
 
-		return dTopicAssignmentCount;
+		return store;
 	}
 
 	private int nextDiscrete(double[] probs) {
@@ -267,11 +219,11 @@ public class LDAGibbsSampler<T> {
 	public int[] getTopicFrCountCopy() {
 		return Arrays.copyOf(topicFrCount, topicFrCount.length);
 	}
-	
+
 	public double[] getAlphaCopy() {
 		return Arrays.copyOf(alpha, alpha.length);
 	}
-	
+
 	public int getTopicWordAssignmentCount(int i, int j) {
 		return topicWordAssignmentCount[i][j];
 	}
@@ -298,5 +250,85 @@ public class LDAGibbsSampler<T> {
 
 	public int getNWords() {
 		return provider.getNumberOfWords();
+	}
+
+	protected class FoldInStore {
+		private final int[] dTopicAssignmentCounts;
+		private int[][] dWordOccurrenceLastTopicAssignments;
+		private Document<T> d;
+
+		public FoldInStore() {
+			dTopicAssignmentCounts = new int[alpha.length];
+		}
+
+		public void initialize(Document<T> d) {
+			int counter = 0;
+			this.d = d;
+
+			dWordOccurrenceLastTopicAssignments = new int[d.getWordIndices()
+					.size()][];
+			TIntIterator it = d.getWordIndices().iterator();
+			while (it.hasNext()) {
+				int wordIndex = it.next();
+				int fr = d.getWordFrequency(wordIndex);
+				dWordOccurrenceLastTopicAssignments[counter] = new int[fr];
+				counter++;
+			}
+
+			// Initialize topics randomly
+			counter = 0;
+			it = d.getWordIndices().iterator();
+			while (it.hasNext()) {
+				int wordIndex = it.next();
+				int fr = d.getWordFrequency(wordIndex);
+
+				T word = d.getProvider().getWord(wordIndex);
+				int tIndex = provider.getIndex(word);
+				// Ensure the word is in the training vocabulary.
+				if (tIndex >= 0) {
+					for (int j = 0; j < fr; j++) {
+						int topic = nextDiscrete(alpha);
+						dWordOccurrenceLastTopicAssignments[counter][j] = topic;
+						dTopicAssignmentCounts[topic]++;
+					}
+				}
+				counter++;
+			}
+		}
+
+		public int[] getDTopicAssignmentCounts() {
+			return dTopicAssignmentCounts;
+		}
+
+		public int[] nextFoldInPtdSample() {
+			TIntIterator it2 = d.getWordIndices().iterator();
+			int dSize = d.getSize();
+			int counter = 0;
+			while (it2.hasNext()) {
+				int wordIndex = it2.next();
+				int fr = d.getWordFrequency(wordIndex);
+
+				T word = d.getProvider().getWord(wordIndex);
+				int tIndex = provider.getIndex(word);
+				// Ensure the word is in the training vocabulary.
+				if (tIndex >= 0) {
+					for (int j = 0; j < fr; j++) {
+						int topic = dWordOccurrenceLastTopicAssignments[counter][j];
+						dTopicAssignmentCounts[topic]--;
+						for (int k = 0; k < alpha.length; k++) {
+							samplingRatios[k] = psi[k][tIndex]
+									* (dTopicAssignmentCounts[k] + alpha[k])
+									/ (dSize + alphaSum);
+						}
+						topic = nextDiscrete(samplingRatios);
+						dWordOccurrenceLastTopicAssignments[counter][j] = topic;
+						dTopicAssignmentCounts[topic]++;
+					}
+				}
+				counter++;
+			}
+
+			return dTopicAssignmentCounts;
+		}
 	}
 }
