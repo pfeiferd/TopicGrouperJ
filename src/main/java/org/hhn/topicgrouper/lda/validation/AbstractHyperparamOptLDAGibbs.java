@@ -33,7 +33,7 @@ public abstract class AbstractHyperparamOptLDAGibbs<T> extends
 			protected double optFunction(double x, double y) {
 				checkFor(x, y);
 				LDAGibbsSampler<T> sampler = createSampler(x, y, topics);
-				sampler.solve(iterations, solutionReporter);
+				sampler.solve(iterations / 4, iterations, solutionReporter);
 				return perplexityStore;
 			}
 		};

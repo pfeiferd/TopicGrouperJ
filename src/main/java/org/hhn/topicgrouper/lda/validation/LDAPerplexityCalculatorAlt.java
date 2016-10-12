@@ -14,7 +14,7 @@ public class LDAPerplexityCalculatorAlt<T> extends
 	
 	public LDAPerplexityCalculatorAlt(boolean bowFactor,
 			DocumentSplitter<T> documentSplitter) {
-		super(bowFactor, documentSplitter);
+		super(bowFactor, documentSplitter, 1);
 	}
 
 	@Override

@@ -12,17 +12,19 @@ import org.hhn.topicgrouper.tg.validation.TGPerplexityCalculator;
 
 public class AbstractLDAPerplexityCalculator<T> {
 	protected final boolean bowFactor;
-	protected double[] ptd;
 	protected final DocumentSplitter<T> documentSplitter;
+	protected final double[] sValues;
+	protected double[] ptd;
 
 	public AbstractLDAPerplexityCalculator(boolean bowFactor) {
-		this(bowFactor, new DefaultDocumentSplitter<T>());
+		this(bowFactor, new DefaultDocumentSplitter<T>(), 1);
 	}
-	
+
 	public AbstractLDAPerplexityCalculator(boolean bowFactor,
-			DocumentSplitter<T> documentSplitter) {
+			DocumentSplitter<T> documentSplitter, int samplingMax) {
 		this.bowFactor = bowFactor;
 		this.documentSplitter = documentSplitter;
+		sValues = new double[samplingMax];
 	}
 
 	public double computePerplexity(DocumentProvider<T> testDocumentProvider,
@@ -47,34 +49,81 @@ public class AbstractLDAPerplexityCalculator<T> {
 		return Math.exp(-sumA / sumB);
 	}
 
-
 	protected double computeLogProbability(Document<T> refD, Document<T> d,
 			LDAGibbsSampler<T> sampler) {
 		DocumentProvider<T> provider = sampler.getDocumentProvider();
-		double res = bowFactor ? TGPerplexityCalculator.logFacN(d.getSize())
-				: 0;
-
 		// update ptd via reference document
-		updatePtd(refD, sampler);
+		initPtd(refD, sampler);
 
-		TIntIterator it = d.getWordIndices().iterator();
-		while (it.hasNext()) {
-			int index = it.next();
-			T word = d.getProvider().getWord(index);
-			int sIndex = provider.getIndex(word);
-			// Ensure the word is in the training vocabulary.
-			if (sIndex >= 0) {
-				int wordFr = d.getWordFrequency(index);
-				if (wordFr > 0) {
-					if (bowFactor) {
-						res -= TGPerplexityCalculator.logFacN(wordFr);
+		double sValuesAvg = 0;
+
+		for (int i = 0; i < sValues.length; i++) {
+			double sValue = 0;
+			// update ptd via reference document
+			updatePtd(refD, sampler);
+
+			// Loop over d
+			TIntIterator it = d.getWordIndices().iterator();
+			while (it.hasNext()) {
+				int index = it.next();
+				T word = d.getProvider().getWord(index);
+				int sIndex = provider.getIndex(word);
+				// Ensure the word is in the training vocabulary.
+				if (sIndex >= 0) {
+					int wordFr = d.getWordFrequency(index);
+					if (wordFr > 0) {
+						sValue += wordFr
+								* computeWordLogProbability(sIndex, refD,
+										sampler);
 					}
-					res += wordFr
-							* computeWordLogProbability(sIndex, refD, sampler);
 				}
 			}
+			sValues[i] = sValue;
+			sValuesAvg += sValue;
+		}
+
+		double res;
+		if (sValues.length > 1) {
+			// Compute the average of sValue in the "non-log space" without
+			// numeric problems by
+			// factoring out a common prefactor of all sValues:
+			sValuesAvg /= sValues.length;
+			for (int i = 0; i < sValues.length; i++) {
+				sValues[i] -= sValuesAvg;
+			}
+			double nonLogAvg = 0;
+			for (int i = 0; i < sValues.length; i++) {
+				nonLogAvg += Math.exp(sValues[i]);
+			}
+			nonLogAvg /= sValues.length;
+
+			res = sValuesAvg + Math.log(nonLogAvg);
+		}
+		else {
+			res = sValuesAvg;
+		}
+
+		if (bowFactor) {
+			// Loop over d
+			TIntIterator it = d.getWordIndices().iterator();
+			while (it.hasNext()) {
+				int index = it.next();
+				T word = d.getProvider().getWord(index);
+				int sIndex = provider.getIndex(word);
+				// Ensure the word is in the training vocabulary.
+				if (sIndex >= 0) {
+					int wordFr = d.getWordFrequency(index);
+					if (wordFr > 0) {
+						res -= TGPerplexityCalculator.logFacN(wordFr);
+					}
+				}
+			}
+			res += TGPerplexityCalculator.logFacN(d.getSize());
 		}
 		return res;
+	}
+
+	protected void initPtd(Document<T> d, LDAGibbsSampler<T> sampler) {
 	}
 
 	protected void updatePtd(Document<T> d, LDAGibbsSampler<T> sampler) {
@@ -91,15 +140,17 @@ public class AbstractLDAPerplexityCalculator<T> {
 	protected double computeWordLogProbability(int sIndex, Document<T> refD,
 			LDAGibbsSampler<T> sampler) {
 		double sum = 0;
-		for (int i = 0; i < ptd.length; i++) {
+		for (int i = 0; i < sampler.getNTopics(); i++) {
 			if (sampler.getTopicFrCount(i) > 0) { // To avoid division by zero.
 													// Also correct: If a topic
 													// has zero probability
 													// (zero frequency), it
 													// cannot be allocated to
 													// produce a word.
-				sum += ((double) sampler.getTopicWordAssignmentCount(i, sIndex))
-						/ sampler.getTopicFrCount(i) * ptd[i];
+				sum += ((double) sampler.getTopicWordAssignmentCount(i, sIndex) + sampler
+						.getBeta(i, sIndex))
+						/ (sampler.getTopicFrCount(i) + sampler.getBetaSum(i))
+						* ptd[i];
 			}
 		}
 		return Math.log(sum);

@@ -51,6 +51,7 @@ public class LDAGibbsSampler<T> {
 		documentSize = new int[documents.size()];
 		topicWordAssignmentCount = new int[alpha.length][provider
 				.getNumberOfWords()];
+		psi = new double[alpha.length][provider.getNumberOfWords()];
 		topicFrCount = new int[alpha.length];
 		documentWordOccurrenceLastTopicAssignment = new int[documents.size()][][];
 		int h = 0;
@@ -120,7 +121,8 @@ public class LDAGibbsSampler<T> {
 				// Update psi by averaging over current counts.
 				for (int k = 0; k < topicWordAssignmentCount.length; k++) {
 					for (int j = 0; j < topicWordAssignmentCount[k].length; j++) {
-						psi[k][j] += ((double) topicWordAssignmentCount[k][j]) / topicFrCount[k];
+						psi[k][j] += ((double) topicWordAssignmentCount[k][j])
+								/ topicFrCount[k];
 					}
 				}
 			}
@@ -137,7 +139,7 @@ public class LDAGibbsSampler<T> {
 				psi[k][j] /= iterations;
 			}
 		}
-		
+
 		if (solutionListener != null) {
 			solutionListener.done(this);
 		}
@@ -183,6 +185,7 @@ public class LDAGibbsSampler<T> {
 		}
 	}
 
+	// Compute fold in according to "Equation Methods for Topic Models" (Wallach et al) equation 7
 	public FoldInStore foldIn(int iterations, Document<T> d, FoldInStore store) {
 		if (store == null) {
 			store = new FoldInStore();
@@ -216,12 +219,12 @@ public class LDAGibbsSampler<T> {
 		return topicFrCount[i];
 	}
 
-	public int[] getTopicFrCountCopy() {
-		return Arrays.copyOf(topicFrCount, topicFrCount.length);
+	public double getAlpha(int i) {
+		return alpha[i];
 	}
 
-	public double[] getAlphaCopy() {
-		return Arrays.copyOf(alpha, alpha.length);
+	public double getAlphaSum() {
+		return alphaSum;
 	}
 
 	public int getTopicWordAssignmentCount(int i, int j) {
@@ -252,7 +255,7 @@ public class LDAGibbsSampler<T> {
 		return provider.getNumberOfWords();
 	}
 
-	protected class FoldInStore {
+	public class FoldInStore {
 		private final int[] dTopicAssignmentCounts;
 		private int[][] dWordOccurrenceLastTopicAssignments;
 		private Document<T> d;

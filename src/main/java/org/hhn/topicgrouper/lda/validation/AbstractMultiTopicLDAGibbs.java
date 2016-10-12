@@ -44,7 +44,7 @@ public abstract class AbstractMultiTopicLDAGibbs<T> extends
 			topics = minTopic + i * stepSize;
 			LDAGibbsSampler<T> sampler = createSampler(baseAlpha, baseBeta,
 					topics);
-			sampler.solve(iterations, solutionReporter);
+			sampler.solve(iterations / 4, iterations, solutionReporter);
 		}
 	}
 }
