@@ -5,6 +5,8 @@ import java.io.PrintStream;
 import java.util.Random;
 
 import org.hhn.topicgrouper.doc.DocumentProvider;
+import org.hhn.topicgrouper.doc.DocumentSplitter;
+import org.hhn.topicgrouper.doc.impl.DefaultDocumentSplitter;
 import org.hhn.topicgrouper.doc.impl.HoldOutSplitter;
 import org.hhn.topicgrouper.lda.impl.LDAGibbsSampler;
 import org.hhn.topicgrouper.lda.validation.AbstractLDAPerplexityCalculator;
@@ -22,12 +24,16 @@ public abstract class AbstractPerplexityErrorRateExperiment<T> {
 		perplexityCalculator = initPerplexityCalculator();
 	}
 	
+	protected DocumentSplitter<T> createDocumentSplitter() {
+		return new DefaultDocumentSplitter<T>();
+	}
+	
 	protected TGPerplexityCalculator<T> initPerplexityCalculator() {
-		return new TGPerplexityCalculator<T>(false);
+		return new TGPerplexityCalculator<T>(false, createDocumentSplitter());
 	}
 	
 	protected AbstractLDAPerplexityCalculator<T> initLDAPerplexityCalculator1() {
-		return new LDAPerplexityCalculatorAlt<T>(false); 
+		return new LDAPerplexityCalculatorAlt<T>(false, createDocumentSplitter()); 
 	}
 
 	public void run(int gibbsIterations, int steps, int avgC)
@@ -50,6 +56,10 @@ public abstract class AbstractPerplexityErrorRateExperiment<T> {
 				System.out.print("Repeat: ");
 				System.out.println(j);
 				DocumentProvider<T> documentProvider = createDocumentProvider(i);
+				System.out.print("Documents: ");
+				System.out.println(documentProvider.getDocuments().size());
+				System.out.print("Vocabulary: ");
+				System.out.println(documentProvider.getNumberOfWords());
 				HoldOutSplitter<T> holdOutSplitter = createHoldoutSplitter(i,
 						documentProvider);
 
@@ -57,17 +67,21 @@ public abstract class AbstractPerplexityErrorRateExperiment<T> {
 						.getRest();
 				trainingDocumentProvider = prepareTrainingDocumentProvider(i,
 						trainingDocumentProvider);
+				System.out.print("Training Documents: ");
+				System.out.println(trainingDocumentProvider.getDocuments().size());
+				System.out.print("Training Vocabulary: ");
+				System.out.println(trainingDocumentProvider.getNumberOfWords());
 
 				runTopicGrouper(pw3, i, j, trainingDocumentProvider,
 						holdOutSplitter.getHoldOut(), tgPerplexity, tgAcc);
 
 				runLDAGibbsSampler(i, j, gibbsIterations,
-						holdOutSplitter.getRest(),
+						trainingDocumentProvider,
 						holdOutSplitter.getHoldOut(), perplexity1, perplexity2,
 						acc);
 			}
-			aggregateLDAResults(pw, i, perplexity1, perplexity2, acc);
 			aggregateTGResults(pw2, i, tgPerplexity, tgAcc);
+			aggregateLDAResults(pw, i, perplexity1, perplexity2, acc);
 		}
 		if (pw != null) {
 			pw.close();

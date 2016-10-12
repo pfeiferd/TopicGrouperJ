@@ -14,12 +14,13 @@ import java.util.List;
 import java.util.Random;
 
 import org.hhn.topicgrouper.doc.DocumentProvider;
+import org.hhn.topicgrouper.doc.DocumentSplitter;
+import org.hhn.topicgrouper.doc.impl.FiftyFiftyDocumentSplitter;
 import org.hhn.topicgrouper.doc.impl.HoldOutSplitter;
 import org.hhn.topicgrouper.eval.APParser;
 import org.hhn.topicgrouper.lda.impl.LDAGibbsSampler;
 import org.hhn.topicgrouper.lda.report.BasicLDAResultReporter;
 import org.hhn.topicgrouper.lda.validation.AbstractLDAPerplexityCalculator;
-import org.hhn.topicgrouper.lda.validation.LDAPerplexityCalculatorWithFoldIn;
 import org.hhn.topicgrouper.tg.TGSolution;
 import org.hhn.topicgrouper.tg.TGSolutionListener;
 import org.hhn.topicgrouper.tg.TGSolutionListenerMultiplexer;
@@ -27,6 +28,7 @@ import org.hhn.topicgrouper.tg.impl.AbstractTopicGrouper;
 import org.hhn.topicgrouper.tg.impl.TopicGrouperWithTreeSet;
 import org.hhn.topicgrouper.tg.report.MindMapSolutionReporter;
 import org.hhn.topicgrouper.tg.report.store.MapNode;
+import org.hhn.topicgrouper.tg.validation.TGPerplexityCalculator;
 
 public class APExtractPerplexityNTopics extends TWCPerplexityErrorRateNDocs {
 	protected final double concAlpha;
@@ -54,11 +56,44 @@ public class APExtractPerplexityNTopics extends TWCPerplexityErrorRateNDocs {
 					false, 1.1, 20);
 		}
 	}
-	
+
 	protected DocumentProvider<String> initBasicDocumentProvider() {
-		return  new APParser(true, true)
-		.getCorpusDocumentProvider(new File(
-				"src/test/resources/ap-corpus/extract/ap.txt"));		
+		return new APParser(false, true).getCorpusDocumentProvider(new File(
+				"src/test/resources/ap-corpus/extract/ap.txt"));
+	}
+
+	@Override
+	protected TGPerplexityCalculator<String> initPerplexityCalculator() {
+		return new TGPerplexityCalculator<String>(false,
+				createDocumentSplitter()) {
+//			protected double alpha = 0.5;
+//			
+//			@Override
+//			protected double smoothedPtd(int topicFrInDoc, int docSize,
+//					int wordIndex, int topicIndex, TGSolution<String> s) {
+//				// Weighted lidstone smoothing (performs about as well as the smoothing in the super method).
+//				return (topicFrInDoc + (alpha * s.getNumberOfTopics()
+//						* s.getTopicFrequency(topicIndex)) / s.getSize())
+//						/ (docSize + alpha * s.getNumberOfTopics());
+//			}
+
+			@Override
+			protected double getSmoothingLambda(TGSolution<String> s) {
+				return 0.5;
+			}
+		};
+	}
+	
+//	@Override
+//	protected AbstractLDAPerplexityCalculator<String> createLDAPerplexityCalculator2(
+//			int gibbsIterations) {
+//		return new MarginalProbEstimator<String>(random, createDocumentSplitter(), 1000, false);
+//	}
+
+	@Override
+	protected DocumentSplitter<String> createDocumentSplitter() {
+		return new FiftyFiftyDocumentSplitter<String>(new Random(45));
+		// return new EachWordDocumentSplitter<String>(true);
 	}
 
 	@Override
@@ -112,7 +147,7 @@ public class APExtractPerplexityNTopics extends TWCPerplexityErrorRateNDocs {
 		// Use always the same hold out splitter at every step.
 		if (holdOutSplitter == null) {
 			holdOutSplitter = new HoldOutSplitter<String>(random,
-					documentProvider, 0.1, 20);
+					documentProvider, 0.1, 30);
 		}
 		return holdOutSplitter;
 	}
@@ -160,23 +195,23 @@ public class APExtractPerplexityNTopics extends TWCPerplexityErrorRateNDocs {
 		pw.print("perplexity;");
 		pw.println("perplexityFoldIn;");
 	}
-	
+
 	@Override
 	protected String createLDACSVBaseFileName() {
 		return "APExtractPerplexityNTopicsLDA";
 	}
-	
+
 	@Override
 	protected void printTGCSVFileHeader(PrintStream pw) {
 		pw.print("ntopics;");
 		pw.println("perplexity;");
 	}
-	
+
 	@Override
 	protected String createTGCSVBaseFileName() {
 		return "APExtractPerplexityNTopicsTG";
 	}
-	
+
 	@Override
 	protected PrintStream prepareTGLikelihoodPrintStream() throws IOException {
 		return null;
@@ -187,7 +222,7 @@ public class APExtractPerplexityNTopics extends TWCPerplexityErrorRateNDocs {
 			final int repeat, final DocumentProvider<String> documentProvider,
 			final DocumentProvider<String> testDocumentProvider,
 			final double[] tgPerplexity, final double[] tgAcc) {
-		if (step == 0 && repeat == 0) {
+		if (step == -1 && repeat == 0) {
 			AbstractTopicGrouper<String> topicGrouper = new TopicGrouperWithTreeSet<String>(
 					1, documentProvider, 1);
 
@@ -226,8 +261,7 @@ public class APExtractPerplexityNTopics extends TWCPerplexityErrorRateNDocs {
 				topicGrouper.solve(multiplexer);
 				allNodes = mindMapSolutionReporter.getAllNodes();
 				saveFile(new File(getSerializationFileName()), allNodes);
-			}
-			else {
+			} else {
 				topicGrouper.solve(tgSolutionListener);
 			}
 		}
@@ -242,10 +276,9 @@ public class APExtractPerplexityNTopics extends TWCPerplexityErrorRateNDocs {
 			final LDAGibbsSampler<String> gibbsSampler = createGibbsSampler(
 					step, documentProvider);
 
-			gibbsSampler.solve(gibbsIterations,
+			gibbsSampler.solve(gibbsIterations / 4, gibbsIterations,
 					new BasicLDAResultReporter<String>(System.out, 10));
-			AbstractLDAPerplexityCalculator<String> calc2 = new LDAPerplexityCalculatorWithFoldIn<String>(
-					false, gibbsIterations);
+			AbstractLDAPerplexityCalculator<String> calc2 = createLDAPerplexityCalculator2(gibbsIterations);
 
 			perplexity1[0] = calc1.computePerplexity(testDocumentProvider,
 					gibbsSampler);
@@ -311,6 +344,6 @@ public class APExtractPerplexityNTopics extends TWCPerplexityErrorRateNDocs {
 
 	public static void main(String[] args) throws IOException {
 		new APExtractPerplexityNTopics(new Random(42), 50, 2000, false).run(
-				1000, 20, 1);
+				100, 20, 1);
 	}
 }

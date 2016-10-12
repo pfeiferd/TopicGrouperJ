@@ -30,7 +30,7 @@ public class SimpleEMAlphaBetaOptimizer<T> {
 		while (alphaErr >= stopEpsilon || betaErr >= stopEpsilon) {
 			LDAGibbsSampler<T> gibbsSampler = createGibbsSampler(
 					documentProvider, alpha /* , fullBeta */);
-			gibbsSampler.solve(gibbsIterations, null);
+			gibbsSampler.solve(gibbsIterations / 4, gibbsIterations, null);
 
 			alphaErr = newAlpha(alpha, newAlpha, concAlpha, gibbsSampler);
 			double[] oldAlpha = alpha;

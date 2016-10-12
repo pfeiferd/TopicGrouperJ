@@ -68,7 +68,7 @@ public class TWCAlphaBetaOpt {
 							symmetric ? LDAGibbsSampler.symmetricAlpha(x,
 									nTopics) : new double[] { x, x / 10,
 									x / 10, x / 10 }, y, random);
-					gibbsSampler[0].solve(iterations,
+					gibbsSampler[0].solve(iterations / 4, iterations,
 							new BasicLDAResultReporter<String>(System.out, 10));
 
 					perplexity1 += calc1.computePerplexity(

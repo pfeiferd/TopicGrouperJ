@@ -7,10 +7,6 @@ import java.util.Random;
 import org.hhn.topicgrouper.doc.DocumentProvider;
 import org.hhn.topicgrouper.doc.impl.HoldOutSplitter;
 import org.hhn.topicgrouper.eval.EachMovieParser;
-import org.hhn.topicgrouper.lda.validation.AbstractLDAPerplexityCalculator;
-import org.hhn.topicgrouper.lda.validation.LDAPerplexityCalculatorAlt;
-import org.hhn.topicgrouper.lda.validation.LDAPerplexityCalculatorWithFoldIn;
-import org.hhn.topicgrouper.tg.validation.TGPerplexityCalculator;
 
 public class EachMoviePerplexityPerOneUserMovie extends
 		APExtractPerplexityNTopics {

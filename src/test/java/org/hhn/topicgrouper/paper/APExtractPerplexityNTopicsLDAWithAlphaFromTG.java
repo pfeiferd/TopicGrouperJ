@@ -28,16 +28,10 @@ public class APExtractPerplexityNTopicsLDAWithAlphaFromTG extends
 		wordInfosForNodeCache = new ArrayList<WordInfo<String>>();
 	}
 	
-	@Override
-	protected int nTopicFromStep(int step) {
-		return 70 + super.nTopicFromStep(step);
-	}
-
-	@Override
-	public void run(int gibbsIterations, int steps, int avgC)
-			throws IOException {
-		super.run(gibbsIterations, steps, avgC);
-	}
+//	@Override
+//	protected int nTopicFromStep(int step) {
+//		return 70 + super.nTopicFromStep(step);
+//	}
 
 	@Override
 	protected LDAGibbsSampler<String> createGibbsSampler(int step,
@@ -143,6 +137,6 @@ public class APExtractPerplexityNTopicsLDAWithAlphaFromTG extends
 
 	public static void main(String[] args) throws IOException {
 		new APExtractPerplexityNTopicsLDAWithAlphaFromTG(new Random(42), 50,
-				5, true).run(1000, 20, 1);
+				50, true).run(100, 20, 1);
 	}
 }
