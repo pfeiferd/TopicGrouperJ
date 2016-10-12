@@ -58,7 +58,7 @@ public class APExtractPerplexityNTopics extends TWCPerplexityErrorRateNDocs {
 	}
 
 	protected DocumentProvider<String> initBasicDocumentProvider() {
-		return new APParser(false, true).getCorpusDocumentProvider(new File(
+		return new APParser(true, true).getCorpusDocumentProvider(new File(
 				"src/test/resources/ap-corpus/extract/ap.txt"));
 	}
 
