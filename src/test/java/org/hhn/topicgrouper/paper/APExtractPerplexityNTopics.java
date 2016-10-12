@@ -222,7 +222,7 @@ public class APExtractPerplexityNTopics extends TWCPerplexityErrorRateNDocs {
 			final int repeat, final DocumentProvider<String> documentProvider,
 			final DocumentProvider<String> testDocumentProvider,
 			final double[] tgPerplexity, final double[] tgAcc) {
-		if (step == -1 && repeat == 0) {
+		if (step == 0 && repeat == 0) {
 			AbstractTopicGrouper<String> topicGrouper = new TopicGrouperWithTreeSet<String>(
 					1, documentProvider, 1);
 
