@@ -120,7 +120,7 @@ public class LDAGibbsSampler<T> {
 				// Update psi by averaging over current counts.
 				for (int k = 0; k < topicWordAssignmentCount.length; k++) {
 					for (int j = 0; j < topicWordAssignmentCount[k].length; j++) {
-						psi[k][j] += topicWordAssignmentCount[k][j];
+						psi[k][j] += ((double) topicWordAssignmentCount[k][j]) / topicFrCount[k];
 					}
 				}
 			}
@@ -134,7 +134,7 @@ public class LDAGibbsSampler<T> {
 		}
 		for (int k = 0; k < topicWordAssignmentCount.length; k++) {
 			for (int j = 0; j < topicWordAssignmentCount[k].length; j++) {
-				psi[k][j] /= (iterations * topicFrCount[k]);
+				psi[k][j] /= iterations;
 			}
 		}
 		
