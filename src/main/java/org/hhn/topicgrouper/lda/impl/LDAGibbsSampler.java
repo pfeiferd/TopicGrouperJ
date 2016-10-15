@@ -33,7 +33,10 @@ public class LDAGibbsSampler<T> {
 
 	// For "left to right".
 	private final TIntList z;
-	private final double[] pzn2;
+	private final TIntList linearWordIndices;
+	private final double[] pzn;
+	private final int[] lrTopicAssignmentCounts;
+
 	
 	public LDAGibbsSampler(DocumentProvider<T> documentProvider, int topics,
 			double alpha, double beta, Random random) {
@@ -76,7 +79,9 @@ public class LDAGibbsSampler<T> {
 		samplingRatios = new double[alpha.length];
 		
 		z = new TIntArrayList();
-		pzn2 = new double[alpha.length];
+		linearWordIndices = new TIntArrayList();
+		pzn = new double[alpha.length];
+		lrTopicAssignmentCounts = new int[alpha.length];
 	}
 
 	public static double[] symmetricAlpha(double alpha, int topics) {
@@ -349,27 +354,35 @@ public class LDAGibbsSampler<T> {
 	
 	
 	// According to Algorithm 3 from "Evaluation Methods for Topic Models" by Wallach et al.
-	public double leftToRight(Document<T> d, int nParticles) {
+	public double leftToRight(Document<T> d, int nParticles, int burnIn, int iterations) {
 		double l = 0;
-		int n = 0;
-		z.clear();
+		int n = 0;		
+
 		TIntIterator it = d.getWordIndices().iterator();
 		while (it.hasNext()) {
 			int wordIndex = it.next();
 			int fr = d.getWordFrequency(wordIndex);
 			for (int i = 0; i < fr; i++) {
+				linearWordIndices.set(n, wordIndex);
 				double pn = 0;
 				for (int r = 0; r < nParticles; r++) {
+					Arrays.fill(lrTopicAssignmentCounts, 0);
 					for (int n2 = 0; n2 < n; n2++) {
-						double[] pzn2 = computePzn2(wordIndex, n, n2, z);
-						z.set(n2, nextDiscrete(pzn2)); // Line 6
+						lrTopicAssignmentCounts[z.get(n2)]--;
+						computePzn(linearWordIndices.get(n2), n - 1, burnIn, iterations);
+						int zn2 = nextDiscrete(pzn);
+						z.set(n2, zn2); // Line 6
+						lrTopicAssignmentCounts[zn2]++;
 					}
-					double[] pzn = computePzn2(-1, n, -1, z);
+					computePzn(-1, n - 1, burnIn, iterations);
 					for (int t = 0; t < alpha.length; t++) {
-						pn += psi[t][wordIndex] * pzn[t]; // Line 8 right (addends)
+						// Divide by iteration cause pzn is not normalize here.
+						pn += psi[t][wordIndex] * pzn[t] / iterations; // Line 8 right (addends)
 					}
-					pzn = computePzn2(wordIndex, n, -1, z); // Line 9
-					z.set(n, nextDiscrete(pzn));
+					computePzn(wordIndex, n - 1, burnIn, iterations); // Line 9
+					int zn = nextDiscrete(pzn);
+					z.set(n, zn);
+					lrTopicAssignmentCounts[zn]++;
 				}
 				pn = pn / nParticles;
 				l += Math.log(pn);
@@ -379,9 +392,23 @@ public class LDAGibbsSampler<T> {
 
 		return l;
 	}
-	
-	// TODO: Line 6
-	protected double[] computePzn2(int wordIndex, int n, int n2, TIntList z) {
-		return null;
+		
+	// Line 6
+	protected void computePzn(int wordIndex, int n, int burnIn, int iterations) {
+		Arrays.fill(pzn, 0);
+		int topic = nextDiscrete(alpha);
+		
+		int all = burnIn + iterations;
+		for (int i = 0; i < all; i++) {
+			for (int k = 0; k < alpha.length; k++) {
+				samplingRatios[k] = (wordIndex == -1 ? 1 : psi[k][wordIndex])
+						* (lrTopicAssignmentCounts[k] + alpha[k])
+						/ (n + alphaSum);
+			}
+			topic = nextDiscrete(samplingRatios);
+			if (i > burnIn) {
+				pzn[topic]++;
+			}			
+		}
 	}
 }
