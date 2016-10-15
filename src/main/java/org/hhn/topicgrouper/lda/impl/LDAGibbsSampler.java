@@ -1,6 +1,8 @@
 package org.hhn.topicgrouper.lda.impl;
 
 import gnu.trove.iterator.TIntIterator;
+import gnu.trove.list.TIntList;
+import gnu.trove.list.array.TIntArrayList;
 
 import java.util.Arrays;
 import java.util.List;
@@ -29,6 +31,10 @@ public class LDAGibbsSampler<T> {
 
 	private double psi[][];
 
+	// For "left to right".
+	private final TIntList z;
+	private final double[] pzn2;
+	
 	public LDAGibbsSampler(DocumentProvider<T> documentProvider, int topics,
 			double alpha, double beta, Random random) {
 		this(documentProvider, symmetricAlpha(alpha, topics), beta, random);
@@ -68,6 +74,9 @@ public class LDAGibbsSampler<T> {
 			h++;
 		}
 		samplingRatios = new double[alpha.length];
+		
+		z = new TIntArrayList();
+		pzn2 = new double[alpha.length];
 	}
 
 	public static double[] symmetricAlpha(double alpha, int topics) {
@@ -157,6 +166,9 @@ public class LDAGibbsSampler<T> {
 	}
 
 	protected void initialize(LDASolutionListener<T> listener) {
+		for (int i = 0; i < psi.length; i++) {
+			Arrays.fill(psi[i], 0);
+		}
 		int h = 0;
 		for (Document<T> d : documents) {
 			if (listener != null) {
@@ -267,7 +279,7 @@ public class LDAGibbsSampler<T> {
 		public void initialize(Document<T> d) {
 			int counter = 0;
 			this.d = d;
-
+			Arrays.fill(dTopicAssignmentCounts, 0);
 			dWordOccurrenceLastTopicAssignments = new int[d.getWordIndices()
 					.size()][];
 			TIntIterator it = d.getWordIndices().iterator();
@@ -333,5 +345,43 @@ public class LDAGibbsSampler<T> {
 
 			return dTopicAssignmentCounts;
 		}
+	}
+	
+	
+	// According to Algorithm 3 from "Evaluation Methods for Topic Models" by Wallach et al.
+	public double leftToRight(Document<T> d, int nParticles) {
+		double l = 0;
+		int n = 0;
+		z.clear();
+		TIntIterator it = d.getWordIndices().iterator();
+		while (it.hasNext()) {
+			int wordIndex = it.next();
+			int fr = d.getWordFrequency(wordIndex);
+			for (int i = 0; i < fr; i++) {
+				double pn = 0;
+				for (int r = 0; r < nParticles; r++) {
+					for (int n2 = 0; n2 < n; n2++) {
+						double[] pzn2 = computePzn2(wordIndex, n, n2, z);
+						z.set(n2, nextDiscrete(pzn2)); // Line 6
+					}
+					double[] pzn = computePzn2(-1, n, -1, z);
+					for (int t = 0; t < alpha.length; t++) {
+						pn += psi[t][wordIndex] * pzn[t]; // Line 8 right (addends)
+					}
+					pzn = computePzn2(wordIndex, n, -1, z); // Line 9
+					z.set(n, nextDiscrete(pzn));
+				}
+				pn = pn / nParticles;
+				l += Math.log(pn);
+				n++;
+			}
+		}
+
+		return l;
+	}
+	
+	// TODO: Line 6
+	protected double[] computePzn2(int wordIndex, int n, int n2, TIntList z) {
+		return null;
 	}
 }
