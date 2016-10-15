@@ -11,12 +11,12 @@ public class LDAPerplexityCalculatorWithFoldIn<T> extends
 
 	public LDAPerplexityCalculatorWithFoldIn(boolean bowFactor,
 			int foldInIterations) {
-		this(bowFactor, null, foldInIterations);
+		this(bowFactor, null, foldInIterations, 100);
 	}
 
 	public LDAPerplexityCalculatorWithFoldIn(boolean bowFactor,
-			DocumentSplitter<T> documentSplitter, int foldInIterations) {
-		super(bowFactor, documentSplitter, 100);
+			DocumentSplitter<T> documentSplitter, int foldInIterations, int samplingMax) {
+		super(bowFactor, documentSplitter, samplingMax);
 		this.foldInIterations = foldInIterations;
 	}
 
