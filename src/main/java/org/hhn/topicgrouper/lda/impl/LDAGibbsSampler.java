@@ -355,13 +355,14 @@ public class LDAGibbsSampler<T> {
 	protected double leftToRight(Document<T> d, int nParticles, int burnIn,
 			int iterations) {
 		linearWordIndices.clear();
-		return leftToRightHelp(d, nParticles, burnIn, iterations);
+		z.clear();
+		Arrays.fill(lrTopicAssignmentCounts, 0);
+		return leftToRightHelp(d, nParticles);
 	}
 
 	// According to Algorithm 3 from "Evaluation Methods for Topic Models" by
 	// Wallach et al.
-	protected double leftToRightHelp(Document<T> d, int nParticles, int burnIn,
-			int iterations) {
+	protected double leftToRightHelp(Document<T> d, int nParticles) {
 		double l = 0;
 		int n = linearWordIndices.size();
 		TIntIterator it = d.getWordIndices().iterator();
@@ -369,8 +370,7 @@ public class LDAGibbsSampler<T> {
 			int wordIndex = it.next();
 			int fr = d.getWordFrequency(wordIndex);
 			for (int i = 0; i < fr; i++) {
-				l += Math.log(leftToRightParticles(n, wordIndex, nParticles, burnIn,
-						iterations));
+				l += Math.log(leftToRightParticles(n, wordIndex, nParticles));
 				n++;
 			}
 		}
@@ -379,55 +379,69 @@ public class LDAGibbsSampler<T> {
 	}
 
 	public double leftToRightDocCompletion(Document<T> refDoc, Document<T> d,
-			int nParticles, int burnIn, int iterations) {
+			int nParticles) {
 		linearWordIndices.clear();
-		leftToRightHelp(refDoc, nParticles, burnIn, iterations);
-		return leftToRightHelp(d, nParticles, burnIn, iterations);
+		z.clear();
+		Arrays.fill(lrTopicAssignmentCounts, 0);
+		leftToRightHelp(refDoc, nParticles);
+		return leftToRightHelp(d, nParticles);
 	}
 
-	protected double leftToRightParticles(int n, int wordIndex, int nParticles,
-			int burnIn, int iterations) {
-		linearWordIndices.set(n, wordIndex);
+	protected double leftToRightParticles(int n, int wordIndex, int nParticles) {
+		linearWordIndices.add(wordIndex);
+
 		double pn = 0;
+
 		for (int r = 0; r < nParticles; r++) {
-			Arrays.fill(lrTopicAssignmentCounts, 0);
 			for (int n2 = 0; n2 < n; n2++) {
+				// Line 6
+				int wordIndexN2 = linearWordIndices.get(n2);
 				lrTopicAssignmentCounts[z.get(n2)]--;
-				computePzn(linearWordIndices.get(n2), n - 1, burnIn, iterations);
+				for (int k = 0; k < alpha.length; k++) {
+					pzn[k] = psi[k][wordIndexN2]
+							* (lrTopicAssignmentCounts[k] + alpha[k]);
+				}
 				int zn2 = nextDiscrete(pzn);
-				z.set(n2, zn2); // Line 6
+				z.set(n2, zn2);
 				lrTopicAssignmentCounts[zn2]++;
 			}
-			computePzn(-1, n - 1, burnIn, iterations);
+			// Line 8
 			for (int t = 0; t < alpha.length; t++) {
-				// Divide by iteration cause pzn is not normalize here.
-				pn += psi[t][wordIndex] * pzn[t] / iterations; // Line 8 right
-																// (addends)
+				pn += psi[t][wordIndex]
+						* (lrTopicAssignmentCounts[t] + alpha[t])
+						/ (n + alphaSum);
 			}
-			computePzn(wordIndex, n - 1, burnIn, iterations); // Line 9
+			// Line 9
+			for (int k = 0; k < alpha.length; k++) {
+				pzn[k] = psi[k][wordIndex]
+						* (lrTopicAssignmentCounts[k] + alpha[k]);
+			}
 			int zn = nextDiscrete(pzn);
-			z.set(n, zn);
+			z.add(zn);
 			lrTopicAssignmentCounts[zn]++;
 		}
 		return pn / nParticles;
 	}
 
 	// Line 6
-	protected void computePzn(int wordIndex, int n, int burnIn, int iterations) {
-		Arrays.fill(pzn, 0);
-		int topic = nextDiscrete(alpha);
-
-		int all = burnIn + iterations;
-		for (int i = 0; i < all; i++) {
-			for (int k = 0; k < alpha.length; k++) {
-				samplingRatios[k] = (wordIndex == -1 ? 1 : psi[k][wordIndex])
-						* (lrTopicAssignmentCounts[k] + alpha[k])
-						/ (n + alphaSum);
-			}
-			topic = nextDiscrete(samplingRatios);
-			if (i > burnIn) {
-				pzn[topic]++;
-			}
-		}
+	// protected void computePzn(int wordIndex, int n, int burnIn, int
+	// iterations) {
+	// Arrays.fill(pzn, 0);
+	// int topic = nextDiscrete(alpha);
+	//
+	// int all = burnIn + iterations;
+	// for (int i = 0; i < all; i++) {
+	// for (int k = 0; k < alpha.length; k++) {
+	// samplingRatios[k] = (wordIndex == -1 ? 1 : psi[k][wordIndex])
+	// * (lrTopicAssignmentCounts[k] + alpha[k])
+	// / (n + alphaSum);
+	// }
+	// topic = nextDiscrete(samplingRatios);
+	// if (i > burnIn) {
+	// pzn[topic]++;
+	// }
+	// }
+	// }
+	protected void computePzn(int wordIndex, int n) {
 	}
 }
