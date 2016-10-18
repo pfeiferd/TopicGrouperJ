@@ -31,12 +31,6 @@ public class LDAGibbsSampler<T> {
 
 	private double psi[][];
 
-	// For "left to right".
-	private final TIntList z;
-	private final TIntList linearWordIndices;
-	private final double[] pzn;
-	private final int[] lrTopicAssignmentCounts;
-
 	public LDAGibbsSampler(DocumentProvider<T> documentProvider, int topics,
 			double alpha, double beta, Random random) {
 		this(documentProvider, symmetricAlpha(alpha, topics), beta, random);
@@ -76,11 +70,6 @@ public class LDAGibbsSampler<T> {
 			h++;
 		}
 		samplingRatios = new double[alpha.length];
-
-		z = new TIntArrayList();
-		linearWordIndices = new TIntArrayList();
-		pzn = new double[alpha.length];
-		lrTopicAssignmentCounts = new int[alpha.length];
 	}
 
 	public static double[] symmetricAlpha(double alpha, int topics) {
@@ -352,96 +341,124 @@ public class LDAGibbsSampler<T> {
 		}
 	}
 
-	protected double leftToRight(Document<T> d, int nParticles, int burnIn,
-			int iterations) {
-		linearWordIndices.clear();
-		z.clear();
-		Arrays.fill(lrTopicAssignmentCounts, 0);
-		return leftToRightHelp(d, nParticles);
+	public LeftToRightParticleSampler createLeftToRightParticleSampler(
+			int particles) {
+		return new LeftToRightParticleSampler(particles);
 	}
 
-	// According to Algorithm 3 from "Evaluation Methods for Topic Models" by
-	// Wallach et al.
-	protected double leftToRightHelp(Document<T> d, int nParticles) {
-		double l = 0;
-		int n = linearWordIndices.size();
-		TIntIterator it = d.getWordIndices().iterator();
-		while (it.hasNext()) {
-			int wordIndex = it.next();
-			int fr = d.getWordFrequency(wordIndex);
-			for (int i = 0; i < fr; i++) {
-				l += Math.log(leftToRightParticles(n, wordIndex, nParticles));
-				n++;
+	public class LeftToRightParticleSampler {
+		// For "left to right".
+		private final TIntList[] z;
+		private final TIntList linearWordIndices;
+		private final double[] pzn;
+		private final int[][] lrTopicAssignmentCounts;
+
+		public LeftToRightParticleSampler(int particles) {
+			linearWordIndices = new TIntArrayList();
+			lrTopicAssignmentCounts = new int[particles][alpha.length];
+
+			z = new TIntList[particles];
+			for (int i = 0; i < z.length; i++) {
+				z[i] = new TIntArrayList();
+			}
+
+			pzn = new double[alpha.length];
+		}
+
+		protected double leftToRight(Document<T> d) {
+			initFields();
+			return leftToRightHelp(d);
+		}
+
+		protected void initFields() {
+			linearWordIndices.clear();
+			for (int i = 0; i < z.length; i++) {
+				Arrays.fill(lrTopicAssignmentCounts[i], 0);
+				z[i].clear();
 			}
 		}
 
-		return l;
-	}
-
-	public double leftToRightDocCompletion(Document<T> refDoc, Document<T> d,
-			int nParticles) {
-		linearWordIndices.clear();
-		z.clear();
-		Arrays.fill(lrTopicAssignmentCounts, 0);
-		leftToRightHelp(refDoc, nParticles);
-		return leftToRightHelp(d, nParticles);
-	}
-
-	protected double leftToRightParticles(int n, int wordIndex, int nParticles) {
-		linearWordIndices.add(wordIndex);
-
-		double pn = 0;
-
-		for (int r = 0; r < nParticles; r++) {
-			for (int n2 = 0; n2 < n; n2++) {
-				// Line 6
-				int wordIndexN2 = linearWordIndices.get(n2);
-				lrTopicAssignmentCounts[z.get(n2)]--;
-				for (int k = 0; k < alpha.length; k++) {
-					pzn[k] = psi[k][wordIndexN2]
-							* (lrTopicAssignmentCounts[k] + alpha[k]);
+		// According to Algorithm 3 from "Evaluation Methods for Topic Models"
+		// by
+		// Wallach et al.
+		protected double leftToRightHelp(Document<T> d) {
+			double l = 0;
+			int n = linearWordIndices.size();
+			TIntIterator it = d.getWordIndices().iterator();
+			while (it.hasNext()) {
+				int wordIndex = it.next();
+				int fr = d.getWordFrequency(wordIndex);
+				for (int i = 0; i < fr; i++) {
+					l += Math.log(leftToRightParticles(n, wordIndex));
+					n++;
 				}
-				int zn2 = nextDiscrete(pzn);
-				z.set(n2, zn2);
-				lrTopicAssignmentCounts[zn2]++;
 			}
-			// Line 8
-			for (int t = 0; t < alpha.length; t++) {
-				pn += psi[t][wordIndex]
-						* (lrTopicAssignmentCounts[t] + alpha[t])
-						/ (n + alphaSum);
-			}
-			// Line 9
-			for (int k = 0; k < alpha.length; k++) {
-				pzn[k] = psi[k][wordIndex]
-						* (lrTopicAssignmentCounts[k] + alpha[k]);
-			}
-			int zn = nextDiscrete(pzn);
-			z.add(zn);
-			lrTopicAssignmentCounts[zn]++;
-		}
-		return pn / nParticles;
-	}
 
-	// Line 6
-	// protected void computePzn(int wordIndex, int n, int burnIn, int
-	// iterations) {
-	// Arrays.fill(pzn, 0);
-	// int topic = nextDiscrete(alpha);
-	//
-	// int all = burnIn + iterations;
-	// for (int i = 0; i < all; i++) {
-	// for (int k = 0; k < alpha.length; k++) {
-	// samplingRatios[k] = (wordIndex == -1 ? 1 : psi[k][wordIndex])
-	// * (lrTopicAssignmentCounts[k] + alpha[k])
-	// / (n + alphaSum);
-	// }
-	// topic = nextDiscrete(samplingRatios);
-	// if (i > burnIn) {
-	// pzn[topic]++;
-	// }
-	// }
-	// }
-	protected void computePzn(int wordIndex, int n) {
+			return l;
+		}
+
+		public double leftToRightDocCompletion(Document<T> refDoc, Document<T> d) {
+			initFields();
+			leftToRightHelp(refDoc);
+			return leftToRightHelp(d);
+		}
+
+		protected double leftToRightParticles(int n, int wordIndex) {
+			linearWordIndices.add(wordIndex);
+
+			double pn = 0;
+
+			for (int r = 0; r < z.length; r++) {
+				for (int n2 = 0; n2 < n; n2++) {
+					// Line 6
+					int wordIndexN2 = linearWordIndices.get(n2);
+					lrTopicAssignmentCounts[r][z[r].get(n2)]--;
+					for (int k = 0; k < alpha.length; k++) {
+						pzn[k] = psi[k][wordIndexN2]
+								* (lrTopicAssignmentCounts[r][k] + alpha[k]);
+					}
+					int zn2 = nextDiscrete(pzn);
+					z[r].set(n2, zn2);
+					lrTopicAssignmentCounts[r][zn2]++;
+				}
+				// Line 8
+				for (int t = 0; t < alpha.length; t++) {
+					pn += psi[t][wordIndex]
+							* (lrTopicAssignmentCounts[r][t] + alpha[t])
+							/ (n + alphaSum);
+				}
+				// Line 9
+				for (int k = 0; k < alpha.length; k++) {
+					pzn[k] = psi[k][wordIndex]
+							* (lrTopicAssignmentCounts[r][k] + alpha[k]);
+				}
+				int zn = nextDiscrete(pzn);
+				z[r].add(zn);
+				lrTopicAssignmentCounts[r][zn]++;
+			}
+			return pn / z.length;
+		}
+
+		// Line 6
+		// protected void computePzn(int wordIndex, int n, int burnIn, int
+		// iterations) {
+		// Arrays.fill(pzn, 0);
+		// int topic = nextDiscrete(alpha);
+		//
+		// int all = burnIn + iterations;
+		// for (int i = 0; i < all; i++) {
+		// for (int k = 0; k < alpha.length; k++) {
+		// samplingRatios[k] = (wordIndex == -1 ? 1 : psi[k][wordIndex])
+		// * (lrTopicAssignmentCounts[k] + alpha[k])
+		// / (n + alphaSum);
+		// }
+		// topic = nextDiscrete(samplingRatios);
+		// if (i > burnIn) {
+		// pzn[topic]++;
+		// }
+		// }
+		// }
+		protected void computePzn(int wordIndex, int n) {
+		}
 	}
 }
