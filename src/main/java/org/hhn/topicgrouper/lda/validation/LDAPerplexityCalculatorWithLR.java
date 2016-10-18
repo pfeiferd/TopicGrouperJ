@@ -10,7 +10,7 @@ public class LDAPerplexityCalculatorWithLR<T> extends
 	protected final int particles;
 
 	public LDAPerplexityCalculatorWithLR(boolean bowFactor, int particles) {
-		this(bowFactor, null, particles, 100);
+		this(bowFactor, null, particles, 1000);
 	}
 
 	public LDAPerplexityCalculatorWithLR(boolean bowFactor,
@@ -32,7 +32,7 @@ public class LDAPerplexityCalculatorWithLR<T> extends
 
 	protected double computeLogProbability(Document<T> refD, Document<T> d,
 			LDAGibbsSampler<T> sampler) {
-		System.out.println(c++);
+//		System.out.println(c++);
 		return lrpSampler.leftToRightDocCompletion(refD, d);
 	}
 
