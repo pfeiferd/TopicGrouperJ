@@ -439,25 +439,6 @@ public class LDAGibbsSampler<T> {
 			return pn / z.length;
 		}
 
-		// Line 6
-		// protected void computePzn(int wordIndex, int n, int burnIn, int
-		// iterations) {
-		// Arrays.fill(pzn, 0);
-		// int topic = nextDiscrete(alpha);
-		//
-		// int all = burnIn + iterations;
-		// for (int i = 0; i < all; i++) {
-		// for (int k = 0; k < alpha.length; k++) {
-		// samplingRatios[k] = (wordIndex == -1 ? 1 : psi[k][wordIndex])
-		// * (lrTopicAssignmentCounts[k] + alpha[k])
-		// / (n + alphaSum);
-		// }
-		// topic = nextDiscrete(samplingRatios);
-		// if (i > burnIn) {
-		// pzn[topic]++;
-		// }
-		// }
-		// }
 		protected void computePzn(int wordIndex, int n) {
 		}
 	}
