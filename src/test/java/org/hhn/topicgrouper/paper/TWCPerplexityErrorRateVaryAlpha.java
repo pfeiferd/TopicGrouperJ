@@ -7,13 +7,14 @@ import java.io.PrintStream;
 import java.util.Random;
 
 import org.hhn.topicgrouper.doc.DocumentProvider;
+import org.hhn.topicgrouper.doc.DocumentSplitter;
+import org.hhn.topicgrouper.doc.impl.FiftyFiftyDocumentSplitter;
 import org.hhn.topicgrouper.doc.impl.TrueTopicAccuracyCalculator;
 import org.hhn.topicgrouper.doc.impl.TrueTopicAccuracyCalculator.FrequencyProvider;
 import org.hhn.topicgrouper.eval.TWCLDAPaperDocumentGenerator;
 import org.hhn.topicgrouper.lda.impl.LDAGibbsSampler;
 import org.hhn.topicgrouper.lda.report.BasicLDAResultReporter;
 import org.hhn.topicgrouper.lda.validation.AbstractLDAPerplexityCalculator;
-import org.hhn.topicgrouper.lda.validation.LDAPerplexityCalculatorWithFoldIn;
 import org.hhn.topicgrouper.lda.validation.LDAPerplexityCalculatorWithLR;
 import org.hhn.topicgrouper.tg.TGSolution;
 import org.hhn.topicgrouper.tg.TGSolutionListener;
@@ -91,6 +92,11 @@ public class TWCPerplexityErrorRateVaryAlpha extends
 //		
 //		return new LDAPerplexityCalculatorWithFoldIn<String>(false, createDocumentSplitter(),
 //				gibbsIterations, 100);
+	}
+	
+	@Override
+	protected DocumentSplitter<String> createDocumentSplitter() {
+		return new FiftyFiftyDocumentSplitter<String>(new Random(42));
 	}
 
 	@Override
