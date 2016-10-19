@@ -87,7 +87,7 @@ public class TWCPerplexityErrorRateVaryAlpha extends
 	protected AbstractLDAPerplexityCalculator<String> createLDAPerplexityCalculator2(
 			int gibbsIterations) {
 		return new LDAPerplexityCalculatorWithLR<String>(false, createDocumentSplitter(),
-				gibbsIterations, 1);
+				gibbsIterations);
 //		
 //		return new LDAPerplexityCalculatorWithFoldIn<String>(false, createDocumentSplitter(),
 //				gibbsIterations, 100);

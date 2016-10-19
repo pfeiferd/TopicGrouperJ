@@ -10,12 +10,12 @@ public class LDAPerplexityCalculatorWithLR<T> extends
 	protected final int particles;
 
 	public LDAPerplexityCalculatorWithLR(boolean bowFactor, int particles) {
-		this(bowFactor, null, particles, 1000);
+		this(bowFactor, null, particles);
 	}
 
 	public LDAPerplexityCalculatorWithLR(boolean bowFactor,
-			DocumentSplitter<T> documentSplitter, int particles, int samplingMax) {
-		super(bowFactor, documentSplitter, samplingMax);
+			DocumentSplitter<T> documentSplitter, int particles) {
+		super(bowFactor, documentSplitter, 1);
 		this.particles = particles;
 	}
 
