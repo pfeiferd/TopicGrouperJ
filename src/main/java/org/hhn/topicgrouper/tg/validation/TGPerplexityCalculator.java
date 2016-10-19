@@ -111,7 +111,7 @@ public class TGPerplexityCalculator<T> {
 	}
 
 	protected double getSmoothingLambda(TGSolution<T> s) {
-		return 0;
+		return 0.5;
 	}
 
 	public static double logFacN(int n) {
