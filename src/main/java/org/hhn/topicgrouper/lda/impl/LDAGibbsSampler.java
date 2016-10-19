@@ -346,6 +346,8 @@ public class LDAGibbsSampler<T> {
 		return new LeftToRightParticleSampler(particles);
 	}
 
+	// According to Algorithm 3 from "Evaluation Methods for Topic Models"
+	// by Wallach et al.
 	public class LeftToRightParticleSampler {
 		// For "left to right".
 		private final TIntList[] z;
@@ -378,15 +380,13 @@ public class LDAGibbsSampler<T> {
 			}
 		}
 
-		// According to Algorithm 3 from "Evaluation Methods for Topic Models"
-		// by
-		// Wallach et al.
 		protected double leftToRightHelp(Document<T> d) {
 			double l = 0;
 			int n = linearWordIndices.size();
 			TIntIterator it = d.getWordIndices().iterator();
 			DocumentProvider<T> dProvider = d.getProvider();
 			while (it.hasNext()) {
+				// Index transformation from test indexes to training indexes
 				int wordIndex = it.next();
 				T word = dProvider.getWord(wordIndex);
 				int sIndex = provider.getIndex(word);
@@ -413,7 +413,8 @@ public class LDAGibbsSampler<T> {
 			linearWordIndices.add(wordIndex);
 
 			double pn = 0;
-
+			// According to Algorithm 3
+			// Line 4
 			for (int r = 0; r < z.length; r++) {
 				for (int n2 = 0; n2 < n; n2++) {
 					// Line 6
