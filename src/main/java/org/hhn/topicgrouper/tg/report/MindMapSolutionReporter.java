@@ -69,7 +69,7 @@ public class MindMapSolutionReporter<T> implements TGSolutionListener<T> {
 	public void beforeInitialization(int maxTopics, int documents) {
 	}
 
-	private Double lastImprovement = null;
+//	private Double lastImprovement = null;
 
 	@Override
 	public void updatedSolution(int newTopicIndex, int oldTopicIndex,
