@@ -14,6 +14,7 @@ import org.hhn.topicgrouper.lda.impl.LDAGibbsSampler;
 import org.hhn.topicgrouper.lda.report.BasicLDAResultReporter;
 import org.hhn.topicgrouper.lda.validation.AbstractLDAPerplexityCalculator;
 import org.hhn.topicgrouper.lda.validation.LDAPerplexityCalculatorWithFoldIn;
+import org.hhn.topicgrouper.lda.validation.LDAPerplexityCalculatorWithLR;
 import org.hhn.topicgrouper.tg.TGSolution;
 import org.hhn.topicgrouper.tg.TGSolutionListener;
 import org.hhn.topicgrouper.tg.impl.AbstractTopicGrouper;
@@ -85,8 +86,11 @@ public class TWCPerplexityErrorRateVaryAlpha extends
 
 	protected AbstractLDAPerplexityCalculator<String> createLDAPerplexityCalculator2(
 			int gibbsIterations) {
-		return new LDAPerplexityCalculatorWithFoldIn<String>(false, createDocumentSplitter(),
-				gibbsIterations);
+		return new LDAPerplexityCalculatorWithLR<String>(false, createDocumentSplitter(),
+				gibbsIterations, 1);
+//		
+//		return new LDAPerplexityCalculatorWithFoldIn<String>(false, createDocumentSplitter(),
+//				gibbsIterations, 100);
 	}
 
 	@Override

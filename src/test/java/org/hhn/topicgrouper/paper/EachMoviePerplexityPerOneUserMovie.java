@@ -5,6 +5,9 @@ import java.io.IOException;
 import java.util.Random;
 
 import org.hhn.topicgrouper.doc.DocumentProvider;
+import org.hhn.topicgrouper.doc.DocumentSplitter;
+import org.hhn.topicgrouper.doc.impl.EachWordDocumentSplitter;
+import org.hhn.topicgrouper.doc.impl.FiftyFiftyDocumentSplitter;
 import org.hhn.topicgrouper.doc.impl.HoldOutSplitter;
 import org.hhn.topicgrouper.eval.EachMovieParser;
 
@@ -14,28 +17,12 @@ public class EachMoviePerplexityPerOneUserMovie extends
 			double concBeta, boolean fast) {
 		super(random, concAlpha, concBeta, fast);
 	}
-
-// TODO	
-//	@Override
-//	protected TGPerplexityCalculator<String> initPerplexityCalculator() {
-//		return new TGPerplexityCalculator<String>(0.01);
-//	}
-
-// TODO	
-//	@Override
-//	protected AbstractLDAPerplexityCalculator<String> initLDAPerplexityCalculator1() {
-//		return new LDAPerplexityCalculatorAlt<String>(false) {
-//			@Override
-//			protected AbstractLDAPerplexityCalculator<String>.ComputationHelper initComputationHelper() {
-//				return new OneWordComputationHelper() {
-//					@Override
-//					protected Random getRandom() {
-//						return random;
-//					}
-//				};
-//			}
-//		};
-//	}
+	
+	@Override
+	protected DocumentSplitter<String> createDocumentSplitter() {
+//		return new EachWordDocumentSplitter<String>(true);
+		return new FiftyFiftyDocumentSplitter<String>(new Random(42));
+	}
 
 	@Override
 	protected DocumentProvider<String> initBasicDocumentProvider() {
@@ -47,23 +34,6 @@ public class EachMoviePerplexityPerOneUserMovie extends
 		return parser.getCorpusDocumentProvider(new File(
 				"src/test/resources/EachMovie/Vote.txt"));
 	}
-
-// TODO	
-//	@Override
-//	protected AbstractLDAPerplexityCalculator<String> createLDAPerplexityCalculator2(
-//			int gibbsIterations) {
-//		return new LDAPerplexityCalculatorWithFoldIn<String>(false, gibbsIterations) {
-//			@Override
-//			protected AbstractLDAPerplexityCalculator<String>.ComputationHelper initComputationHelper() {
-//				return new OneWordComputationHelper() {
-//					@Override
-//					protected Random getRandom() {
-//						return random;
-//					}
-//				};
-//			}
-//		};
-//	}
 	
 	@Override
 	protected String createTGCSVBaseFileName() {
