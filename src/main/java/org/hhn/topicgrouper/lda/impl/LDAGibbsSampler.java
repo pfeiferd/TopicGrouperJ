@@ -385,12 +385,18 @@ public class LDAGibbsSampler<T> {
 			double l = 0;
 			int n = linearWordIndices.size();
 			TIntIterator it = d.getWordIndices().iterator();
+			DocumentProvider<T> dProvider = d.getProvider();
 			while (it.hasNext()) {
 				int wordIndex = it.next();
-				int fr = d.getWordFrequency(wordIndex);
-				for (int i = 0; i < fr; i++) {
-					l += Math.log(leftToRightParticles(n, wordIndex));
-					n++;
+				T word = dProvider.getWord(wordIndex);
+				int sIndex = provider.getIndex(word);
+				// Ensure the word is in the training vocabulary.
+				if (sIndex >= 0) {
+					int fr = d.getWordFrequency(wordIndex);
+					for (int i = 0; i < fr; i++) {
+						l += Math.log(leftToRightParticles(n, sIndex));
+						n++;
+					}
 				}
 			}
 
