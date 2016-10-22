@@ -6,13 +6,13 @@ import org.hhn.topicgrouper.doc.DocumentSplitter;
 import org.hhn.topicgrouper.lda.impl.LDAGibbsSampler;
 
 
-public class LDAPerplexityCalculatorAlt<T> extends
+public class LDAPerplexityCalculatorAveraging<T> extends
 		AbstractLDAPerplexityCalculator<T> {
-	public LDAPerplexityCalculatorAlt(boolean bowFactor) {
+	public LDAPerplexityCalculatorAveraging(boolean bowFactor) {
 		super(bowFactor);
 	}
 	
-	public LDAPerplexityCalculatorAlt(boolean bowFactor,
+	public LDAPerplexityCalculatorAveraging(boolean bowFactor,
 			DocumentSplitter<T> documentSplitter) {
 		super(bowFactor, documentSplitter, 1);
 	}

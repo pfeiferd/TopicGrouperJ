@@ -45,7 +45,7 @@ public class AbstractLDAPerplexityCalculator<T> {
 				Document<T> d = nextSplit.getTestDoc();
 				double a = computeLogProbability(rd, d, sampler);
 				double b = d.getSize();
-				System.out.println(n++ + ", " + a + ", " + b );
+//				System.out.println(n++ + ", " + a + ", " + b );
 				sumA += a; //computeLogProbability(rd, d, sampler);
 				sumB += b; //d.getSize();
 			}

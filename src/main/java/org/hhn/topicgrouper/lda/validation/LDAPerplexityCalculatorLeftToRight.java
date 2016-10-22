@@ -5,15 +5,15 @@ import org.hhn.topicgrouper.doc.DocumentProvider;
 import org.hhn.topicgrouper.doc.DocumentSplitter;
 import org.hhn.topicgrouper.lda.impl.LDAGibbsSampler;
 
-public class LDAPerplexityCalculatorWithLR<T> extends
+public class LDAPerplexityCalculatorLeftToRight<T> extends
 		AbstractLDAPerplexityCalculator<T> {
 	protected final int particles;
 
-	public LDAPerplexityCalculatorWithLR(boolean bowFactor, int particles) {
+	public LDAPerplexityCalculatorLeftToRight(boolean bowFactor, int particles) {
 		this(bowFactor, null, particles);
 	}
 
-	public LDAPerplexityCalculatorWithLR(boolean bowFactor,
+	public LDAPerplexityCalculatorLeftToRight(boolean bowFactor,
 			DocumentSplitter<T> documentSplitter, int particles) {
 		super(bowFactor, documentSplitter, 1);
 		this.particles = particles;

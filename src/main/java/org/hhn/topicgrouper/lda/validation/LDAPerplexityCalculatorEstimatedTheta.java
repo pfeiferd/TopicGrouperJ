@@ -4,17 +4,17 @@ import org.hhn.topicgrouper.doc.Document;
 import org.hhn.topicgrouper.doc.DocumentSplitter;
 import org.hhn.topicgrouper.lda.impl.LDAGibbsSampler;
 
-public class LDAPerplexityCalculatorWithFoldIn<T> extends
+public class LDAPerplexityCalculatorEstimatedTheta<T> extends
 		AbstractLDAPerplexityCalculator<T> {
 	protected final int foldInIterations;
 	private LDAGibbsSampler<T>.FoldInStore foldInStore;
 
-	public LDAPerplexityCalculatorWithFoldIn(boolean bowFactor,
+	public LDAPerplexityCalculatorEstimatedTheta(boolean bowFactor,
 			int foldInIterations) {
 		this(bowFactor, null, foldInIterations, 100);
 	}
 
-	public LDAPerplexityCalculatorWithFoldIn(boolean bowFactor,
+	public LDAPerplexityCalculatorEstimatedTheta(boolean bowFactor,
 			DocumentSplitter<T> documentSplitter, int foldInIterations, int samplingMax) {
 		super(bowFactor, documentSplitter, samplingMax);
 		this.foldInIterations = foldInIterations;
