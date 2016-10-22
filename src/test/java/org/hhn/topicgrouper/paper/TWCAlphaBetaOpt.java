@@ -13,7 +13,7 @@ import org.hhn.topicgrouper.eval.TWCLDAPaperDocumentGenerator;
 import org.hhn.topicgrouper.lda.impl.LDAGibbsSampler;
 import org.hhn.topicgrouper.lda.report.BasicLDAResultReporter;
 import org.hhn.topicgrouper.lda.validation.AbstractLDAPerplexityCalculator;
-import org.hhn.topicgrouper.lda.validation.LDAPerplexityCalculatorAlt;
+import org.hhn.topicgrouper.lda.validation.LDAPerplexityCalculatorAveraging;
 import org.hhn.topicgrouper.util.TwoParameterSearcher;
 
 public class TWCAlphaBetaOpt {
@@ -32,7 +32,7 @@ public class TWCAlphaBetaOpt {
 		final Random random = new Random(11);
 		final LDAGibbsSampler<String>[] gibbsSampler = new LDAGibbsSampler[1];
 		final HoldOutSplitter<String>[] holdOutSplitter = new HoldOutSplitter[1];
-		final AbstractLDAPerplexityCalculator<String> calc1 = new LDAPerplexityCalculatorAlt<String>(
+		final AbstractLDAPerplexityCalculator<String> calc1 = new LDAPerplexityCalculatorAveraging<String>(
 				false);
 
 		final TrueTopicAccuracyCalculator<String> accuracyCalculator = new TrueTopicAccuracyCalculator<String>();

@@ -20,7 +20,6 @@ import org.hhn.topicgrouper.doc.impl.HoldOutSplitter;
 import org.hhn.topicgrouper.eval.APParser;
 import org.hhn.topicgrouper.lda.impl.LDAGibbsSampler;
 import org.hhn.topicgrouper.lda.report.BasicLDAResultReporter;
-import org.hhn.topicgrouper.lda.validation.AbstractLDAPerplexityCalculator;
 import org.hhn.topicgrouper.tg.TGSolution;
 import org.hhn.topicgrouper.tg.TGSolutionListener;
 import org.hhn.topicgrouper.tg.TGSolutionListenerMultiplexer;
@@ -42,9 +41,9 @@ public class APExtractPerplexityNTopics extends TWCPerplexityErrorRateNDocs {
 	protected final MindMapSolutionReporter<String> mindMapSolutionReporter;
 	protected List<MapNode<String>> allNodes;
 
-	public APExtractPerplexityNTopics(Random random, double concAlpha,
+	public APExtractPerplexityNTopics(Random random, int gibbsIterations, double concAlpha,
 			double concBeta, boolean fast) {
-		super(random);
+		super(random, gibbsIterations);
 		this.concAlpha = concAlpha;
 		this.concBeta = concBeta;
 		basicDocumentProvider = initBasicDocumentProvider();
@@ -63,7 +62,7 @@ public class APExtractPerplexityNTopics extends TWCPerplexityErrorRateNDocs {
 	}
 
 	@Override
-	protected TGPerplexityCalculator<String> initPerplexityCalculator() {
+	protected TGPerplexityCalculator<String> initTGPerplexityCalculator() {
 		return new TGPerplexityCalculator<String>(false,
 				createDocumentSplitter()) {
 //			protected double alpha = 0.5;
@@ -97,11 +96,11 @@ public class APExtractPerplexityNTopics extends TWCPerplexityErrorRateNDocs {
 	}
 
 	@Override
-	public void run(int gibbsIterations, int steps, int avgC)
+	public void run(int steps, int avgC)
 			throws IOException {
 		int maxReportedTopics = nTopicFromStep(steps);
 		tgPerplexityPerNTopics = new double[maxReportedTopics];
-		super.run(gibbsIterations, steps, avgC);
+		super.run(steps, avgC);
 	}
 
 	protected String createAlphaBetaFileNameExtension() {
@@ -142,8 +141,7 @@ public class APExtractPerplexityNTopics extends TWCPerplexityErrorRateNDocs {
 	}
 
 	@Override
-	protected HoldOutSplitter<String> createHoldoutSplitter(int step,
-			DocumentProvider<String> documentProvider) {
+	protected HoldOutSplitter<String> createHoldoutSplitter(DocumentProvider<String> documentProvider, int step, int repeat) {
 		// Use always the same hold out splitter at every step.
 		if (holdOutSplitter == null) {
 			holdOutSplitter = new HoldOutSplitter<String>(random,
@@ -153,7 +151,7 @@ public class APExtractPerplexityNTopics extends TWCPerplexityErrorRateNDocs {
 	}
 
 	@Override
-	protected DocumentProvider<String> createDocumentProvider(int step) {
+	protected DocumentProvider<String> createDocumentProvider(int step, int repeat) {
 		return basicDocumentProvider;
 	}
 
@@ -271,26 +269,28 @@ public class APExtractPerplexityNTopics extends TWCPerplexityErrorRateNDocs {
 	protected void runLDAGibbsSampler(int step, int repeat,
 			int gibbsIterations, DocumentProvider<String> documentProvider,
 			DocumentProvider<String> testDocumentProvider,
-			double[] perplexity1, double[] perplexity2, double[] acc) {
+			double[] perplexity1, double[] perplexity2, double[] perplexity3, double[] acc) {
 		if (repeat == 0) {
 			final LDAGibbsSampler<String> gibbsSampler = createGibbsSampler(
 					step, documentProvider);
 
 			gibbsSampler.solve(gibbsIterations / 4, gibbsIterations,
 					new BasicLDAResultReporter<String>(System.out, 10));
-			AbstractLDAPerplexityCalculator<String> calc2 = createLDAPerplexityCalculator2(gibbsIterations);
 
-			perplexity1[0] = calc1.computePerplexity(testDocumentProvider,
+			perplexity1[repeat] = calc1.computePerplexity(testDocumentProvider,
 					gibbsSampler);
 
-			perplexity2[0] = calc2.computePerplexity(testDocumentProvider,
+			perplexity2[repeat] = calc2.computePerplexity(testDocumentProvider,
+					gibbsSampler);
+			
+			perplexity3[repeat] = calc3.computePerplexity(testDocumentProvider,
 					gibbsSampler);
 		}
 	}
 
 	@Override
 	protected void aggregateLDAResults(PrintStream pw, int step,
-			double[] perplexity1, double[] perplexity2, double[] acc) {
+			double[] perplexity1, double[] perplexity2, double[] perplexity3, double[] acc) {
 		pw.print(nTopicFromStep(step));
 		pw.print("; ");
 		pw.print(perplexity1[0]);
@@ -343,7 +343,6 @@ public class APExtractPerplexityNTopics extends TWCPerplexityErrorRateNDocs {
 	}
 
 	public static void main(String[] args) throws IOException {
-		new APExtractPerplexityNTopics(new Random(42), 50, 2000, false).run(
-				100, 20, 1);
+		new APExtractPerplexityNTopics(new Random(42), 100, 50, 2000, false).run(20, 1);
 	}
 }

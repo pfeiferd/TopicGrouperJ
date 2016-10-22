@@ -13,9 +13,9 @@ import org.hhn.topicgrouper.eval.EachMovieParser;
 
 public class EachMoviePerplexityPerOneUserMovie extends
 		APExtractPerplexityNTopics {
-	public EachMoviePerplexityPerOneUserMovie(Random random, double concAlpha,
+	public EachMoviePerplexityPerOneUserMovie(Random random, int gibbsIterations, double concAlpha,
 			double concBeta, boolean fast) {
-		super(random, concAlpha, concBeta, fast);
+		super(random, gibbsIterations, concAlpha, concBeta, fast);
 	}
 	
 	@Override
@@ -46,8 +46,7 @@ public class EachMoviePerplexityPerOneUserMovie extends
 	}
 	
 	@Override
-	protected HoldOutSplitter<String> createHoldoutSplitter(int step,
-			DocumentProvider<String> documentProvider) {
+	protected HoldOutSplitter<String> createHoldoutSplitter(DocumentProvider<String> documentProvider, int step, int repeat) {
 		if (holdOutSplitter == null) {
 			holdOutSplitter = new HoldOutSplitter<String>(random,
 					documentProvider, 390, 1);
@@ -72,7 +71,6 @@ public class EachMoviePerplexityPerOneUserMovie extends
 //	}
 	
 	public static void main(String[] args) throws IOException {
-		new EachMoviePerplexityPerOneUserMovie(new Random(42), 50, 300, true).run(
-				100, 20, 1);
+		new EachMoviePerplexityPerOneUserMovie(new Random(42), 100, 50, 300, true).run(20, 1);
 	}	
 }

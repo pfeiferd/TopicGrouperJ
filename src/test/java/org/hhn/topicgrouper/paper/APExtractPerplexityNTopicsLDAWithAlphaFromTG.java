@@ -22,9 +22,9 @@ public class APExtractPerplexityNTopicsLDAWithAlphaFromTG extends
 		APExtractPerplexityNTopics {
 	protected final List<WordInfo<String>> wordInfosForNodeCache;
 
-	public APExtractPerplexityNTopicsLDAWithAlphaFromTG(Random random,
+	public APExtractPerplexityNTopicsLDAWithAlphaFromTG(Random random, int gibbsIterations,
 			double concAlpha, double concBeta, boolean fast) {
-		super(random, concAlpha, concBeta, fast);
+		super(random, gibbsIterations, concAlpha, concBeta, fast);
 		wordInfosForNodeCache = new ArrayList<WordInfo<String>>();
 	}
 	
@@ -136,7 +136,7 @@ public class APExtractPerplexityNTopicsLDAWithAlphaFromTG extends
 	}
 
 	public static void main(String[] args) throws IOException {
-		new APExtractPerplexityNTopicsLDAWithAlphaFromTG(new Random(42), 50,
-				50, true).run(100, 20, 1);
+		new APExtractPerplexityNTopicsLDAWithAlphaFromTG(new Random(42), 1000, 50,
+				50, true).run(20, 1);
 	}
 }

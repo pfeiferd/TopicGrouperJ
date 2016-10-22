@@ -7,15 +7,12 @@ import java.io.PrintStream;
 import java.util.Random;
 
 import org.hhn.topicgrouper.doc.DocumentProvider;
-import org.hhn.topicgrouper.doc.DocumentSplitter;
-import org.hhn.topicgrouper.doc.impl.FiftyFiftyDocumentSplitter;
+import org.hhn.topicgrouper.doc.impl.HoldOutSplitter;
 import org.hhn.topicgrouper.doc.impl.TrueTopicAccuracyCalculator;
 import org.hhn.topicgrouper.doc.impl.TrueTopicAccuracyCalculator.FrequencyProvider;
 import org.hhn.topicgrouper.eval.TWCLDAPaperDocumentGenerator;
 import org.hhn.topicgrouper.lda.impl.LDAGibbsSampler;
 import org.hhn.topicgrouper.lda.report.BasicLDAResultReporter;
-import org.hhn.topicgrouper.lda.validation.AbstractLDAPerplexityCalculator;
-import org.hhn.topicgrouper.lda.validation.LDAPerplexityCalculatorWithLR;
 import org.hhn.topicgrouper.tg.TGSolution;
 import org.hhn.topicgrouper.tg.TGSolutionListener;
 import org.hhn.topicgrouper.tg.impl.AbstractTopicGrouper;
@@ -25,20 +22,26 @@ import org.hhn.topicgrouper.util.MathExt;
 public class TWCPerplexityErrorRateVaryAlpha extends
 		AbstractPerplexityErrorRateExperiment<String> {
 	protected final TrueTopicAccuracyCalculator<String> accuracyCalculator;
+	private DocumentProvider<String>[] documentProviders;
+	
 
-	public TWCPerplexityErrorRateVaryAlpha(Random random) {
-		super(random);
+	public TWCPerplexityErrorRateVaryAlpha(Random random, int gibbsIterations) {
+		super(random, gibbsIterations);
 		accuracyCalculator = new TrueTopicAccuracyCalculator<String>();
 	}
-
+	
 	protected double alphaFromStep(int step) {
 		return (step + 1) * 0.5;
 	}
 
+	protected HoldOutSplitter<String> createHoldoutSplitter(DocumentProvider<String> documentProvider, int step, int repeat) {
+		// Get the same kind of split across steps (but different for each repeat)
+		return new HoldOutSplitter<String>(new Random(repeat), documentProvider, 0.5, 1);
+	}
+	
 	@Override
-	protected DocumentProvider<String> createDocumentProvider(int step) {
-		return new TWCLDAPaperDocumentGenerator(random, new double[] { 5, 0.5,
-				0.5, 0.5 }, 9000, 100, 100, 30, 30, 0, null, 0.5, 0.8);
+	protected DocumentProvider<String> createDocumentProvider(int step, int repeat) {
+		return documentProviders[repeat];
 	}
 
 	@Override
@@ -47,19 +50,31 @@ public class TWCPerplexityErrorRateVaryAlpha extends
 		return new LDAGibbsSampler<String>(documentProvider, new double[] {
 				alphaFromStep(step), 0.5, 0.5, 0.5 }, 0.5, random);
 	}
+	
+	@Override
+	public void run(int steps, int avgC)
+			throws IOException {
+		// Get the same documents across steps (but different for each repeat)
+		documentProviders = new DocumentProvider[avgC];
+		for (int i = 0; i < avgC; i++) {
+			documentProviders[i] = new TWCLDAPaperDocumentGenerator(random, new double[] { 5, 0.5,
+					0.5, 0.5 }, 12000, 100, 100, 30, 30, 0, null, 0.5, 0.8);
+		}
+		
+		super.run(steps, avgC);
+	}
 
 	@Override
 	protected void runLDAGibbsSampler(int step, int repeat,
 			int gibbsIterations,
 			final DocumentProvider<String> documentProvider,
 			final DocumentProvider<String> testDocumentProvider,
-			double[] perplexity1, double[] perplexity2, double[] acc) {
+			double[] perplexity1, double[] perplexity2, double[] perplexity3, double[] acc) {
 		final LDAGibbsSampler<String> gibbsSampler = createGibbsSampler(step,
 				documentProvider);
 
 		gibbsSampler.solve(gibbsIterations / 4, gibbsIterations, new BasicLDAResultReporter<String>(
 				System.out, 10));
-		AbstractLDAPerplexityCalculator<String> calc2 = createLDAPerplexityCalculator2(gibbsIterations);
 
 		perplexity1[repeat] = calc1.computePerplexity(testDocumentProvider,
 				gibbsSampler);
@@ -67,6 +82,9 @@ public class TWCPerplexityErrorRateVaryAlpha extends
 		perplexity2[repeat] = calc2.computePerplexity(testDocumentProvider,
 				gibbsSampler);
 
+		perplexity3[repeat] = calc3.computePerplexity(testDocumentProvider,
+				gibbsSampler);
+		
 		FrequencyProvider ldaFrequencyProvider = new FrequencyProvider() {
 			@Override
 			public int getFrequency(int topic, int wordIndex) {
@@ -84,21 +102,7 @@ public class TWCPerplexityErrorRateVaryAlpha extends
 		acc[repeat] = accuracyCalculator.computeAccuracy(documentProvider,
 				gibbsSampler.getNTopics(), ldaFrequencyProvider);
 	}
-
-	protected AbstractLDAPerplexityCalculator<String> createLDAPerplexityCalculator2(
-			int gibbsIterations) {
-		return new LDAPerplexityCalculatorWithLR<String>(false, createDocumentSplitter(),
-				gibbsIterations);
-//		
-//		return new LDAPerplexityCalculatorWithFoldIn<String>(false, createDocumentSplitter(),
-//				gibbsIterations, 100);
-	}
 	
-	@Override
-	protected DocumentSplitter<String> createDocumentSplitter() {
-		return new FiftyFiftyDocumentSplitter<String>(new Random(42));
-	}
-
 	@Override
 	protected PrintStream prepareLDAPrintStream() throws IOException {
 		PrintStream pw = new PrintStream(new FileOutputStream(new File(
@@ -109,10 +113,12 @@ public class TWCPerplexityErrorRateVaryAlpha extends
 	
 	protected void printLDACSVFileHeader(PrintStream pw) {
 		pw.print("alpha1;");
-		pw.print("perplexity;");
-		pw.print("perplexity_stddev;");
-		pw.print("perplexityFoldIn;");
-		pw.print("perplexityFoldIn_stddev;");
+		pw.print("perplexityAvg;");
+		pw.print("perplexityAvg_stddev;");
+		pw.print("perplexityLR;");
+		pw.print("perplexityLR_stddev;");
+		pw.print("perplexityETheta;");
+		pw.print("perplexityETheta_stddev;");
 		pw.print("err;");
 		pw.println("err_stddev;");
 	}
@@ -236,7 +242,7 @@ public class TWCPerplexityErrorRateVaryAlpha extends
 
 	@Override
 	protected void aggregateLDAResults(PrintStream pw, int step,
-			double[] perplexity1, double[] perplexity2, double[] acc) {
+			double[] perplexity1, double[] perplexity2, double[] perplexity3, double[] acc) {
 		pw.print(alphaFromStep(step));
 		pw.print("; ");
 		pw.print(MathExt.avg(perplexity1));
@@ -246,6 +252,10 @@ public class TWCPerplexityErrorRateVaryAlpha extends
 		pw.print(MathExt.avg(perplexity2));
 		pw.print("; ");
 		pw.print(MathExt.sampleStdDev(perplexity2));
+		pw.print("; ");
+		pw.print(MathExt.avg(perplexity3));
+		pw.print("; ");
+		pw.print(MathExt.sampleStdDev(perplexity3));
 		pw.print("; ");
 		pw.print(1 - MathExt.avg(acc));
 		pw.print("; ");
@@ -261,7 +271,7 @@ public class TWCPerplexityErrorRateVaryAlpha extends
 			double tgAccAvg = MathExt.avg(tgAcc);
 
 			for (int h = 0; h < 2; h++) {
-				pw.print(0.5 + (4.5 * h));
+				pw.print(0.25 + (4.75 * h));
 				pw.print("; ");
 				pw.print(tgPerplexityAvg);
 				pw.print("; ");
@@ -276,6 +286,6 @@ public class TWCPerplexityErrorRateVaryAlpha extends
 	}
 
 	public static void main(String[] args) throws IOException {
-		new TWCPerplexityErrorRateVaryAlpha(new Random()).run(100, 10, 100);
+		new TWCPerplexityErrorRateVaryAlpha(new Random(42), 1000).run(20, 3);
 	}
 }

@@ -15,8 +15,8 @@ import org.hhn.topicgrouper.tg.impl.TopicGrouperWithTreeSet;
 import org.hhn.topicgrouper.util.MathExt;
 
 public class TWCPerplexityErrorRateNDocs extends TWCPerplexityErrorRateVaryAlpha {
-	public TWCPerplexityErrorRateNDocs(Random random) {
-		super(random);
+	public TWCPerplexityErrorRateNDocs(Random random, int gibbsIterations) {
+		super(random, gibbsIterations);
 	}
 
 	protected int docsFromStep(int step) {
@@ -24,13 +24,12 @@ public class TWCPerplexityErrorRateNDocs extends TWCPerplexityErrorRateVaryAlpha
 	}
 
 	@Override
-	protected HoldOutSplitter<String> createHoldoutSplitter(int step,
-			DocumentProvider<String> documentProvider) {
+	protected HoldOutSplitter<String> createHoldoutSplitter(DocumentProvider<String> documentProvider, int step, int repeat) {
 		return new HoldOutSplitter<String>(random, documentProvider, 3000, 1);
 	}
 
 	@Override
-	protected DocumentProvider<String> createDocumentProvider(int step) {
+	protected DocumentProvider<String> createDocumentProvider(int step, int repeat) {
 		return new TWCLDAPaperDocumentGenerator(random, new double[] { 5, 0.5,
 				0.5, 0.5 }, docsFromStep(step) + 3000, 100, 100, 30, 30, 0, null, 0.5,
 				0.8);
@@ -117,7 +116,7 @@ public class TWCPerplexityErrorRateNDocs extends TWCPerplexityErrorRateVaryAlpha
 
 	@Override
 	protected void aggregateLDAResults(PrintStream pw, int step,
-			double[] perplexity1, double[] perplexity2, double[] acc) {
+			double[] perplexity1, double[] perplexity2, double[] perplexity3, double[] acc) {
 		pw.print(docsFromStep(step));
 		pw.print("; ");
 		pw.print(MathExt.avg(perplexity1));
@@ -153,6 +152,6 @@ public class TWCPerplexityErrorRateNDocs extends TWCPerplexityErrorRateVaryAlpha
 	}
 
 	public static void main(String[] args) throws IOException {
-		new TWCPerplexityErrorRateNDocs(new Random()).run(100, 30, 100);
+		new TWCPerplexityErrorRateNDocs(new Random(), 1000).run(30, 10);
 	}
 }

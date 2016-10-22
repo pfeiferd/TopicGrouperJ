@@ -13,8 +13,8 @@ public class APExtractPerplexityErrorRateNDocs extends
 		TWCPerplexityErrorRateNDocs {
 	protected final DocumentProvider<String> apExtractDocumentProvider;
 
-	public APExtractPerplexityErrorRateNDocs(Random random) {
-		super(random);
+	public APExtractPerplexityErrorRateNDocs(Random random, int gibbsIterations) {
+		super(random, gibbsIterations);
 		apExtractDocumentProvider = new APParser(true, true)
 				.getCorpusDocumentProvider(new File(
 						"src/test/resources/ap-corpus/extract/ap.txt"));
@@ -50,18 +50,17 @@ public class APExtractPerplexityErrorRateNDocs extends
 	}
 
 	@Override
-	protected HoldOutSplitter<String> createHoldoutSplitter(int step,
-			DocumentProvider<String> documentProvider) {
+	protected HoldOutSplitter<String> createHoldoutSplitter(DocumentProvider<String> documentProvider, int step, int repeat) {
 		return new HoldOutSplitter<String>(random, documentProvider,
 				0.33333333, 1);
 	}
 
 	@Override
-	protected DocumentProvider<String> createDocumentProvider(int step) {
+	protected DocumentProvider<String> createDocumentProvider(int step, int repeat) {
 		return apExtractDocumentProvider;
 	}
 
 	public static void main(String[] args) throws IOException {
-		new APExtractPerplexityErrorRateNDocs(new Random()).run(100, 30, 10);
+		new APExtractPerplexityErrorRateNDocs(new Random(), 1000).run(30, 10);
 	}
 }
