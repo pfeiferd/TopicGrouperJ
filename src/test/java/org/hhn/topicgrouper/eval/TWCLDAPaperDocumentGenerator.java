@@ -9,11 +9,12 @@ import java.util.Random;
 
 import org.hhn.topicgrouper.doc.Document;
 import org.hhn.topicgrouper.doc.DocumentProvider;
+import org.hhn.topicgrouper.doc.DocumentProvider.Vocab;
 import org.hhn.topicgrouper.doc.impl.AbstractDocumentImpl;
 import org.hhn.topicgrouper.util.DirichletSampler;
 import org.hhn.topicgrouper.util.RandomDirichlet1Dist;
 
-public class TWCLDAPaperDocumentGenerator implements DocumentProvider<String> {
+public class TWCLDAPaperDocumentGenerator implements DocumentProvider<String>, Vocab<String> {
 	private final List<Document<String>> documentsImmutable;
 	private final DirichletSampler dirichlet;
 	private final int[] indexToFr;
@@ -150,6 +151,11 @@ public class TWCLDAPaperDocumentGenerator implements DocumentProvider<String> {
 					.nextInt(minMaxWordsPerTopicDiff)) + minWordsPerTopic;
 		}
 		return wordsPerTopic;
+	}
+	
+	@Override
+	public Vocab<String> getVocab() {
+		return this;
 	}
 
 	@Override

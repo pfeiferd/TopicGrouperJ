@@ -31,7 +31,7 @@ public class EachWordDocumentSplitterTest extends TestCase {
 			TIntIterator it = td.getWordIndices().iterator();
 			while (it.hasNext()) {
 				int index = it.next();
-				int word = d.getProvider().getWord(index);
+				int word = d.getProvider().getVocab().getWord(index);
 				int fr = td.getWordFrequency(index);
 				if (fr == 1) {
 					assertEquals(word - 1, rd.getWordFrequency(index));

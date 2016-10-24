@@ -78,7 +78,7 @@ public abstract class AbstractPerplexityErrorRateExperiment<T> {
 				System.out.print("Documents: ");
 				System.out.println(documentProvider.getDocuments().size());
 				System.out.print("Vocabulary: ");
-				System.out.println(documentProvider.getNumberOfWords());
+				System.out.println(documentProvider.getVocab().getNumberOfWords());
 				HoldOutSplitter<T> holdOutSplitter = createHoldoutSplitter(documentProvider, i, j);
 
 				DocumentProvider<T> trainingDocumentProvider = holdOutSplitter
@@ -88,7 +88,7 @@ public abstract class AbstractPerplexityErrorRateExperiment<T> {
 				System.out.print("Training Documents: ");
 				System.out.println(trainingDocumentProvider.getDocuments().size());
 				System.out.print("Training Vocabulary: ");
-				System.out.println(trainingDocumentProvider.getNumberOfWords());
+				System.out.println(trainingDocumentProvider.getVocab().getNumberOfWords());
 
 				runLDAGibbsSampler(i, j, gibbsIterations,
 						trainingDocumentProvider,

@@ -51,7 +51,7 @@ public class SimpleEMAlphaBetaOptimizer<T> {
 
 	protected double[][] initialBeta(double concBeta, int topics,
 			DocumentProvider<T> documentProvider) {
-		double[][] res = new double[topics][documentProvider.getNumberOfWords()];
+		double[][] res = new double[topics][documentProvider.getVocab().getNumberOfWords()];
 		for (int i = 0; i < res.length; i++) {
 			for (int j = 0; j < res[i].length; j++) {
 				res[i][j] = concBeta / res[i].length;

@@ -200,6 +200,6 @@ public class APLargeParser {
 				true).getCorpusDocumentProvider(new File(
 				"src/test/resources/ap-corpus/full"), Integer.MAX_VALUE);
 		System.out.println(entryProvider.getDocuments().size());
-		System.out.println(entryProvider.getNumberOfWords());
+		System.out.println(entryProvider.getVocab().getNumberOfWords());
 	}
 }

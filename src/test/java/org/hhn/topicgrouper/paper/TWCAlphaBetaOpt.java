@@ -45,7 +45,7 @@ public class TWCAlphaBetaOpt {
 
 			@Override
 			public boolean isCorrectTopic(int topic, int index) {
-				Integer w = Integer.valueOf(holdOutSplitter[0].getRest()
+				Integer w = Integer.valueOf(holdOutSplitter[0].getRest().getVocab()
 						.getWord(index));
 				return topic == w / 100;
 			}

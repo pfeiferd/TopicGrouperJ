@@ -86,6 +86,6 @@ public class Reuters21578 {
 						"src/test/resources/reuters21578"),
 						new String[] { topics[0] }, true, true);
 		System.out.println(entryProvider.getDocuments().size());
-		System.out.println(entryProvider.getNumberOfWords());
+		System.out.println(entryProvider.getVocab().getNumberOfWords());
 	}
 }

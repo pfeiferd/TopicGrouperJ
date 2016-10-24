@@ -75,10 +75,10 @@ public class APExtractPerplexityNTopicsLDAWithAlphaFromTG extends
 			MapNode<String> node = nodes.get(i);
 			wordInfosForNodeCache.clear();
 			collectLeafWordInfos(node, wordInfosForNodeCache);
-			betaFromTG[i] = new double[documentProvider.getNumberOfWords()];
+			betaFromTG[i] = new double[documentProvider.getVocab().getNumberOfWords()];
 			int sum = 0;
 			for (WordInfo<String> info : wordInfosForNodeCache) {
-				int index = documentProvider.getIndex(info.getWord());
+				int index = documentProvider.getVocab().getIndex(info.getWord());
 				if (index >= 0) {
 					betaFromTG[i][index] = info.getFrequency();
 					sum += info.getFrequency();

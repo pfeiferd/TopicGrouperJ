@@ -53,7 +53,7 @@ public class ClusterSolutionReporter<T> implements TGSolutionListener<T> {
 	public void initialized(TGSolution<T> initialSolution) {
 		TIntCollection[] t = initialSolution.getTopics();
 		for (int i = 0; i < t.length; i++) {
-			Cluster cluster = new Cluster(initialSolution.getWord(
+			Cluster cluster = new Cluster(initialSolution.getVocab().getWord(
 					t[i].iterator().next()).toString());
 			currentClusters.put(i, cluster);
 		}

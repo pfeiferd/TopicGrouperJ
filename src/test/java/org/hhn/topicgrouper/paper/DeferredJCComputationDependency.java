@@ -110,7 +110,7 @@ public class DeferredJCComputationDependency {
 					System.out.println(j);
 					counter[0] = j;
 					DocumentProvider<T> documentProvider = createDocumentProvider(i);
-					nWords[j] = documentProvider.getNumberOfWords();
+					nWords[j] = documentProvider.getVocab().getNumberOfWords();
 					nDocs[j] = documentProvider.getDocuments().size();
 					final AbstractTopicGrouper<T> topicGrouper = new TopicGrouperWithTreeSet<T>(
 							1, documentProvider, 1);

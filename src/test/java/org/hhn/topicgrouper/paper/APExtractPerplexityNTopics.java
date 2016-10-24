@@ -176,7 +176,7 @@ public class APExtractPerplexityNTopics extends TWCPerplexityErrorRateNDocs {
 	// http://stats.stackexchange.com/questions/59684/what-are-typical-values-to-use-for-alpha-and-beta-in-latent-dirichlet-allocation
 	protected double createBeta(int topics,
 			DocumentProvider<String> documentProvider) {
-		return getConcBeta() / documentProvider.getNumberOfWords();
+		return getConcBeta() / documentProvider.getVocab().getNumberOfWords();
 	}
 
 	public double getConcAlpha() {

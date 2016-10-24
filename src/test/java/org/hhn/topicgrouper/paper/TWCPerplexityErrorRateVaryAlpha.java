@@ -94,7 +94,7 @@ public class TWCPerplexityErrorRateVaryAlpha extends
 
 			@Override
 			public boolean isCorrectTopic(int topic, int index) {
-				Integer w = Integer.valueOf(documentProvider.getWord(index));
+				Integer w = Integer.valueOf(documentProvider.getVocab().getWord(index));
 				return topic == w / 100;
 			}
 		};
@@ -227,7 +227,7 @@ public class TWCPerplexityErrorRateVaryAlpha extends
 
 					@Override
 					public boolean isCorrectTopic(int topic, int index) {
-						Integer w = Integer.valueOf(documentProvider
+						Integer w = Integer.valueOf(documentProvider.getVocab()
 								.getWord(index));
 						return topic == w / 100;
 					}
@@ -286,6 +286,6 @@ public class TWCPerplexityErrorRateVaryAlpha extends
 	}
 
 	public static void main(String[] args) throws IOException {
-		new TWCPerplexityErrorRateVaryAlpha(new Random(42), 1000).run(20, 3);
+		new TWCPerplexityErrorRateVaryAlpha(new Random(42), 1000).run(10, 1);
 	}
 }
