@@ -55,7 +55,7 @@ public class MindMapSolutionReporter<T> implements TGSolutionListener<T> {
 
 				List<WordInfo<T>> list = new ArrayList<WordInfo<T>>();
 				list.add(new WordInfo<T>(wordId, initialSolution
-						.getGlobalWordFrequency(wordId), initialSolution
+						.getGlobalWordFrequency(wordId), initialSolution.getVocab()
 						.getWord(wordId)));
 				MapNode<T> node = new MapNode<T>(-i, null, null, list,
 						initialSolution.getTotalLogLikelhood(), 0, 0,

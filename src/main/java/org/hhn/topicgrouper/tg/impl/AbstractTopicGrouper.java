@@ -13,6 +13,7 @@ import java.util.List;
 
 import org.hhn.topicgrouper.doc.Document;
 import org.hhn.topicgrouper.doc.DocumentProvider;
+import org.hhn.topicgrouper.doc.DocumentProvider.Vocab;
 import org.hhn.topicgrouper.tg.TGSolution;
 import org.hhn.topicgrouper.tg.TGSolutionListener;
 import org.hhn.topicgrouper.tg.TGSolver;
@@ -74,7 +75,7 @@ public abstract class AbstractTopicGrouper<T> implements TGSolver<T> {
 		}
 
 		this.minTopics = Math.max(1, minTopics);
-		nWords = documentProvider.getNumberOfWords();
+		nWords = documentProvider.getVocab().getNumberOfWords();
 
 		wordToInitialTopic = new int[nWords];
 		int counter = 0;
@@ -126,17 +127,10 @@ public abstract class AbstractTopicGrouper<T> implements TGSolver<T> {
 				}
 				return topicIds;
 			}
-
+			
 			@Override
-			public T getWord(int wordIndex) {
-				return AbstractTopicGrouper.this.documentProvider
-						.getWord(wordIndex);
-			}
-
-			@Override
-			public int getIndex(T word) {
-				return AbstractTopicGrouper.this.documentProvider
-						.getIndex(word);
+			public Vocab<T> getVocab() {
+				return AbstractTopicGrouper.this.documentProvider.getVocab();
 			}
 
 			@Override

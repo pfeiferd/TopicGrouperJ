@@ -2,6 +2,8 @@ package org.hhn.topicgrouper.tg;
 
 import gnu.trove.TIntCollection;
 
+import org.hhn.topicgrouper.doc.DocumentProvider.Vocab;
+
 public interface TGSolution<T> {
 	public int getNumberOfTopics();
 	
@@ -19,10 +21,8 @@ public interface TGSolution<T> {
 		
 	public double getTotalLogLikelhood();
 	
-	public T getWord(int wordIndex);
-	
-	public int getIndex(T word);
-	
+	public Vocab<T> getVocab();
+		
 	public TIntCollection getHomonymns();
 	
 	public double[] getTopicLogLikelihoods();

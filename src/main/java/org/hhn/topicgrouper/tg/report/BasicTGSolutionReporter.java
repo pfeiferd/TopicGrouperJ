@@ -209,7 +209,7 @@ public class BasicTGSolutionReporter<T> implements TGSolutionListener<T> {
 		pw.print("[");
 		TIntIterator iterator = topic.iterator();
 		while (iterator.hasNext()) {
-			pw.print(solution.getWord(iterator.next()));
+			pw.print(solution.getVocab().getWord(iterator.next()));
 			pw.print(" ");
 		}
 		pw.println("]");
@@ -224,7 +224,7 @@ public class BasicTGSolutionReporter<T> implements TGSolutionListener<T> {
 			TopicInfo<T> t = new TopicInfo<T>();
 			t.b = iterator.next();
 			t.a = solution.getGlobalWordFrequency(t.b);
-			t.s = solution.getWord(t.b);
+			t.s = solution.getVocab().getWord(t.b);
 			tuples[i++] = t;
 		}
 		Arrays.sort(tuples);
