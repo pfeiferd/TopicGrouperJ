@@ -2,8 +2,6 @@ package org.hhn.topicgrouper.doc.impl;
 
 import gnu.trove.iterator.TIntIterator;
 import gnu.trove.list.array.TIntArrayList;
-import gnu.trove.map.hash.TIntObjectHashMap;
-import gnu.trove.map.hash.TObjectIntHashMap;
 
 import java.util.ArrayList;
 
@@ -11,11 +9,12 @@ import org.hhn.topicgrouper.doc.Document;
 import org.hhn.topicgrouper.doc.DocumentProvider;
 
 public class DefaultDocumentProvider<T> extends WordMapDocumentProvider<T> {
-	private int nextIndex;
-
 	public DefaultDocumentProvider() {
-		super(new TObjectIntHashMap<T>(), new TIntObjectHashMap<T>(),
-				new ArrayList<Document<T>>(), new TIntArrayList());
+		this(new DefaultVocab<T>());
+	}
+	
+	public DefaultDocumentProvider(DefaultVocab<T> vocab) {
+		super(vocab, new ArrayList<Document<T>>(), new TIntArrayList());
 	}
 
 	public DefaultDocument newDocument() {
@@ -34,7 +33,7 @@ public class DefaultDocumentProvider<T> extends WordMapDocumentProvider<T> {
 		TIntIterator it = d.getWordIndices().iterator();
 		while (it.hasNext()) {
 			int index = it.next();
-			T word = d.getProvider().getWord(index);
+			T word = d.getProvider().getVocab().getWord(index);
 			if (filter == null || filter.acceptWord(word)) {
 				int globalFr = d.getProvider().getWordFrequency(index);
 				if (minFrequency == 0 || globalFr >= minFrequency) {
@@ -74,16 +73,9 @@ public class DefaultDocumentProvider<T> extends WordMapDocumentProvider<T> {
 				throw new IllegalStateException(
 						"document removed from its provider");
 			}
-			int index;
-			if (!wordToIndex.containsKey(word)) {
-				index = nextIndex++;
-				wordToIndex.put(word, index);
-				indexToWord.put(index, word);
-				if (index >= indexToFr.size()) {
-					indexToFr.fill(indexToFr.size(), index + 1, 0);
-				}
-			} else {
-				index = wordToIndex.get(word);
+			int index = vocab.addEntry(word);
+			if (index >= indexToFr.size()) {
+				indexToFr.fill(indexToFr.size(), index + 1, 0);
 			}
 			addWordOccurrence(index, times);
 			indexToFr.set(index, indexToFr.get(index) + times);

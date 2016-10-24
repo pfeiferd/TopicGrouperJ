@@ -29,12 +29,17 @@ public class AbstractLDAPerplexityCalculator<T> {
 
 	public double computePerplexity(DocumentProvider<T> testDocumentProvider,
 			LDAGibbsSampler<T> sampler) {
+		if (!testDocumentProvider.getVocab().equals(
+				sampler.getDocumentProvider().getVocab())) {
+			throw new IllegalStateException(
+					"training and test vocab not identical");
+		}
 		if (ptd == null || ptd.length != sampler.getNTopics()) {
 			ptd = new double[sampler.getNTopics()];
 		}
 		double sumA = 0;
 		long sumB = 0;
-		int n = 0;
+		// int n = 0;
 
 		for (Document<T> doc : testDocumentProvider.getDocuments()) {
 			documentSplitter.setDocument(doc);
@@ -45,9 +50,9 @@ public class AbstractLDAPerplexityCalculator<T> {
 				Document<T> d = nextSplit.getTestDoc();
 				double a = computeLogProbability(rd, d, sampler);
 				double b = d.getSize();
-//				System.out.println(n++ + ", " + a + ", " + b );
-				sumA += a; //computeLogProbability(rd, d, sampler);
-				sumB += b; //d.getSize();
+				// System.out.println(n++ + ", " + a + ", " + b );
+				sumA += a; // computeLogProbability(rd, d, sampler);
+				sumB += b; // d.getSize();
 			}
 		}
 		return Math.exp(-sumA / sumB);
@@ -55,7 +60,6 @@ public class AbstractLDAPerplexityCalculator<T> {
 
 	protected double computeLogProbability(Document<T> refD, Document<T> d,
 			LDAGibbsSampler<T> sampler) {
-		DocumentProvider<T> provider = sampler.getDocumentProvider();
 		// update ptd via reference document
 		initPtd(refD, sampler);
 
@@ -70,16 +74,10 @@ public class AbstractLDAPerplexityCalculator<T> {
 			TIntIterator it = d.getWordIndices().iterator();
 			while (it.hasNext()) {
 				int index = it.next();
-				T word = d.getProvider().getWord(index);
-				int sIndex = provider.getIndex(word);
-				// Ensure the word is in the training vocabulary.
-				if (sIndex >= 0) {
-					int wordFr = d.getWordFrequency(index);
-					if (wordFr > 0) {
-						sValue += wordFr
-								* computeWordLogProbability(sIndex, refD,
-										sampler);
-					}
+				int wordFr = d.getWordFrequency(index);
+				if (wordFr > 0) {
+					sValue += wordFr
+							* computeWordLogProbability(index, refD, sampler);
 				}
 			}
 			sValues[i] = sValue;
@@ -102,8 +100,7 @@ public class AbstractLDAPerplexityCalculator<T> {
 			nonLogAvg /= sValues.length;
 
 			res = sValuesAvg + Math.log(nonLogAvg);
-		}
-		else {
+		} else {
 			res = sValuesAvg;
 		}
 
@@ -112,14 +109,9 @@ public class AbstractLDAPerplexityCalculator<T> {
 			TIntIterator it = d.getWordIndices().iterator();
 			while (it.hasNext()) {
 				int index = it.next();
-				T word = d.getProvider().getWord(index);
-				int sIndex = provider.getIndex(word);
-				// Ensure the word is in the training vocabulary.
-				if (sIndex >= 0) {
-					int wordFr = d.getWordFrequency(index);
-					if (wordFr > 0) {
-						res -= TGPerplexityCalculator.logFacN(wordFr);
-					}
+				int wordFr = d.getWordFrequency(index);
+				if (wordFr > 0) {
+					res -= TGPerplexityCalculator.logFacN(wordFr);
 				}
 			}
 			res += TGPerplexityCalculator.logFacN(d.getSize());
@@ -145,17 +137,7 @@ public class AbstractLDAPerplexityCalculator<T> {
 			LDAGibbsSampler<T> sampler) {
 		double sum = 0;
 		for (int i = 0; i < sampler.getNTopics(); i++) {
-			if (sampler.getTopicFrCount(i) > 0) { // To avoid division by zero.
-													// Also correct: If a topic
-													// has zero probability
-													// (zero frequency), it
-													// cannot be allocated to
-													// produce a word.
-				sum += ((double) sampler.getTopicWordAssignmentCount(i, sIndex) + sampler
-						.getBeta(i, sIndex))
-						/ (sampler.getTopicFrCount(i) + sampler.getBetaSum(i))
-						* ptd[i];
-			}
+			sum += sampler.getPhi(i, sIndex) * ptd[i];
 		}
 		return Math.log(sum);
 	}

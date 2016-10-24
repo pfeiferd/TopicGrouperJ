@@ -53,7 +53,7 @@ public class BasicLDAResultReporter<T> implements LDASolutionListener<T> {
 			}
 			Arrays.sort(viWords);
 			for (int j = 0; j < topWords; j++) {
-				pw.print(provider.getWord(viWords[j].getIndex()));
+				pw.print(provider.getVocab().getWord(viWords[j].getIndex()));
 				pw.print(" (");
 				pw.print(viWords[j].getValue());
 				pw.print(") ");

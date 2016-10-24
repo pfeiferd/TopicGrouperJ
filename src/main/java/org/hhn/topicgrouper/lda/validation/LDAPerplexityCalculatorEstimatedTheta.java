@@ -22,7 +22,7 @@ public class LDAPerplexityCalculatorEstimatedTheta<T> extends
 
 	@Override
 	protected void initPtd(Document<T> d, LDAGibbsSampler<T> sampler) {
-		foldInStore = sampler.foldIn(foldInIterations, d, foldInStore);
+		foldInStore = sampler.foldIn(foldInIterations, d);
 	}
 
 	// Compute psi_t^s to "Equation Methods for Topic Models" (Wallach et al) equation 27

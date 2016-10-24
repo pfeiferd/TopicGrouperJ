@@ -1,10 +1,11 @@
 package org.hhn.topicgrouper.doc.impl;
 
-import org.hhn.topicgrouper.doc.Document;
-
+import gnu.trove.iterator.TIntIterator;
 import gnu.trove.map.TIntIntMap;
 import gnu.trove.map.hash.TIntIntHashMap;
 import gnu.trove.set.TIntSet;
+
+import org.hhn.topicgrouper.doc.Document;
 
 public abstract class AbstractDocumentImpl<T> implements Document<T> {
 	private int size;
@@ -44,5 +45,25 @@ public abstract class AbstractDocumentImpl<T> implements Document<T> {
 		Integer f = frequencies.get(index);
 		frequencies.put(index, f == null ? times : f + times);
 		size += times;
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append('{');
+		TIntIterator it = getWordIndices().iterator();
+		while (it.hasNext()) {
+			int index = it.next();
+			int fr = getWordFrequency(index);
+			if (fr > 0) {
+				T word = getProvider().getVocab().getWord(index);
+				builder.append(word);
+				builder.append('(');
+				builder.append(fr);
+				builder.append(") ");
+			}
+		}
+		builder.append('}');
+		return builder.toString();
 	}
 }

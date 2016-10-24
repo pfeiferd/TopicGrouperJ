@@ -41,7 +41,7 @@ public class TrueTopicAccuracyCalculator<T> {
 			FrequencyProvider provider) {
 		int count = 0;
 
-		for (int j = 0; j < documentProvider.getNumberOfWords(); j++) {
+		for (int j = 0; j < documentProvider.getVocab().getNumberOfWords(); j++) {
 			if (documentProvider.getWordFrequency(j) > 0) {
 				for (int i = 0; i < topicAssignments.length; i++) {
 					if (provider.isCorrectTopic(topicAssignments[i], j)) {

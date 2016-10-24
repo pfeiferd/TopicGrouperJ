@@ -37,10 +37,10 @@ public class HoldOutSplitter<T> {
 		DefaultDocumentProvider.DocumentWordFilter<T> filter = new DefaultDocumentProvider.DocumentWordFilter<T>() {
 			@Override
 			public boolean acceptWord(T word) {
-				return rest.getIndex(word) != -1;
+				return rest.getVocab().getIndex(word) != -1;
 			}
 		};
-		holdOut = new DefaultDocumentProvider<T>();
+		holdOut = new DefaultDocumentProvider<T>((DefaultVocab<T>)rest.getVocab());
 		for (Document<T> d : holdOutDocuments) {
 			holdOut.addDocument(d, minGlobalWordFrequency, filter);
 		}
