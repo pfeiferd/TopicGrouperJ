@@ -143,7 +143,7 @@ public class LDAGibbsSampler<T> {
 			for (int j = 0; j < topicWordAssignmentCount[k].length; j++) {
 				phi[k][j] /= iterations;
 			}
-			topicProb[k] /= iterations;
+			topicProb[k] = topicProb[k] / iterations / provider.getSize();
 		}
 
 		if (solutionListener != null) {
