@@ -13,6 +13,7 @@ import org.hhn.topicgrouper.lda.validation.AbstractLDAPerplexityCalculator;
 import org.hhn.topicgrouper.lda.validation.LDAPerplexityCalculatorAveraging;
 import org.hhn.topicgrouper.lda.validation.LDAPerplexityCalculatorEstimatedTheta;
 import org.hhn.topicgrouper.lda.validation.LDAPerplexityCalculatorLeftToRight;
+import org.hhn.topicgrouper.tg.TGSolution;
 import org.hhn.topicgrouper.tg.validation.TGPerplexityCalculator;
 
 public abstract class AbstractPerplexityErrorRateExperiment<T> {
@@ -23,6 +24,8 @@ public abstract class AbstractPerplexityErrorRateExperiment<T> {
 	protected final TGPerplexityCalculator<T> perplexityCalculator;
 	protected final int gibbsIterations;
 
+	protected double tgSmothingLambda;
+	
 	public AbstractPerplexityErrorRateExperiment(Random random, int gibbsIterations) {
 		this.random = random;
 		this.gibbsIterations = gibbsIterations;
@@ -30,6 +33,7 @@ public abstract class AbstractPerplexityErrorRateExperiment<T> {
 		calc2 = initLDAPerplexityCalculator2();
 		calc3 = initLDAPerplexityCalculator3();
 		perplexityCalculator = initTGPerplexityCalculator();
+		tgSmothingLambda = 0.5;
 	}
 	
 	protected DocumentSplitter<T> createDocumentSplitter() {
@@ -38,7 +42,12 @@ public abstract class AbstractPerplexityErrorRateExperiment<T> {
 	}
 	
 	protected TGPerplexityCalculator<T> initTGPerplexityCalculator() {
-		return new TGPerplexityCalculator<T>(false, createDocumentSplitter());
+		return new TGPerplexityCalculator<T>(false, createDocumentSplitter()) {
+			@Override
+			protected double getSmoothingLambda(TGSolution<T> s) {
+				return tgSmothingLambda;
+			}
+		};
 	}
 	
 	protected AbstractLDAPerplexityCalculator<T> initLDAPerplexityCalculator1() {
@@ -90,14 +99,13 @@ public abstract class AbstractPerplexityErrorRateExperiment<T> {
 				System.out.print("Training Vocabulary: ");
 				System.out.println(trainingDocumentProvider.getVocab().getNumberOfWords());
 
+				runTopicGrouper(pw3, i, j, trainingDocumentProvider,
+						holdOutSplitter.getHoldOut(), tgPerplexity, tgAcc);
+				
 				runLDAGibbsSampler(i, j, gibbsIterations,
 						trainingDocumentProvider,
 						holdOutSplitter.getHoldOut(), perplexity1, perplexity2,
 						perplexity3, acc);
-				
-				runTopicGrouper(pw3, i, j, trainingDocumentProvider,
-						holdOutSplitter.getHoldOut(), tgPerplexity, tgAcc);
-
 			}
 			aggregateTGResults(pw2, i, tgPerplexity, tgAcc);
 			aggregateLDAResults(pw, i, perplexity1, perplexity2, perplexity3, acc);

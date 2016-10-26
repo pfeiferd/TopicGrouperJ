@@ -8,7 +8,7 @@ import java.util.Random;
 import org.hhn.topicgrouper.doc.DocumentProvider;
 import org.hhn.topicgrouper.doc.impl.HoldOutSplitter;
 import org.hhn.topicgrouper.doc.impl.TrueTopicAccuracyCalculator;
-import org.hhn.topicgrouper.doc.impl.TrueTopicAccuracyCalculator.FrequencyProvider;
+import org.hhn.topicgrouper.doc.impl.TrueTopicAccuracyCalculator.PwtProvider;
 import org.hhn.topicgrouper.eval.TWCLDAPaperDocumentGenerator;
 import org.hhn.topicgrouper.lda.impl.LDAGibbsSampler;
 import org.hhn.topicgrouper.lda.report.BasicLDAResultReporter;
@@ -36,17 +36,16 @@ public class TWCAlphaBetaOpt {
 				false);
 
 		final TrueTopicAccuracyCalculator<String> accuracyCalculator = new TrueTopicAccuracyCalculator<String>();
-		final FrequencyProvider frequencyProvider = new FrequencyProvider() {
+		final PwtProvider frequencyProvider = new PwtProvider() {
 			@Override
-			public int getFrequency(int topic, int wordIndex) {
-				return gibbsSampler[0].getTopicWordAssignmentCount(topic,
-						wordIndex);
+			public double getPwt(int topic, int wordIndex) {
+				return gibbsSampler[0].getPhi(topic, wordIndex);
 			}
 
 			@Override
 			public boolean isCorrectTopic(int topic, int index) {
-				Integer w = Integer.valueOf(holdOutSplitter[0].getRest().getVocab()
-						.getWord(index));
+				Integer w = Integer.valueOf(holdOutSplitter[0].getRest()
+						.getVocab().getWord(index));
 				return topic == w / 100;
 			}
 		};
@@ -103,7 +102,8 @@ public class TWCAlphaBetaOpt {
 	}
 
 	public static void main(String[] args) throws IOException {
-		new TWCAlphaBetaOpt().run("TWCAccuracySymmetricAlphaBetaOpt", true, true);
+		new TWCAlphaBetaOpt().run("TWCAccuracySymmetricAlphaBetaOpt", true,
+				true);
 		new TWCAlphaBetaOpt().run("TWCAccuracyAsymmetricAlphaBetaOpt", true,
 				false);
 		new TWCAlphaBetaOpt().run("TWCPerplexitySymmetricAlphaBetaOpt", false,
