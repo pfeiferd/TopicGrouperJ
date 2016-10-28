@@ -42,8 +42,7 @@ public class DeferredJCComputationDependency {
 				0.5, 1 };
 		final DocumentProvider<String> reutersDocumentProvider = new Reuters21578(
 				false).getCorpusDocumentProvider(new File(
-				"src/test/resources/reuters21578"), new String[] { "earn" },
-				false, true);
+				"src/test/resources/reuters21578"), false, true);
 		new JCCsRunner<String>() {
 			protected org.hhn.topicgrouper.doc.DocumentProvider<String> createDocumentProvider(
 					int step) {
