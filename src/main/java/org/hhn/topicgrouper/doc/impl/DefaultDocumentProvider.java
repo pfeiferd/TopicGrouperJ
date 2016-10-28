@@ -30,6 +30,12 @@ public class DefaultDocumentProvider<T> extends WordMapDocumentProvider<T> {
 	public DefaultDocument addDocument(Document<T> d, int minFrequency,
 			DocumentWordFilter<T> filter) {
 		DefaultDocument r = newDocument();
+		copyWords(d, r, minFrequency, filter);
+		return r;
+	}
+	
+	protected void copyWords(Document<T> d, DefaultDocument r, int minFrequency,
+			DocumentWordFilter<T> filter) {
 		TIntIterator it = d.getWordIndices().iterator();
 		while (it.hasNext()) {
 			int index = it.next();
@@ -40,8 +46,7 @@ public class DefaultDocumentProvider<T> extends WordMapDocumentProvider<T> {
 					r.addWord(word, d.getWordFrequency(index));
 				}
 			}
-		}
-		return r;
+		}		
 	}
 
 	public DefaultDocument addDocument(Document<T> d) {
