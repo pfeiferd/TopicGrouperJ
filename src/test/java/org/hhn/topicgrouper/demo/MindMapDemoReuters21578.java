@@ -33,8 +33,7 @@ public class MindMapDemoReuters21578 extends AbstractTGTester<String> {
 	@Override
 	protected DocumentProvider<String> createDocumentProvider() {
 		return new Reuters21578(true).getCorpusDocumentProvider(new File(
-				"src/test/resources/reuters21578"), new String[] { "earn" },
-				false, true);
+				"src/test/resources/reuters21578"), false, true);
 	}
 
 	@Override
@@ -53,9 +52,10 @@ public class MindMapDemoReuters21578 extends AbstractTGTester<String> {
 		try {
 			FreeMindXMLTopicHierarchyWriter<String> writer = new FreeMindXMLTopicHierarchyWriter<String>(
 					true);
-			FileOutputStream mmStream = new FileOutputStream(createMindMapFile());
-			writer.writeToFile(mmStream, mindMapSolutionReporter.getCurrentNodes()
-					.values());
+			FileOutputStream mmStream = new FileOutputStream(
+					createMindMapFile());
+			writer.writeToFile(mmStream, mindMapSolutionReporter
+					.getCurrentNodes().values());
 			mmStream.close();
 			ObjectOutputStream objectStream = new ObjectOutputStream(
 					new FileOutputStream(createSerializationFile()));
@@ -65,14 +65,13 @@ public class MindMapDemoReuters21578 extends AbstractTGTester<String> {
 			throw new RuntimeException(e);
 		}
 	}
-	
+
 	protected File createMindMapFile() {
 		return new File("./target/Reuters21578.mm");
 	}
-	
+
 	protected File createSerializationFile() {
-		return new File(
-				"./target/Reuters21578.ser");
+		return new File("./target/Reuters21578.ser");
 	}
 
 	public static void main(String[] args) throws IOException {
