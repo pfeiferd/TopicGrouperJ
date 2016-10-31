@@ -3,10 +3,11 @@ package org.hhn.topicgrouper.eval;
 import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.Random;
 
-import org.hhn.topicgrouper.doc.DocumentProvider;
 import org.hhn.topicgrouper.doc.LabelingDocumentProvider;
 import org.hhn.topicgrouper.doc.impl.DefaultLabelingDocumentProvider;
+import org.hhn.topicgrouper.doc.impl.LabelingHoldOutSplitter;
 
 import com.aliasi.classify.Classification;
 import com.aliasi.corpus.ClassificationHandler;
@@ -31,8 +32,8 @@ public class Reuters21578 {
 						: baseFactory);
 	}
 
-	public LabelingDocumentProvider<String, String> getCorpusDocumentProvider(File directory,
-			boolean train, boolean test) {
+	public LabelingDocumentProvider<String, String> getCorpusDocumentProvider(
+			File directory, boolean train, boolean test) {
 		try {
 			final DefaultLabelingDocumentProvider<String, String> documentProvider = new DefaultLabelingDocumentProvider<String, String>();
 
@@ -48,7 +49,8 @@ public class Reuters21578 {
 					for (int i = 0; i < cs.length; i++) {
 						cs[i] = arg0.charAt(i);
 					}
-					DefaultLabelingDocumentProvider<String, String>.DefaultLabeledDocument entry = documentProvider.newLabeledDocument(arg1.bestCategory());
+					DefaultLabelingDocumentProvider<String, String>.DefaultLabeledDocument entry = documentProvider
+							.newLabeledDocument(arg1.bestCategory());
 					Tokenizer t = new PunctuationStopListTokenizer(
 							factory.tokenizer(cs, 0, arg0.length()));
 					Iterator<String> it = t.iterator();
@@ -78,11 +80,19 @@ public class Reuters21578 {
 	}
 
 	public static void main(String[] args) {
-		LabelingDocumentProvider<String,String> entryProvider = new Reuters21578(true)
-				.getCorpusDocumentProvider(new File(
-						"src/test/resources/reuters21578"), true, true);
+		LabelingDocumentProvider<String, String> entryProvider = new Reuters21578(
+				true).getCorpusDocumentProvider(new File(
+				"src/test/resources/reuters21578"), true, true);
 		System.out.println(entryProvider.getAllLabels());
 		System.out.println(entryProvider.getDocuments().size());
 		System.out.println(entryProvider.getVocab().getNumberOfWords());
+
+		LabelingHoldOutSplitter<String, String> splitter = new LabelingHoldOutSplitter<String, String>(
+				new Random(), entryProvider, 0.1, 1, 10);
+		
+		LabelingDocumentProvider<String, String> rest = splitter.getRest();
+		for (String l : rest.getAllLabels()) {
+			System.out.println("Label: " + l + " " + rest.getDocumentsWithLabel(l).size());
+		}
 	}
 }
