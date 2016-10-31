@@ -92,7 +92,7 @@ public class Reuters21578 {
 		
 		LabelingDocumentProvider<String, String> rest = splitter.getRest();
 		for (String l : rest.getAllLabels()) {
-			System.out.println("Label: " + l + " " + rest.getDocumentsWithLabel(l).size());
+			System.out.println("Label: " + l + " " + rest.getDocumentsWithLabel(l).size() + " " + splitter.getHoldOut().getDocumentsWithLabel(l).size());
 		}
 	}
 }
