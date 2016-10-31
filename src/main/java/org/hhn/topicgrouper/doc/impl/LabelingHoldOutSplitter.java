@@ -20,14 +20,6 @@ public class LabelingHoldOutSplitter<T, L> {
 	public LabelingHoldOutSplitter(Random random,
 			LabelingDocumentProvider<T, L> origDocuments, double holdOutRatio,
 			int minGlobalWordFrequency, int maxLabels) {
-		this(random, origDocuments,
-				(int) (origDocuments.getDocuments().size() * Math.min(1,
-						holdOutRatio)), minGlobalWordFrequency, maxLabels);
-	}
-
-	public LabelingHoldOutSplitter(Random random,
-			LabelingDocumentProvider<T, L> origDocuments, int holdOutNumber,
-			int minGlobalWordFrequency, int maxLabels) {
 		Collection<L> selectedLabels;
 		if (maxLabels > 0) {
 			Collection<L> labels = new ArrayList<L>(
@@ -67,6 +59,7 @@ public class LabelingHoldOutSplitter<T, L> {
 			// Keep holdout / rest ratio for every label.
 			List<LabeledDocument<T, L>> documents = new ArrayList<LabeledDocument<T, L>>(
 					origDocuments.getDocumentsWithLabel(label));
+			int holdOutNumber = (int) (documents.size() * holdOutRatio);
 			List<LabeledDocument<T, L>> holdOutDocuments = new ArrayList<LabeledDocument<T, L>>();
 			for (int i = 0; i < holdOutNumber; i++) {
 				holdOutDocuments.add(documents.remove(random.nextInt(documents
