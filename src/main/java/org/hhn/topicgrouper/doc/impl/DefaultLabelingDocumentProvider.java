@@ -16,7 +16,13 @@ public class DefaultLabelingDocumentProvider<T, L> extends
 	protected final Map<L, List<LabeledDocument<T, L>>> labelsToDocuments;
 	protected final Map<L, List<LabeledDocument<T, L>>> labelsToDocumentsImmutable;
 
+	
 	public DefaultLabelingDocumentProvider() {
+		this(new DefaultVocab<T>());
+	}
+	
+	public DefaultLabelingDocumentProvider(DefaultVocab<T> vocab) {
+		super(vocab);
 		labelsToDocuments = new HashMap<L, List<LabeledDocument<T, L>>>();
 		labelsToDocumentsImmutable = new HashMap<L, List<LabeledDocument<T, L>>>();
 	}
