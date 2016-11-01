@@ -5,9 +5,9 @@ import gnu.trove.iterator.TIntIterator;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.Arrays;
 import java.util.Random;
 
-import org.hhn.topicgrouper.demo.MindMapDemoReuters21578;
 import org.hhn.topicgrouper.doc.Document;
 import org.hhn.topicgrouper.doc.DocumentProvider;
 import org.hhn.topicgrouper.doc.LabeledDocument;
@@ -31,7 +31,7 @@ public class ReutersTGNaiveBayesExperiment extends AbstractTGTester<String> {
 				true).getCorpusDocumentProvider(new File(
 				"src/test/resources/reuters21578"), true, true);
 		LabelingHoldOutSplitter<String, String> splitter = new LabelingHoldOutSplitter<String, String>(
-				new Random(42), provider, 0.1, 10, 10);
+				new Random(42), provider, 0.1, 20, 10);
 		testProvider = splitter.getHoldOut();		
 		trainingProvider = splitter.getRest();
 	}
@@ -73,9 +73,12 @@ public class ReutersTGNaiveBayesExperiment extends AbstractTGTester<String> {
 				final int[] topicsIds = solution.getTopicIds();
 
 				AbstractTopicBasedNBClassifier<String, String> classifier = new AbstractTopicBasedNBClassifier<String, String>() {
+					private double lambda = 0.001;
+					
 					@Override
 					protected double[] computePtd(Document<String> d) {
 						double[] res = new double[topicsIds.length];
+						Arrays.fill(res, lambda);
 
 						TIntIterator it = d.getWordIndices().iterator();
 						while (it.hasNext()) {
@@ -93,7 +96,7 @@ public class ReutersTGNaiveBayesExperiment extends AbstractTGTester<String> {
 							res[k] += d.getWordFrequency(wordIndex);
 						}
 						for (int i = 0; i < res.length; i++) {
-							res[i] /= d.getSize();
+							res[i] /= (d.getSize() + lambda * res.length);
 //							if (Double.isNaN(res[i])) {
 //								System.out.println("stop");
 //							}
