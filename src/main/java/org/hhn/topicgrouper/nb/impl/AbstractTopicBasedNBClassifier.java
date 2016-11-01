@@ -15,11 +15,17 @@ public abstract class AbstractTopicBasedNBClassifier<T, L> {
 		pct = new HashMap<L, Map<Integer, Double>>();
 	}
 
-	public void train(LabelingDocumentProvider<T, L> provider, int topics) {
+	public void train(LabelingDocumentProvider<T, L> provider) {
 		pct.clear();
 		int ntopics = getNTopics();
 		int nDocs = provider.getDocuments().size();
-		double[] pt = computPt();
+		// Beware empty documents:
+		for (LabeledDocument<T, L> d : provider.getLabeledDocuments()) {
+			if (d.getSize() == 0) {
+				nDocs--;
+			}
+		}
+		double[] pt = computePt();
 		for (L label : provider.getAllLabels()) {
 			List<LabeledDocument<T, L>> labeledDocs = provider
 					.getDocumentsWithLabel(label);
@@ -27,14 +33,18 @@ public abstract class AbstractTopicBasedNBClassifier<T, L> {
 			pct.put(label, m);
 			double[] sum = new double[ntopics];
 			for (LabeledDocument<T, L> d : labeledDocs) {
-				double[] ptd = computePtd(d);
-				for (int t = 0; t < ntopics; t++) {
-					sum[t] += ptd[t];
+				// Beware empty documents:
+				if (d.getSize() > 0) {
+					double[] ptd = computePtd(d);
+					for (int t = 0; t < ntopics; t++) {
+						sum[t] += ptd[t];
+					}
 				}
 			}
-			
+
 			for (int t = 0; t < ntopics; t++) {
-				m.put(t, sum[t] / nDocs / pt[t]);
+				double res = sum[t] / nDocs / pt[t];
+				m.put(t, res);
 			}
 		}
 	}
@@ -49,7 +59,7 @@ public abstract class AbstractTopicBasedNBClassifier<T, L> {
 			for (int t = 0; t < ntopics; t++) {
 				sum += pct.get(label).get(t) * ptd[t];
 			}
-			if (sum > bestValue) {
+			if (sum >= bestValue) {
 				bestValue = sum;
 				bestLabel = label;
 			}
@@ -61,5 +71,5 @@ public abstract class AbstractTopicBasedNBClassifier<T, L> {
 
 	protected abstract double[] computePtd(Document<T> d);
 
-	protected abstract double[] computPt();
+	protected abstract double[] computePt();
 }

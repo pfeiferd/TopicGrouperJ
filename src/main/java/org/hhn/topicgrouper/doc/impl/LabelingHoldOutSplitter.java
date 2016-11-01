@@ -55,6 +55,7 @@ public class LabelingHoldOutSplitter<T, L> {
 				return rest.getVocab().getIndex(word) != -1;
 			}
 		};
+		int count = 0;
 		for (L label : selectedLabels) {
 			// Keep holdout / rest ratio for every label.
 			List<LabeledDocument<T, L>> documents = new ArrayList<LabeledDocument<T, L>>(
