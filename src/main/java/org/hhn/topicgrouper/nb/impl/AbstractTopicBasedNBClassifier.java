@@ -50,21 +50,31 @@ public abstract class AbstractTopicBasedNBClassifier<T, L> {
 	}
 
 	public L classify(Document<T> d) {
-		double bestValue = 0;
+		double bestValue = Double.NEGATIVE_INFINITY;
 		L bestLabel = null;
 		int ntopics = getNTopics();
 		double[] ptd = computePtd(d);
 		for (L label : pct.keySet()) {
 			double sum = 0;
 			for (int t = 0; t < ntopics; t++) {
-				sum += pct.get(label).get(t) * ptd[t];
+				sum += log(pct.get(label).get(t)) + log(ptd[t]);
 			}
 			if (sum >= bestValue) {
 				bestValue = sum;
 				bestLabel = label;
 			}
 		}
+		if (bestLabel == null) {
+			System.out.println("stop");
+		}
 		return bestLabel;
+	}
+	
+	protected double log(double x) {
+		if (x == 0) {
+			throw new IllegalStateException("log(0) undefined");
+		}
+		return Math.log(x);
 	}
 
 	protected abstract int getNTopics();
