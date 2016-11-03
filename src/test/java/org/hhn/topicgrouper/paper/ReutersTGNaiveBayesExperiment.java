@@ -32,7 +32,7 @@ public class ReutersTGNaiveBayesExperiment extends AbstractTGTester<String> {
 				"src/test/resources/reuters21578"), true, true);
 		LabelingHoldOutSplitter<String, String> splitter = new LabelingHoldOutSplitter<String, String>(
 				new Random(42), provider, 0.1, 20, 10);
-		testProvider = splitter.getHoldOut();		
+		testProvider = splitter.getHoldOut();
 		trainingProvider = splitter.getRest();
 	}
 
@@ -72,13 +72,10 @@ public class ReutersTGNaiveBayesExperiment extends AbstractTGTester<String> {
 					final TGSolution<String> solution) {
 				final int[] topicsIds = solution.getTopicIds();
 
-				AbstractTopicBasedNBClassifier<String, String> classifier = new AbstractTopicBasedNBClassifier<String, String>() {
-					private double lambda = 0.001;
-					
+				AbstractTopicBasedNBClassifier<String, String> classifier = new AbstractTopicBasedNBClassifier<String, String>(0.01) {
 					@Override
-					protected double[] computePtd(Document<String> d) {
+					protected double[] getFtd(Document<String> d) {
 						double[] res = new double[topicsIds.length];
-						Arrays.fill(res, lambda);
 
 						TIntIterator it = d.getWordIndices().iterator();
 						while (it.hasNext()) {
@@ -95,12 +92,6 @@ public class ReutersTGNaiveBayesExperiment extends AbstractTGTester<String> {
 
 							res[k] += d.getWordFrequency(wordIndex);
 						}
-						for (int i = 0; i < res.length; i++) {
-							res[i] /= (d.getSize() + lambda * res.length);
-//							if (Double.isNaN(res[i])) {
-//								System.out.println("stop");
-//							}
-						}
 						return res;
 					}
 
@@ -108,40 +99,22 @@ public class ReutersTGNaiveBayesExperiment extends AbstractTGTester<String> {
 					protected int getNTopics() {
 						return solution.getNumberOfTopics();
 					}
-
-					@Override
-					protected double[] computePt() {
-						double[] res = new double[topicsIds.length];
-						for (int i = 0; i < topicsIds.length; i++) {
-							res[i] = ((double) solution
-									.getTopicFrequency(topicsIds[i]))
-									/ solution.getSize();
-						}
-						return res;
-					}
 				};
 
 				classifier.train(trainingProvider);
 
 				int hits = 0;
 				int tests = 0;
-				int empty = 0;
 				for (LabeledDocument<String, String> dt : testProvider
 						.getLabeledDocuments()) {
-					// Beware empty docs:
-					if (dt.getSize() > 0) {
-						String label = classifier.classify(dt);
-						if (label.equals(dt.getLabel())) {
-							hits++;
-						}
-						tests++;
+					String label = classifier.classify(dt);
+					if (label.equals(dt.getLabel())) {
+						hits++;
 					}
-					else {
-						empty++;
-					}
+					tests++;
 				}
 				System.out.println(topicsIds.length + "; "
-						+ (((double) hits) / tests) + " " + empty + " " + tests);
+						+ (((double) hits) / tests) + " " + tests);
 			}
 		};
 	}

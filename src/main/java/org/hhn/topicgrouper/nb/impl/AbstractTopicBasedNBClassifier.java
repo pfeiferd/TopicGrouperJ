@@ -9,42 +9,40 @@ import org.hhn.topicgrouper.doc.LabeledDocument;
 import org.hhn.topicgrouper.doc.LabelingDocumentProvider;
 
 public abstract class AbstractTopicBasedNBClassifier<T, L> {
-	private final Map<L, Map<Integer, Double>> pct;
+	private final Map<L, Map<Integer, Double>> logptc;
+	private final Map<L, Double> logpc;
+	
+	private final double smoothingLambda;
 
-	public AbstractTopicBasedNBClassifier() {
-		pct = new HashMap<L, Map<Integer, Double>>();
+	public AbstractTopicBasedNBClassifier(double lambda) {
+		logptc = new HashMap<L, Map<Integer, Double>>();
+		logpc = new HashMap<L, Double>();
+		this.smoothingLambda = lambda;
 	}
 
 	public void train(LabelingDocumentProvider<T, L> provider) {
-		pct.clear();
+		logptc.clear();
+		logpc.clear();
+
 		int ntopics = getNTopics();
 		int nDocs = provider.getDocuments().size();
-		// Beware empty documents:
-		for (LabeledDocument<T, L> d : provider.getLabeledDocuments()) {
-			if (d.getSize() == 0) {
-				nDocs--;
-			}
-		}
-		double[] pt = computePt();
+		double lambdaSum = smoothingLambda * ntopics;
 		for (L label : provider.getAllLabels()) {
 			List<LabeledDocument<T, L>> labeledDocs = provider
 					.getDocumentsWithLabel(label);
 			Map<Integer, Double> m = new HashMap<Integer, Double>();
-			pct.put(label, m);
+			logptc.put(label, m);
+			logpc.put(label, log(((double) labeledDocs.size()) / nDocs));
 			double[] sum = new double[ntopics];
 			for (LabeledDocument<T, L> d : labeledDocs) {
-				// Beware empty documents:
-				if (d.getSize() > 0) {
-					double[] ptd = computePtd(d);
-					for (int t = 0; t < ntopics; t++) {
-						sum[t] += ptd[t];
-					}
+				double[] ftd = getFtd(d);
+				for (int t = 0; t < ntopics; t++) {
+					sum[t] += ftd[t];
 				}
 			}
 
 			for (int t = 0; t < ntopics; t++) {
-				double res = sum[t] / nDocs / pt[t];
-				m.put(t, res);
+				m.put(t, log((sum[t] + smoothingLambda) / (nDocs + lambdaSum)));
 			}
 		}
 	}
@@ -53,23 +51,20 @@ public abstract class AbstractTopicBasedNBClassifier<T, L> {
 		double bestValue = Double.NEGATIVE_INFINITY;
 		L bestLabel = null;
 		int ntopics = getNTopics();
-		double[] ptd = computePtd(d);
-		for (L label : pct.keySet()) {
-			double sum = 0;
+		double[] ftd = getFtd(d);
+		for (L label : logptc.keySet()) {
+			double sum = logpc.get(label);
 			for (int t = 0; t < ntopics; t++) {
-				sum += log(pct.get(label).get(t)) + log(ptd[t]);
+				sum += logptc.get(label).get(t) * ftd[t];
 			}
 			if (sum >= bestValue) {
 				bestValue = sum;
 				bestLabel = label;
 			}
 		}
-		if (bestLabel == null) {
-			System.out.println("stop");
-		}
 		return bestLabel;
 	}
-	
+
 	protected double log(double x) {
 		if (x == 0) {
 			throw new IllegalStateException("log(0) undefined");
@@ -77,9 +72,7 @@ public abstract class AbstractTopicBasedNBClassifier<T, L> {
 		return Math.log(x);
 	}
 
+	protected abstract double[] getFtd(Document<T> d);
+
 	protected abstract int getNTopics();
-
-	protected abstract double[] computePtd(Document<T> d);
-
-	protected abstract double[] computePt();
 }
