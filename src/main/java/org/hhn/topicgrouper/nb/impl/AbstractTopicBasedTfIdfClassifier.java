@@ -81,7 +81,7 @@ public abstract class AbstractTopicBasedTfIdfClassifier<T, L> {
 			sum += v[i] * v[i];
 		}
 		for (int i = 0; i < v.length; i++) {
-			v[i] += v[i] / Math.sqrt(sum);
+			v[i] /= Math.sqrt(sum);
 		}		
 	}
 	
