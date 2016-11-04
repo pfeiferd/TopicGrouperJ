@@ -77,7 +77,7 @@ public abstract class AbstractTopicBasedTfIdfClassifier<T, L> {
 		computTopicFrequency(d, v);
 		double sum = 0;
 		for (int i = 0; i < v.length; i++) {
-			v[i] *= idf.get(i) * v[i];
+			v[i] *= idf.get(i);
 			sum += v[i] * v[i];
 		}
 		for (int i = 0; i < v.length; i++) {
