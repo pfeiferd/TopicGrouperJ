@@ -20,7 +20,6 @@ public abstract class AbstractTopicBasedTfIdfClassifier<T, L> {
 	// Label vectors
 	private final Map<L, double[]> lvs;
 	private final TIntIntMap topicIndicesBack;
-	private int[] topicIndices;
 	private double[] vHelp;
 
 	public AbstractTopicBasedTfIdfClassifier() {
@@ -33,13 +32,11 @@ public abstract class AbstractTopicBasedTfIdfClassifier<T, L> {
 		idf.clear();
 		lvs.clear();
 		topicIndicesBack.clear();
-		topicIndices = getTopicIndices();
-		for (int i = 0; i < topicIndices.length; i++) {
-			this.topicIndicesBack.put(topicIndices[i], i);
-		}
+		int[] topicIndices = getTopicIndices();
 		
 		List<Document<T>> ds = provider.getDocuments();
 		for (int i = 0; i < topicIndices.length; i++) {
+			this.topicIndicesBack.put(topicIndices[i], i);
 			int df = 0;
 			for (Document<T> d : ds) {
 				TIntIterator it = d.getWordIndices().iterator();
@@ -52,7 +49,7 @@ public abstract class AbstractTopicBasedTfIdfClassifier<T, L> {
 					}
 				}
 			}
-			idf.put(i, Math.log(((double) ds.size()) / df));
+			idf.put(i, ((double) ds.size()) / df);
 		}
 
 		int nDocs = provider.getDocuments().size();
@@ -64,7 +61,7 @@ public abstract class AbstractTopicBasedTfIdfClassifier<T, L> {
 			for (LabeledDocument<T, L> d : labeledDocs) {
 				computeDV(d, vHelp);
 				for (int i = 0; i < lv.length; i++) {
-					lv[i] += vHelp[i] / nDocs;
+					lv[i] = lv[i] + (vHelp[i] / nDocs);
 				}
 			}
 
@@ -77,11 +74,11 @@ public abstract class AbstractTopicBasedTfIdfClassifier<T, L> {
 		computTopicFrequency(d, v);
 		double sum = 0;
 		for (int i = 0; i < v.length; i++) {
-			v[i] *= idf.get(i);
+			v[i] = v[i] * idf.get(i);
 			sum += v[i] * v[i];
 		}
 		for (int i = 0; i < v.length; i++) {
-			v[i] /= Math.sqrt(sum);
+			v[i] = v[i] / Math.sqrt(sum);
 		}		
 	}
 	
@@ -105,6 +102,9 @@ public abstract class AbstractTopicBasedTfIdfClassifier<T, L> {
 			double sum = 0;
 			for (int i = 0; i < lv.length; i++) {
 				sum += lv[i] * vHelp[i];
+			}
+			if (sum < 0) {
+				throw new IllegalStateException();
 			}
 			if (sum >= bestValue) {
 				bestValue = sum;
