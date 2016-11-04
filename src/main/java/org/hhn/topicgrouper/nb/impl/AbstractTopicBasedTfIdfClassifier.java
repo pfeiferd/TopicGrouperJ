@@ -49,7 +49,7 @@ public abstract class AbstractTopicBasedTfIdfClassifier<T, L> {
 					}
 				}
 			}
-			idf.put(i, ((double) ds.size()) / df);
+			idf.put(i, Math.log((double) ds.size()) / df);
 		}
 
 		int nDocs = provider.getDocuments().size();
@@ -72,14 +72,14 @@ public abstract class AbstractTopicBasedTfIdfClassifier<T, L> {
 	protected void computeDV(Document<T> d, double[] v) {
 		Arrays.fill(v, 0);
 		computTopicFrequency(d, v);
-		double sum = 0;
+//		double sum = 0;
 		for (int i = 0; i < v.length; i++) {
 			v[i] = v[i] * idf.get(i);
-			sum += v[i] * v[i];
+//			sum += v[i] * v[i];
 		}
-		for (int i = 0; i < v.length; i++) {
-			v[i] = v[i] / Math.sqrt(sum);
-		}		
+//		for (int i = 0; i < v.length; i++) {
+//			v[i] = v[i] / Math.sqrt(sum);
+//		}		
 	}
 	
 	protected void computTopicFrequency(Document<T> d, double[] v) {
