@@ -49,7 +49,7 @@ public abstract class AbstractTopicBasedTfIdfClassifier<T, L> {
 					}
 				}
 			}
-			idf.put(i, Math.log((double) ds.size()) / df);
+			idf.put(i, Math.log(((double) ds.size()) / df));
 		}
 
 		int nDocs = provider.getDocuments().size();
