@@ -106,7 +106,13 @@ public class DefaultLabelingDocumentProvider<T, L> extends
 			int minFrequency, DocumentWordFilter<T> filter) {
 		DefaultLabeledDocument r = newLabeledDocument(d.getLabel());
 		copyWords(d, r, minFrequency, filter);
-		return r;
+		if (r.getSize() == 0) {
+			removeLabeledDocument(r);
+			return null;
+		}
+		else {
+			return r;
+		}
 	}
 
 	public DefaultLabeledDocument addLabeledDocument(LabeledDocument<T, L> d) {

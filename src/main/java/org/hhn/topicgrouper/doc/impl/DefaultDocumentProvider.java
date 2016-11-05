@@ -31,7 +31,13 @@ public class DefaultDocumentProvider<T> extends WordMapDocumentProvider<T> {
 			DocumentWordFilter<T> filter) {
 		DefaultDocument r = newDocument();
 		copyWords(d, r, minFrequency, filter);
-		return r;
+		if (r.getSize() == 0) {
+			removeDocument(r);
+			return null;
+		}
+		else {
+			return r;
+		}
 	}
 	
 	protected void copyWords(Document<T> d, DefaultDocument r, int minFrequency,
