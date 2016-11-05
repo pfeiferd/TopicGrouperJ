@@ -33,7 +33,7 @@ public abstract class AbstractTopicBasedTfIdfClassifier<T, L> {
 		lvs.clear();
 		topicIndicesBack.clear();
 		int[] topicIndices = getTopicIndices();
-		
+
 		List<Document<T>> ds = provider.getDocuments();
 		for (int i = 0; i < topicIndices.length; i++) {
 			this.topicIndicesBack.put(topicIndices[i], i);
@@ -52,7 +52,6 @@ public abstract class AbstractTopicBasedTfIdfClassifier<T, L> {
 			idf.put(i, Math.log(((double) ds.size()) / df));
 		}
 
-		int nDocs = provider.getDocuments().size();
 		vHelp = new double[topicIndices.length];
 		for (L label : provider.getAllLabels()) {
 			double[] lv = new double[topicIndices.length];
@@ -61,42 +60,48 @@ public abstract class AbstractTopicBasedTfIdfClassifier<T, L> {
 			for (LabeledDocument<T, L> d : labeledDocs) {
 				computeDV(d, vHelp);
 				for (int i = 0; i < lv.length; i++) {
-					lv[i] = lv[i] + (vHelp[i] / nDocs);
+					lv[i] = lv[i] + vHelp[i];
 				}
 			}
+			normalize(lv);
 
 			lvs.put(label, lv);
 		}
 	}
-	
+
 	protected void computeDV(Document<T> d, double[] v) {
 		Arrays.fill(v, 0);
 		computTopicFrequency(d, v);
-//		double sum = 0;
 		for (int i = 0; i < v.length; i++) {
 			v[i] = v[i] * idf.get(i);
-//			sum += v[i] * v[i];
 		}
-//		for (int i = 0; i < v.length; i++) {
-//			v[i] = v[i] / Math.sqrt(sum);
-//		}		
 	}
-	
+
+	protected void normalize(double[] v) {
+		double sum = 0;
+		for (int i = 0; i < v.length; i++) {
+			sum += v[i] * v[i];
+		}
+		for (int i = 0; i < v.length; i++) {
+			v[i] = v[i] / Math.sqrt(sum);
+		}
+	}
+
 	protected void computTopicFrequency(Document<T> d, double[] v) {
 		TIntIterator it = d.getWordIndices().iterator();
 		while (it.hasNext()) {
 			int wordIndex = it.next();
 			int fr = d.getWordFrequency(wordIndex);
 			v[this.topicIndicesBack.get(getTopicIndex(wordIndex))] += fr;
-		}		
+		}
 	}
-	
+
 	public L classify(Document<T> d) {
 		computeDV(d, vHelp);
-		
+
 		double bestValue = 0;
 		L bestLabel = null;
-		
+
 		for (L label : lvs.keySet()) {
 			double[] lv = lvs.get(label);
 			double sum = 0;
@@ -113,13 +118,6 @@ public abstract class AbstractTopicBasedTfIdfClassifier<T, L> {
 		}
 		return bestLabel;
 	}
-
-	// protected double log(double x) {
-	// if (x == 0) {
-	// throw new IllegalStateException("log(0) undefined");
-	// }
-	// return Math.log(x);
-	// }
 
 	protected abstract int getTopicIndex(int wordIndex);
 
