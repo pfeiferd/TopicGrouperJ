@@ -1,15 +1,11 @@
 package org.hhn.topicgrouper.paper;
 
-import gnu.trove.iterator.TIntIterator;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.Arrays;
 import java.util.Random;
 
-import org.hhn.topicgrouper.classify.impl.AbstractTopicBasedNBClassifier;
-import org.hhn.topicgrouper.doc.Document;
+import org.hhn.topicgrouper.classify.impl.AbstractTopicBasedTfIdfClassifier;
 import org.hhn.topicgrouper.doc.DocumentProvider;
 import org.hhn.topicgrouper.doc.LabeledDocument;
 import org.hhn.topicgrouper.doc.LabelingDocumentProvider;
@@ -21,11 +17,11 @@ import org.hhn.topicgrouper.tg.TGSolutionListener;
 import org.hhn.topicgrouper.tg.TGSolver;
 import org.hhn.topicgrouper.tg.impl.TopicGrouperWithTreeSet;
 
-public class ReutersTGNaiveBayesExperiment extends AbstractTGTester<String> {
+public class ReutersTGTfIdfExperiment extends AbstractTGTester<String> {
 	private final LabelingDocumentProvider<String, String> testProvider;
 	private final LabelingDocumentProvider<String, String> trainingProvider;
 
-	public ReutersTGNaiveBayesExperiment() throws IOException {
+	public ReutersTGTfIdfExperiment() throws IOException {
 		super(null);
 		LabelingDocumentProvider<String, String> provider = new Reuters21578(
 				true).getCorpusDocumentProvider(new File(
@@ -70,56 +66,42 @@ public class ReutersTGNaiveBayesExperiment extends AbstractTGTester<String> {
 			public void updatedSolution(int newTopicIndex, int oldTopicIndex,
 					double improvement, int t1Size, int t2Size,
 					final TGSolution<String> solution) {
-				final int[] topicsIds = solution.getTopicIds();
+				int nt = solution.getNumberOfTopics();
+				if (nt % 100 == 0 || nt < 300) {
+					final int[] topicsIds = solution.getTopicIds();
 
-				AbstractTopicBasedNBClassifier<String, String> classifier = new AbstractTopicBasedNBClassifier<String, String>(1) {
-					@Override
-					protected double[] getFtd(Document<String> d) {
-						double[] res = new double[topicsIds.length];
-
-						TIntIterator it = d.getWordIndices().iterator();
-						while (it.hasNext()) {
-							int wordIndex = it.next();
-							int topicIndex = solution
-									.getTopicForWord(wordIndex);
-							int k = -1;
-							for (int i = 0; i < topicsIds.length; i++) {
-								if (topicsIds[i] == topicIndex) {
-									k = i;
-									break;
-								}
-							}
-
-							res[k] += d.getWordFrequency(wordIndex);
+					AbstractTopicBasedTfIdfClassifier<String, String> classifier = new AbstractTopicBasedTfIdfClassifier<String, String>() {
+						@Override
+						protected int getTopicIndex(int wordIndex) {
+							return solution.getTopicForWord(wordIndex);
 						}
-						return res;
-					}
 
-					@Override
-					protected int getNTopics() {
-						return solution.getNumberOfTopics();
-					}
-				};
+						@Override
+						protected int[] getTopicIndices() {
+							return topicsIds;
+						}
+					};
 
-				classifier.train(trainingProvider);
+					classifier.train(trainingProvider);
 
-				int hits = 0;
-				int tests = 0;
-				for (LabeledDocument<String, String> dt : testProvider
-						.getLabeledDocuments()) {
-					String label = classifier.classify(dt);
-					if (label.equals(dt.getLabel())) {
-						hits++;
+					int hits = 0;
+					int tests = 0;
+					for (LabeledDocument<String, String> dt : testProvider
+							.getLabeledDocuments()) {
+						String label = classifier.classify(dt);
+						if (label.equals(dt.getLabel())) {
+							hits++;
+						}
+						tests++;
 					}
-					tests++;
+					System.out.println(topicsIds.length + "; "
+							+ (((double) hits) / tests) + ";");
 				}
-				System.out.println(topicsIds.length + "; "
-						+ (((double) hits) / tests) + " " + tests);
 			}
 		};
 	}
 
 	public static void main(String[] args) throws IOException {
-		new ReutersTGNaiveBayesExperiment().run();
+		new ReutersTGTfIdfExperiment().run();
 	}
 }
