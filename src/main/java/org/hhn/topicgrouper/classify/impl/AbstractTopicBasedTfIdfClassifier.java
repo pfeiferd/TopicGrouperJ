@@ -51,6 +51,7 @@ public abstract class AbstractTopicBasedTfIdfClassifier<T, L> implements Supervi
 					}
 				}
 			}
+			// Using idf (whith log) improves accuracy considerably (by about 4%)
 			idf.put(i, Math.log(((double) ds.size()) / df));
 		}
 
@@ -65,6 +66,8 @@ public abstract class AbstractTopicBasedTfIdfClassifier<T, L> implements Supervi
 					lv[i] = lv[i] + vHelp[i];
 				}
 			}
+			// This is important such that classes with many documen (= large lv)
+			// do not get a preference.
 			normalize(lv);
 
 			lvs.put(label, lv);
