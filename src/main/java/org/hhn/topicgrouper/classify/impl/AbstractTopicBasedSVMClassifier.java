@@ -28,16 +28,19 @@ import de.hsheilbronn.mi.process.SvmTrainerImpl;
 public abstract class AbstractTopicBasedSVMClassifier<T, L> implements
 		SupervisedDocumentClassifier<T, L> {
 	private final Map<L, SvmLabelImpl<L>> labelToSvmLabel;
+	private final List<L> usedLabels;
 	private int labelCounter;
 	private SvmModel model;
 
 	public AbstractTopicBasedSVMClassifier() {
 		labelToSvmLabel = new HashMap<L, SvmLabelImpl<L>>();
+		usedLabels = new ArrayList<L>();
 	}
 
 	public void train(LabelingDocumentProvider<T, L> provider) {
 		labelCounter = 0;
 		labelToSvmLabel.clear();
+		usedLabels.clear();
 
 		SvmTrainer trainer = new SvmTrainerImpl(
 				new SvmConfigurationImpl.Builder().build(),
@@ -51,14 +54,14 @@ public abstract class AbstractTopicBasedSVMClassifier<T, L> implements
 		model = trainer.train(docs);
 	}
 
-	@SuppressWarnings("unchecked")
 	public L classify(Document<T> d) {
 		SvmClassifier classifier = new SvmClassifierImpl(model);
 
 		List<SvmDocument> classified = classifier.classify(
 				Collections.singletonList((SvmDocument)new SVMDocumentAdapter(d, null)),
-				true);
-		return ((SvmLabelImpl<L>)classified.get(0).getClassLabelWithHighestProbability()).getLabel();
+				false);
+		SvmClassLabel l = classified.get(0).getClassLabelWithHighestProbability();
+		return usedLabels.get((int) l.getNumeric());
 	}
 
 	protected abstract int getTopicIndex(int wordIndex);
@@ -70,6 +73,7 @@ public abstract class AbstractTopicBasedSVMClassifier<T, L> implements
 		if (sl == null) {
 			sl = new SvmLabelImpl<L>(label, labelCounter++);
 			labelToSvmLabel.put(label, sl);
+			usedLabels.add(label);
 		}
 		return sl;
 	}
