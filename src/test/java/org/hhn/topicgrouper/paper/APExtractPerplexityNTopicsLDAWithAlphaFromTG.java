@@ -1,11 +1,9 @@
 package org.hhn.topicgrouper.paper;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.BitSet;
 import java.util.List;
 import java.util.Random;
 
@@ -14,7 +12,6 @@ import org.hhn.topicgrouper.lda.impl.LDAFullBetaGibbsSampler;
 import org.hhn.topicgrouper.lda.impl.LDAGibbsSampler;
 import org.hhn.topicgrouper.tg.impl.AbstractTopicGrouper;
 import org.hhn.topicgrouper.tg.impl.TopicGrouperWithTreeSet;
-import org.hhn.topicgrouper.tg.report.MindMapSolutionReporter;
 import org.hhn.topicgrouper.tg.report.store.MapNode;
 import org.hhn.topicgrouper.tg.report.store.WordInfo;
 

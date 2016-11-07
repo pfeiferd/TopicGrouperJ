@@ -3,13 +3,12 @@ package org.hhn.topicgrouper.paper;
 import java.io.IOException;
 
 import org.hhn.topicgrouper.classify.SupervisedDocumentClassifier;
+import org.hhn.topicgrouper.classify.impl.AbstractTopicBasedSVMClassifier;
 import org.hhn.topicgrouper.classify.impl.AbstractTopicBasedTfIdfClassifier;
 import org.hhn.topicgrouper.tg.TGSolution;
 
-public class ReutersTGTfIdfExperiment extends
-		AbstractTGClassificationExperiment {
-
-	public ReutersTGTfIdfExperiment() throws IOException {
+public class ReutersTGSVMExperiment extends AbstractTGClassificationExperiment {
+	public ReutersTGSVMExperiment() throws IOException {
 		super();
 	}
 
@@ -20,7 +19,7 @@ public class ReutersTGTfIdfExperiment extends
 		if (nt % 100 == 0 || nt < 300) {
 			final int[] topicsIds = solution.getTopicIds();
 
-			return new AbstractTopicBasedTfIdfClassifier<String, String>() {
+			return new AbstractTopicBasedSVMClassifier<String, String>() {
 				@Override
 				protected int getTopicIndex(int wordIndex) {
 					return solution.getTopicForWord(wordIndex);
@@ -37,6 +36,6 @@ public class ReutersTGTfIdfExperiment extends
 	}
 
 	public static void main(String[] args) throws IOException {
-		new ReutersTGTfIdfExperiment().run();
+		new ReutersTGSVMExperiment().run();
 	}
 }

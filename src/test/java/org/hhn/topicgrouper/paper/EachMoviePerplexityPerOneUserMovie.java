@@ -6,7 +6,6 @@ import java.util.Random;
 
 import org.hhn.topicgrouper.doc.DocumentProvider;
 import org.hhn.topicgrouper.doc.DocumentSplitter;
-import org.hhn.topicgrouper.doc.impl.EachWordDocumentSplitter;
 import org.hhn.topicgrouper.doc.impl.FiftyFiftyDocumentSplitter;
 import org.hhn.topicgrouper.doc.impl.HoldOutSplitter;
 import org.hhn.topicgrouper.eval.EachMovieParser;
