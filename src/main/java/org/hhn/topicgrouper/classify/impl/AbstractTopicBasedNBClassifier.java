@@ -41,7 +41,7 @@ public abstract class AbstractTopicBasedNBClassifier<T, L> implements Supervised
 				for (int t = 0; t < ntopics; t++) {
 					sum[t] += ftd[t];
 				}
-				total += labeledDocs.size();
+				total += d.getSize();
 			}
 
 			for (int t = 0; t < ntopics; t++) {
