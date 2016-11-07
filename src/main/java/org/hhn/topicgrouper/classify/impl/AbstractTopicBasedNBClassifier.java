@@ -35,15 +35,17 @@ public abstract class AbstractTopicBasedNBClassifier<T, L> implements Supervised
 			logptc.put(label, m);
 			logpc.put(label, log(((double) labeledDocs.size()) / nDocs));
 			double[] sum = new double[ntopics];
+			int total = 0;
 			for (LabeledDocument<T, L> d : labeledDocs) {
 				double[] ftd = getFtd(d);
 				for (int t = 0; t < ntopics; t++) {
 					sum[t] += ftd[t];
 				}
+				total += labeledDocs.size();
 			}
 
 			for (int t = 0; t < ntopics; t++) {
-				m.put(t, log((sum[t] + smoothingLambda) / (nDocs + lambdaSum)));
+				m.put(t, log((sum[t] + smoothingLambda) / (total + lambdaSum)));
 			}
 		}
 	}
