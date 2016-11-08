@@ -5,37 +5,27 @@ import gnu.trove.list.array.TDoubleArrayList;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.hhn.topicgrouper.classify.SupervisedDocumentClassifier;
 import org.hhn.topicgrouper.doc.Document;
 import org.hhn.topicgrouper.doc.LabeledDocument;
 import org.hhn.topicgrouper.doc.LabelingDocumentProvider;
 
-public abstract class AbstractTopicBasedNBClassifier<T, L> implements SupervisedDocumentClassifier<T, L> {
+public abstract class AbstractTopicBasedAltBayesClassifier<T, L> implements SupervisedDocumentClassifier<T, L> {
 	private final List<L> labels;
-	private final List<TDoubleList> logptc;
-	private final TDoubleList logpc;
-	
-	private final double smoothingLambda;
+	private final List<TDoubleList> pct;
 
-	public AbstractTopicBasedNBClassifier(double lambda) {
-		logptc = new ArrayList<TDoubleList>();
-		logpc = new TDoubleArrayList();
+	public AbstractTopicBasedAltBayesClassifier() {
+		pct = new ArrayList<TDoubleList>();
 		labels = new ArrayList<L>();
-		this.smoothingLambda = lambda;
 	}
 
 	public void train(LabelingDocumentProvider<T, L> provider) {
-		logptc.clear();
-		logpc.clear();
+		pct.clear();
 		labels.clear();
 
 		int ntopics = getNTopics();
-		int nDocs = provider.getDocuments().size();
-		double lambdaSum = smoothingLambda * ntopics;
 		double[] sum = new double[ntopics];
 		
 		int l = 0;		
@@ -43,27 +33,24 @@ public abstract class AbstractTopicBasedNBClassifier<T, L> implements Supervised
 			labels.add(label);
 			List<LabeledDocument<T, L>> labeledDocs = provider
 					.getDocumentsWithLabel(label);
-			TDoubleList pt = logptc.size() <= l ? null : logptc.get(l);
-			if (pt == null) {
-				pt = new TDoubleArrayList();
-				logptc.add(pt);
+			TDoubleList pc = pct.size() <= l ? null : pct.get(l);
+			if (pc == null) {
+				pc = new TDoubleArrayList();
+				pct.add(pc);
 			}
 			else {
-				pt.clear();
+				pc.clear();
 			}
-			logpc.add(Math.log(((double) labeledDocs.size()) / nDocs));
-			int total = 0;
 			Arrays.fill(sum, 0);
 			for (LabeledDocument<T, L> d : labeledDocs) {
 				double[] ftd = getFtd(d);
 				for (int t = 0; t < ntopics; t++) {
 					sum[t] += ftd[t];
 				}
-				total += d.getSize();
 			}
 
 			for (int t = 0; t < ntopics; t++) {
-				pt.add(Math.log((sum[t] + smoothingLambda) / (total + lambdaSum)));
+				pc.add(sum[t] / getFt(t));
 			}
 			l++;
 		}
@@ -74,11 +61,12 @@ public abstract class AbstractTopicBasedNBClassifier<T, L> implements Supervised
 		L bestLabel = null;
 		int ntopics = getNTopics();
 		double[] ftd = getFtd(d);
+		
 		int l = 0;
 		for (L label : labels) {
-			double sum = logpc.get(l);
+			double sum = 0;
 			for (int t = 0; t < ntopics; t++) {
-				sum += logptc.get(l).get(t) * ftd[t];
+				sum += pct.get(l).get(t) * ftd[t];
 			}
 			if (sum >= bestValue) {
 				bestValue = sum;
@@ -89,14 +77,16 @@ public abstract class AbstractTopicBasedNBClassifier<T, L> implements Supervised
 		return bestLabel;
 	}
 
-//	protected double log(double x) {
-//		if (x == 0) {
-//			throw new IllegalStateException("log(0) undefined");
-//		}
-//		return Math.log(x);
-//	}
+	protected double log(double x) {
+		if (x == 0) {
+			throw new IllegalStateException("log(0) undefined");
+		}
+		return Math.log(x);
+	}
 
 	protected abstract double[] getFtd(Document<T> d);
 
 	protected abstract int getNTopics();
+	
+	protected abstract double getFt(int topic);
 }

@@ -92,7 +92,7 @@ public class DefaultDocumentProvider<T> extends WordMapDocumentProvider<T> {
 			indexToFr.set(index, indexToFr.get(index) + times);
 			size += times;
 		}
-
+		
 		@Override
 		public DocumentProvider<T> getProvider() {
 			return DefaultDocumentProvider.this;

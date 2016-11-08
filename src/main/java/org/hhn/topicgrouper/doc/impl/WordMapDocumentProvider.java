@@ -24,6 +24,7 @@ public class WordMapDocumentProvider<T> implements DocumentProvider<T> {
 		this.size = 0;
 	}
 	
+	
 	@Override
 	public List<Document<T>> getDocuments() {
 		return immutableList;

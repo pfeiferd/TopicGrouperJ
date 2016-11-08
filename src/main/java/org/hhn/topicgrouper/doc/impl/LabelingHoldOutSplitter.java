@@ -5,7 +5,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Random;
 
-import org.hhn.topicgrouper.doc.Document;
 import org.hhn.topicgrouper.doc.LabeledDocument;
 import org.hhn.topicgrouper.doc.LabelingDocumentProvider;
 

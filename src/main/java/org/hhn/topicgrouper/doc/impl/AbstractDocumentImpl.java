@@ -37,14 +37,16 @@ public abstract class AbstractDocumentImpl<T> implements Document<T> {
 		return frequencies.keySet();
 	}
 
-	public void addWordOccurrence(int index) {
-		addWordOccurrence(index, 1);
+	public int addWordOccurrence(int index) {
+		return addWordOccurrence(index, 1);
 	}
 
-	public void addWordOccurrence(int index, int times) {
+	public int addWordOccurrence(int index, int times) {
 		Integer f = frequencies.get(index);
-		frequencies.put(index, f == null ? times : f + times);
+		int newF = f == null ? times : f + times;
+		frequencies.put(index, newF);
 		size += times;
+		return newF;
 	}
 
 	@Override
