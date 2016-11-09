@@ -16,7 +16,7 @@ public class ReutersTGSVMExperiment extends AbstractTGClassificationExperiment {
 	protected SupervisedDocumentClassifier<String, String> createClassifier(
 			final TGSolution<String> solution) {
 		int nt = solution.getNumberOfTopics();
-		if (nt % 100 == 0 || nt < 300) {
+		if (nt % 500 == 0 || (nt < 300 && nt % 10 == 0)) {
 			final int[] topicsIds = solution.getTopicIds();
 
 			return new AbstractTopicBasedSVMClassifier<String, String>() {

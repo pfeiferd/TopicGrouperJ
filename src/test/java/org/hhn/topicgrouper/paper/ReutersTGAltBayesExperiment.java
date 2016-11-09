@@ -23,33 +23,17 @@ public class ReutersTGAltBayesExperiment extends
 			final int[] topicIds = solution.getTopicIds();
 			return new AbstractTopicBasedAltBayesClassifier<String, String>() {
 				@Override
-				protected double[] getFtd(Document<String> d) {
-					double[] res = new double[topicIds.length];
-
-					TIntIterator it = d.getWordIndices().iterator();
-					while (it.hasNext()) {
-						int wordIndex = it.next();
-						int topicIndex = solution.getTopicForWord(wordIndex);
-						int k = -1;
-						for (int i = 0; i < topicIds.length; i++) {
-							if (topicIds[i] == topicIndex) {
-								k = i;
-								break;
-							}
-						}
-
-						res[k] += d.getWordFrequency(wordIndex);
-					}
-					return res;
-				}
-
-				@Override
-				protected int getNTopics() {
-					return solution.getNumberOfTopics();
+				protected int[] getTopicIndices() {
+					return topicIds;
 				}
 				
 				@Override
-				protected double getFt(int topic) {
+				protected int getTopicIndex(int wordIndex) {
+					return solution.getTopicForWord(wordIndex);
+				}
+				
+				@Override
+				protected double getTopicFrequency(int topic) {
 					return solution.getTopicFrequency(topicIds[topic]);
 				}
 			};
