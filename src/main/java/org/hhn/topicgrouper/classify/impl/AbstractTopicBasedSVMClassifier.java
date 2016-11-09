@@ -15,7 +15,6 @@ import org.hhn.topicgrouper.doc.LabeledDocument;
 import org.hhn.topicgrouper.doc.LabelingDocumentProvider;
 
 import de.hsheilbronn.mi.configuration.SvmConfigurationImpl;
-import de.hsheilbronn.mi.configuration.SvmType;
 import de.hsheilbronn.mi.domain.SvmClassLabel;
 import de.hsheilbronn.mi.domain.SvmClassLabelImpl;
 import de.hsheilbronn.mi.domain.SvmDocument;
@@ -68,8 +67,8 @@ public abstract class AbstractTopicBasedSVMClassifier<T, L> extends
 		}
 
 		SvmTrainer trainer = new SvmTrainerImpl(
-				new SvmConfigurationImpl.Builder().setSvmType(SvmType.C_SVC)
-						.build(), "my-custom-trained-model");
+				new SvmConfigurationImpl.Builder().build(),
+				"my-custom-trained-model");
 
 		List<SvmDocument> docs = new ArrayList<SvmDocument>();
 		double[] ftd = new double[topicIndices.length];
@@ -82,13 +81,14 @@ public abstract class AbstractTopicBasedSVMClassifier<T, L> extends
 	}
 
 	public L classify(Document<T> d) {
+		System.out.println(d);
 		SvmClassifier classifier = new SvmClassifierImpl(model);
 		double[] ftd = new double[topicIndices.length];
 		computeTopicFrequency(d, ftd, true);
 
 		List<SvmDocument> classified = classifier.classify(Collections
-				.singletonList((SvmDocument) new SVMDocumentAdapter(d, null, ftd)),
-				false);
+				.singletonList((SvmDocument) new SVMDocumentAdapter(d, null,
+						ftd)), false);
 		SvmClassLabel l = classified.get(0)
 				.getClassLabelWithHighestProbability();
 		return usedLabels.get((int) l.getNumeric());
@@ -114,18 +114,20 @@ public abstract class AbstractTopicBasedSVMClassifier<T, L> extends
 			this.document = document;
 			this.features = new ArrayList<SvmFeature>();
 			this.classLabels = new ArrayList<SvmClassLabel>();
-			
-			int sumSquare = 0;
+
+//			int sumSquare = 0;
 			for (int i = 0; i < ftd.length; i++) {
-				double tfidf = ftd[i] * idf.get(i);
-				SvmFeature f = new SvmFeatureImpl(i, tfidf);
-				features.add(f);
-				sumSquare += tfidf * tfidf;
+				double tfidf = ftd[i]; /* * idf.get(i); */
+				if (tfidf > 0) {
+					SvmFeature f = new SvmFeatureImpl(i, tfidf);
+					features.add(f);
+//					sumSquare += tfidf * tfidf;
+				}
 			}
-			double norm = Math.sqrt(sumSquare);
-			for (SvmFeature f : features) {
-				f.setValue(f.getValue() / norm);
-			}
+//			double norm = Math.sqrt(sumSquare);
+//			for (SvmFeature f : features) {
+//				f.setValue(f.getValue() / norm);
+//			}
 			if (label != null) {
 				addClassLabel(getForLabel(label));
 			}
