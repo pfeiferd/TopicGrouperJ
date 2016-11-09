@@ -7,12 +7,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.hhn.topicgrouper.classify.SupervisedDocumentClassifier;
 import org.hhn.topicgrouper.doc.Document;
 import org.hhn.topicgrouper.doc.LabeledDocument;
 import org.hhn.topicgrouper.doc.LabelingDocumentProvider;
 
-public abstract class AbstractTopicBasedAltBayesClassifier<T, L> implements SupervisedDocumentClassifier<T, L> {
+public abstract class AbstractTopicBasedAltBayesClassifier<T, L> extends AbstractTopicBasedClassifier<T, L> {
 	private final List<L> labels;
 	private final List<TDoubleList> pct;
 
@@ -24,8 +23,9 @@ public abstract class AbstractTopicBasedAltBayesClassifier<T, L> implements Supe
 	public void train(LabelingDocumentProvider<T, L> provider) {
 		pct.clear();
 		labels.clear();
+		updateTopicIndices();
 
-		int ntopics = getNTopics();
+		int ntopics = topicIndices.length;
 		double[] sum = new double[ntopics];
 		
 		int l = 0;		
@@ -43,14 +43,11 @@ public abstract class AbstractTopicBasedAltBayesClassifier<T, L> implements Supe
 			}
 			Arrays.fill(sum, 0);
 			for (LabeledDocument<T, L> d : labeledDocs) {
-				double[] ftd = getFtd(d);
-				for (int t = 0; t < ntopics; t++) {
-					sum[t] += ftd[t];
-				}
+				computeTopicFrequency(d, sum, true);
 			}
 
 			for (int t = 0; t < ntopics; t++) {
-				pc.add(sum[t] / getFt(t));
+				pc.add(sum[t] / getTopicFrequency(t));
 			}
 			l++;
 		}
@@ -59,8 +56,9 @@ public abstract class AbstractTopicBasedAltBayesClassifier<T, L> implements Supe
 	public L classify(Document<T> d) {
 		double bestValue = Double.NEGATIVE_INFINITY;
 		L bestLabel = null;
-		int ntopics = getNTopics();
-		double[] ftd = getFtd(d);
+		int ntopics = topicIndices.length;
+		double[] ftd = new double[ntopics];
+		computeTopicFrequency(d, ftd, true);
 		
 		int l = 0;
 		for (L label : labels) {
@@ -76,17 +74,6 @@ public abstract class AbstractTopicBasedAltBayesClassifier<T, L> implements Supe
 		}
 		return bestLabel;
 	}
-
-	protected double log(double x) {
-		if (x == 0) {
-			throw new IllegalStateException("log(0) undefined");
-		}
-		return Math.log(x);
-	}
-
-	protected abstract double[] getFtd(Document<T> d);
-
-	protected abstract int getNTopics();
 	
-	protected abstract double getFt(int topic);
+	protected abstract double getTopicFrequency(int topic);
 }

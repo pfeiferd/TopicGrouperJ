@@ -2,39 +2,32 @@ package org.hhn.topicgrouper.classify.impl;
 
 import gnu.trove.iterator.TIntIterator;
 import gnu.trove.map.TIntDoubleMap;
-import gnu.trove.map.TIntIntMap;
 import gnu.trove.map.hash.TIntDoubleHashMap;
-import gnu.trove.map.hash.TIntIntHashMap;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.hhn.topicgrouper.classify.SupervisedDocumentClassifier;
 import org.hhn.topicgrouper.doc.Document;
 import org.hhn.topicgrouper.doc.LabeledDocument;
 import org.hhn.topicgrouper.doc.LabelingDocumentProvider;
 
 
-public abstract class AbstractTopicBasedTfIdfClassifier<T, L> implements SupervisedDocumentClassifier<T, L>{
+public abstract class AbstractTopicBasedTfIdfClassifier<T, L> extends AbstractTopicBasedClassifier<T, L> {
 	private final TIntDoubleMap idf;
 	// Label vectors
 	private final Map<L, double[]> lvs;
-	private final TIntIntMap topicIndicesBack;
 	private double[] vHelp;
 
 	public AbstractTopicBasedTfIdfClassifier() {
 		idf = new TIntDoubleHashMap();
 		lvs = new HashMap<L, double[]>();
-		topicIndicesBack = new TIntIntHashMap();
 	}
 
 	public void train(LabelingDocumentProvider<T, L> provider) {
 		idf.clear();
 		lvs.clear();
-		topicIndicesBack.clear();
-		int[] topicIndices = getTopicIndices();
+		updateTopicIndices();
 
 		List<Document<T>> ds = provider.getDocuments();
 		for (int i = 0; i < topicIndices.length; i++) {
@@ -75,8 +68,7 @@ public abstract class AbstractTopicBasedTfIdfClassifier<T, L> implements Supervi
 	}
 
 	protected void computeDV(Document<T> d, double[] v) {
-		Arrays.fill(v, 0);
-		computTopicFrequency(d, v);
+		computeTopicFrequency(d, v, false);
 		for (int i = 0; i < v.length; i++) {
 			v[i] = v[i] * idf.get(i);
 		}
@@ -89,15 +81,6 @@ public abstract class AbstractTopicBasedTfIdfClassifier<T, L> implements Supervi
 		}
 		for (int i = 0; i < v.length; i++) {
 			v[i] = v[i] / Math.sqrt(sum);
-		}
-	}
-
-	protected void computTopicFrequency(Document<T> d, double[] v) {
-		TIntIterator it = d.getWordIndices().iterator();
-		while (it.hasNext()) {
-			int wordIndex = it.next();
-			int fr = d.getWordFrequency(wordIndex);
-			v[this.topicIndicesBack.get(getTopicIndex(wordIndex))] += fr;
 		}
 	}
 

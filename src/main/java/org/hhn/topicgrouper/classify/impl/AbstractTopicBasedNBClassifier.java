@@ -5,16 +5,13 @@ import gnu.trove.list.array.TDoubleArrayList;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import org.hhn.topicgrouper.classify.SupervisedDocumentClassifier;
 import org.hhn.topicgrouper.doc.Document;
 import org.hhn.topicgrouper.doc.LabeledDocument;
 import org.hhn.topicgrouper.doc.LabelingDocumentProvider;
 
-public abstract class AbstractTopicBasedNBClassifier<T, L> implements SupervisedDocumentClassifier<T, L> {
+public abstract class AbstractTopicBasedNBClassifier<T, L> extends AbstractTopicBasedClassifier<T, L> {
 	private final List<L> labels;
 	private final List<TDoubleList> logptc;
 	private final TDoubleList logpc;
@@ -32,8 +29,9 @@ public abstract class AbstractTopicBasedNBClassifier<T, L> implements Supervised
 		logptc.clear();
 		logpc.clear();
 		labels.clear();
+		updateTopicIndices();
 
-		int ntopics = getNTopics();
+		int ntopics = topicIndices.length;
 		int nDocs = provider.getDocuments().size();
 		double lambdaSum = smoothingLambda * ntopics;
 		double[] sum = new double[ntopics];
@@ -55,10 +53,7 @@ public abstract class AbstractTopicBasedNBClassifier<T, L> implements Supervised
 			int total = 0;
 			Arrays.fill(sum, 0);
 			for (LabeledDocument<T, L> d : labeledDocs) {
-				double[] ftd = getFtd(d);
-				for (int t = 0; t < ntopics; t++) {
-					sum[t] += ftd[t];
-				}
+				computeTopicFrequency(d, sum, true);
 				total += d.getSize();
 			}
 
@@ -72,8 +67,9 @@ public abstract class AbstractTopicBasedNBClassifier<T, L> implements Supervised
 	public L classify(Document<T> d) {
 		double bestValue = Double.NEGATIVE_INFINITY;
 		L bestLabel = null;
-		int ntopics = getNTopics();
-		double[] ftd = getFtd(d);
+		int ntopics = topicIndices.length;
+		double[] ftd = new double[ntopics];
+		computeTopicFrequency(d, ftd, true);
 		int l = 0;
 		for (L label : labels) {
 			double sum = logpc.get(l);
@@ -88,15 +84,4 @@ public abstract class AbstractTopicBasedNBClassifier<T, L> implements Supervised
 		}
 		return bestLabel;
 	}
-
-//	protected double log(double x) {
-//		if (x == 0) {
-//			throw new IllegalStateException("log(0) undefined");
-//		}
-//		return Math.log(x);
-//	}
-
-	protected abstract double[] getFtd(Document<T> d);
-
-	protected abstract int getNTopics();
 }
