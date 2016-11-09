@@ -1,12 +1,9 @@
 package org.hhn.topicgrouper.paper;
 
-import gnu.trove.iterator.TIntIterator;
-
 import java.io.IOException;
 
 import org.hhn.topicgrouper.classify.SupervisedDocumentClassifier;
 import org.hhn.topicgrouper.classify.impl.AbstractTopicBasedAltBayesClassifier;
-import org.hhn.topicgrouper.doc.Document;
 import org.hhn.topicgrouper.tg.TGSolution;
 
 public class ReutersTGAltBayesExperiment extends
