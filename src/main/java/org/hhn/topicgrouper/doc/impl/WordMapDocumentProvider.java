@@ -17,7 +17,7 @@ public class WordMapDocumentProvider<T> implements DocumentProvider<T> {
 
 	public WordMapDocumentProvider(DefaultVocab<T> vocab, List<Document<T>> entries,
 			TIntList indexToFr) {
-		this.vocab = vocab;
+		this.vocab = vocab == null ? new DefaultVocab<T>() : vocab;
 		this.entries = entries;
 		this.immutableList = Collections.unmodifiableList(entries);
 		this.indexToFr = indexToFr;

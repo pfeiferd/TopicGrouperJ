@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Random;
 
+import org.hhn.topicgrouper.doc.DocumentProvider.Vocab;
 import org.hhn.topicgrouper.doc.LabeledDocument;
 import org.hhn.topicgrouper.doc.LabelingDocumentProvider;
 
@@ -19,6 +20,12 @@ public class LabelingHoldOutSplitter<T, L> {
 	public LabelingHoldOutSplitter(Random random,
 			LabelingDocumentProvider<T, L> origDocuments, double holdOutRatio,
 			int minGlobalWordFrequency, int maxLabels) {
+		this(random, origDocuments, holdOutRatio, minGlobalWordFrequency, maxLabels, new DefaultVocab<T>());
+	}
+	
+	public LabelingHoldOutSplitter(Random random,
+			LabelingDocumentProvider<T, L> origDocuments, double holdOutRatio,
+			int minGlobalWordFrequency, int maxLabels, DefaultVocab<T> vocab) {
 		Collection<L> selectedLabels;
 		if (maxLabels > 0) {
 			Collection<L> labels = new ArrayList<L>(
@@ -45,16 +52,17 @@ public class LabelingHoldOutSplitter<T, L> {
 			selectedLabels = origDocuments.getAllLabels();
 		}
 
-		rest = new DefaultLabelingDocumentProvider<T, L>();
-		holdOut = new DefaultLabelingDocumentProvider<T, L>(
-				(DefaultVocab<T>) rest.getVocab());
+		rest = new DefaultLabelingDocumentProvider<T, L>(vocab);
+		if (vocab == null) {
+			vocab = (DefaultVocab<T>) rest.getVocab();
+		}
+		holdOut = new DefaultLabelingDocumentProvider<T, L>(vocab);
 		DefaultDocumentProvider.DocumentWordFilter<T> filter = new DefaultDocumentProvider.DocumentWordFilter<T>() {
 			@Override
 			public boolean acceptWord(T word) {
 				return rest.getVocab().getIndex(word) != -1;
 			}
 		};
-		int count = 0;
 		for (L label : selectedLabels) {
 			// Keep holdout / rest ratio for every label.
 			List<LabeledDocument<T, L>> documents = new ArrayList<LabeledDocument<T, L>>(
