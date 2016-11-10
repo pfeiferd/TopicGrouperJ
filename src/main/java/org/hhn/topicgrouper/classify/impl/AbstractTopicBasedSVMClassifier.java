@@ -49,20 +49,8 @@ public abstract class AbstractTopicBasedSVMClassifier<T, L> extends
 
 		List<Document<T>> ds = provider.getDocuments();
 		for (int i = 0; i < topicIndices.length; i++) {
-			int df = 0;
-			for (Document<T> d : ds) {
-				TIntIterator it = d.getWordIndices().iterator();
-				while (it.hasNext()) {
-					int wordIndex = it.next();
-					int fr = d.getWordFrequency(wordIndex);
-					if (fr > 0 && getTopicIndex(wordIndex) == topicIndices[i]) {
-						df++;
-						break;
-					}
-				}
-			}
-			// Using idf (whith log) improves accuracy considerably (by about
-			// 4%)
+			int df = computeDocumentFrequency(ds, topicIndices[i]);
+			// Using idf (whith log) improves accuracy considerably (by about 4%)
 			idf.put(i, Math.log(((double) ds.size()) / df));
 		}
 
@@ -81,7 +69,7 @@ public abstract class AbstractTopicBasedSVMClassifier<T, L> extends
 	}
 
 	public L classify(Document<T> d) {
-		System.out.println(d);
+		//System.out.println(d);
 		SvmClassifier classifier = new SvmClassifierImpl(model);
 		double[] ftd = new double[topicIndices.length];
 		computeTopicFrequency(d, ftd, true);
@@ -115,9 +103,9 @@ public abstract class AbstractTopicBasedSVMClassifier<T, L> extends
 			this.features = new ArrayList<SvmFeature>();
 			this.classLabels = new ArrayList<SvmClassLabel>();
 
-//			int sumSquare = 0;
+//			double sumSquare = 0;
 			for (int i = 0; i < ftd.length; i++) {
-				double tfidf = ftd[i]; /* * idf.get(i); */
+				double tfidf = ftd[i] * idf.get(i);
 				if (tfidf > 0) {
 					SvmFeature f = new SvmFeatureImpl(i, tfidf);
 					features.add(f);

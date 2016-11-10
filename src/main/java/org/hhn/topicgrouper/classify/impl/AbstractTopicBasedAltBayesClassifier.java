@@ -1,5 +1,6 @@
 package org.hhn.topicgrouper.classify.impl;
 
+import gnu.trove.iterator.TIntIterator;
 import gnu.trove.list.TDoubleList;
 import gnu.trove.list.array.TDoubleArrayList;
 
@@ -11,7 +12,8 @@ import org.hhn.topicgrouper.doc.Document;
 import org.hhn.topicgrouper.doc.LabeledDocument;
 import org.hhn.topicgrouper.doc.LabelingDocumentProvider;
 
-public abstract class AbstractTopicBasedAltBayesClassifier<T, L> extends AbstractTopicBasedClassifier<T, L> {
+public abstract class AbstractTopicBasedAltBayesClassifier<T, L> extends
+		AbstractTopicBasedClassifier<T, L> {
 	private final List<L> labels;
 	private final List<TDoubleList> pct;
 
@@ -27,8 +29,8 @@ public abstract class AbstractTopicBasedAltBayesClassifier<T, L> extends Abstrac
 
 		int ntopics = topicIndices.length;
 		double[] sum = new double[ntopics];
-		
-		int l = 0;		
+
+		int l = 0;
 		for (L label : provider.getAllLabels()) {
 			labels.add(label);
 			List<LabeledDocument<T, L>> labeledDocs = provider
@@ -37,8 +39,7 @@ public abstract class AbstractTopicBasedAltBayesClassifier<T, L> extends Abstrac
 			if (pc == null) {
 				pc = new TDoubleArrayList();
 				pct.add(pc);
-			}
-			else {
+			} else {
 				pc.clear();
 			}
 			Arrays.fill(sum, 0);
@@ -59,7 +60,7 @@ public abstract class AbstractTopicBasedAltBayesClassifier<T, L> extends Abstrac
 		int ntopics = topicIndices.length;
 		double[] ftd = new double[ntopics];
 		computeTopicFrequency(d, ftd, true);
-		
+
 		int l = 0;
 		for (L label : labels) {
 			double sum = 0;
@@ -74,6 +75,6 @@ public abstract class AbstractTopicBasedAltBayesClassifier<T, L> extends Abstrac
 		}
 		return bestLabel;
 	}
-	
+
 	protected abstract double getTopicFrequency(int topic);
 }
