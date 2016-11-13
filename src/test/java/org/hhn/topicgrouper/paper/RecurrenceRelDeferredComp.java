@@ -20,6 +20,25 @@ E(i + 1) = E(i) + (1 - p(c(line 49) | step i)) * p(c(line 71) | i) - p(c(line 49
 
 }
 
+Lemma: forall i: E(i) <= 2
+
+i = 1: clear:
+
+from i to i + 1: E(i + 1) <= 2 + (1 - (2 / |T|) * (2 / (|T| - 2)) - 2 / |T|)
+
+Show that:
+(1 - (2 / |T|) * (2 / (|T| - 2)) <= 2 / |T|
+<=>
+(|T| - 2) * (2 / (|T| - 2)) = 2 <= 2
+q.e.d.
+
+==>
+
+p(c(line 49) | step i) <= 2 / |T|
+
+Sum over executions for line 50:
+
+\sum_i=2..|V| 2 / i -> harmonic sequence --> is in O(log |V|)
 */
 public class RecurrenceRelDeferredComp {
 	public static void main(String[] args) {
