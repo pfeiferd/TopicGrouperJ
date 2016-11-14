@@ -83,9 +83,6 @@ public abstract class AbstractTopicBasedTfIdfClassifier<T, L> extends AbstractTo
 			for (int i = 0; i < lv.length; i++) {
 				sum += lv[i] * vHelp[i];
 			}
-			if (sum < 0) {
-				throw new IllegalStateException();
-			}
 			if (sum >= bestValue) {
 				bestValue = sum;
 				bestLabel = label;
