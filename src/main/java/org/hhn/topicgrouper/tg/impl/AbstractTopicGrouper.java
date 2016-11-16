@@ -49,7 +49,10 @@ public abstract class AbstractTopicGrouper<T> implements TGSolver<T> {
 	protected final DocIndexAndWordFr searchDummy = new DocIndexAndWordFr();
 
 	protected final HomonymHandler homonymHandler;
-	private int deferredJCRecomputations;
+	private int jcUpdates;
+	private int mainLoopCount;
+
+	private boolean deferJCUpdates;
 
 	public AbstractTopicGrouper(int minWordFrequency,
 			DocumentProvider<T> documentProvider, int minTopics) {
@@ -63,6 +66,7 @@ public abstract class AbstractTopicGrouper<T> implements TGSolver<T> {
 		this.documents = documentProvider.getDocuments();
 		this.documentSizes = getDocumentSizes();
 		this.logDocumentSizes = getLogDocumentSizes();
+		this.deferJCUpdates = true;
 
 		if (hEpsilon > 0) {
 			homonymHandler = createHomonymHandler(hEpsilon);
@@ -103,13 +107,21 @@ public abstract class AbstractTopicGrouper<T> implements TGSolver<T> {
 		solution = createSolution();
 	}
 
+	public void setDeferJCUpdates(boolean deferJCUpdates) {
+		this.deferJCUpdates = deferJCUpdates;
+	}
+
+	public boolean isDeferJCUpdates() {
+		return deferJCUpdates;
+	}
+
 	protected TGSolution<T> createSolution() {
 		return new TGSolution<T>() {
 			@Override
 			public TIntCollection[] getTopics() {
 				return topics;
 			}
-			
+
 			@Override
 			public int getTopicForWord(int wordIndex) {
 				int topic = wordToInitialTopic[wordIndex];
@@ -127,7 +139,7 @@ public abstract class AbstractTopicGrouper<T> implements TGSolver<T> {
 				}
 				return topicIds;
 			}
-			
+
 			@Override
 			public Vocab<T> getVocab() {
 				return AbstractTopicGrouper.this.documentProvider.getVocab();
@@ -143,7 +155,7 @@ public abstract class AbstractTopicGrouper<T> implements TGSolver<T> {
 			public int getTopicFrequency(int topicIndex) {
 				return topicSizes[topicIndex];
 			}
-			
+
 			@Override
 			public int getSize() {
 				return totalSize;
@@ -377,8 +389,8 @@ public abstract class AbstractTopicGrouper<T> implements TGSolver<T> {
 
 	protected void groupTopics(TGSolutionListener<T> solutionListener) {
 		nTopics[0] = maxTopics;
-		deferredJCRecomputations = 0;
-		while (nTopics[0] > minTopics) {
+		jcUpdates = 0;
+		for (mainLoopCount = 0; nTopics[0] > minTopics; mainLoopCount++) {
 			// Get the best join candidate
 			JoinCandidate jc = getBestJoinCandidate();
 			// Check if jc is invalid
@@ -387,7 +399,7 @@ public abstract class AbstractTopicGrouper<T> implements TGSolver<T> {
 				// the right place.
 				updateJoinCandidateForTopic(jc);
 				addJoinCandidate(jc);
-				deferredJCRecomputations++;
+				jcUpdates++;
 			} else {
 				int t1Size = 0, t2Size = 0;
 				if (!handleHomonymicTopic(jc)) {
@@ -423,8 +435,12 @@ public abstract class AbstractTopicGrouper<T> implements TGSolver<T> {
 		}
 	}
 
-	public int getDeferredJCRecomputations() {
-		return deferredJCRecomputations;
+	public int getJCUpdates() {
+		return jcUpdates;
+	}
+
+	public int getMainLoopCount() {
+		return mainLoopCount;
 	}
 
 	protected void updateJoinCandidateForTopic(JoinCandidate jc) {
@@ -434,8 +450,8 @@ public abstract class AbstractTopicGrouper<T> implements TGSolver<T> {
 		for (int j = 0; j < maxTopics; j++) {
 			if (j != jc.i && topics[j] != null) {
 				double newLikelihood = computeTwoTopicLogLikelihood(jc.i, j);
-				double newImprovement = newLikelihood - topicLogLikelihoods[jc.i]
-						- topicLogLikelihoods[j];
+				double newImprovement = newLikelihood
+						- topicLogLikelihoods[jc.i] - topicLogLikelihoods[j];
 				if (newImprovement > bestImprovement) {
 					bestImprovement = newImprovement;
 					bestLikelihood = newLikelihood;
@@ -497,7 +513,15 @@ public abstract class AbstractTopicGrouper<T> implements TGSolver<T> {
 				// }
 				addJoinCandidateLater(jc2);
 			} else if (jc2.j == jc.i || jc2.j == j) {
-				jc2.j = -1;
+				if (!deferJCUpdates) {
+					prepareRemoveJoinCandidate(jc2);
+					updateJoinCandidateForTopic(jc2);
+					addJoinCandidateLater(jc2);
+					jcUpdates++;
+				}
+				else {
+					jc2.j = -1;
+				}
 			}
 		}
 	}
