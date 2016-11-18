@@ -20,14 +20,17 @@ public class RecurrenceRelationForDeferredJCUpdatesInTG {
 			} else {
 				double pUpdate = ((double) e) / n;
 				if (n - 2 < e) {
-					h[n][e] = pUpdate == 0 ? 0 : pUpdate * (1 + s(1, e - 1)) + (1 - pUpdate)
-							* s(n - 1, e);
-				}
-				else if (n == 2) {
-					h[n][e] = pUpdate == 0 ? 0 : pUpdate * (1 + s(1, e - 1)) + (1 - pUpdate)
-							* s(n - 1, e + 1);					
-				}
-				else {
+					h[n][e] = pUpdate == 0 ? 0 : pUpdate * (1 + s(1, e - 1))
+							+ (1 - pUpdate) * s(n - 1, e);
+				} else if (n == 2) {
+					if (e == 0) {
+						h[2][0] = 0d;
+					} else if (e == 1) {
+						h[2][0] = 0.5;
+					} else {
+						throw new IllegalStateException();
+					}
+				} else {
 					double res = 0;
 					double pNull = (n - 2 >= c ? c : n - 2) / (n - 2);
 					BinomialDistribution b = new BinomialDistribution(
@@ -36,8 +39,8 @@ public class RecurrenceRelationForDeferredJCUpdatesInTG {
 						res += b.probability(i) * s(n - 1, e + i);
 					}
 
-					h[n][e] = (pUpdate == 0 ? 0 : pUpdate * (1 + s(n, e - 1))) + (1 - pUpdate)
-							* res;
+					h[n][e] = (pUpdate == 0 ? 0 : pUpdate * (1 + s(n, e - 1)))
+							+ (1 - pUpdate) * res;
 				}
 			}
 		}
