@@ -20,13 +20,13 @@ public class LDAGibbsSampler<T> {
 	private double betaSum;
 	private final DocumentProvider<T> provider;
 
-	private final int nWords;
-	private final int[][] documentTopicAssignmentCount;
-	private final int[] documentSize;
-	private final int[][] topicWordAssignmentCount;
+	protected final int nWords;
+	protected final int[][] documentTopicAssignmentCount;
+	protected final int[] documentSize;
+	protected final int[][] topicWordAssignmentCount;
 
-	private final int[] topicFrCount;
-	private final int[][][] documentWordOccurrenceLastTopicAssignment;
+	protected final int[] topicFrCount;
+	protected final int[][][] documentWordOccurrenceLastTopicAssignment;
 	private final List<Document<T>> documents;
 
 	private double samplingRatios[];
@@ -34,9 +34,9 @@ public class LDAGibbsSampler<T> {
 	private double phi[][];
 	private double topicProb[];
 
-	private boolean updateAlpha;
-	private int alphaUpdate;
-	private int alphaFixPointIterations;
+	private boolean updateAlphaBeta;
+	private int alphaBetaUpdate;
+	private int minkasFixPointIterations;
 
 	public LDAGibbsSampler(DocumentProvider<T> documentProvider, int topics,
 			double alpha, double beta, Random random) {
@@ -46,9 +46,9 @@ public class LDAGibbsSampler<T> {
 	public LDAGibbsSampler(DocumentProvider<T> documentProvider,
 			double[] alpha, double beta, Random random) {
 		this.alpha = alpha;
-		alphaFixPointIterations = 10;
-		updateAlpha = false;
-		alphaUpdate = 10;
+		minkasFixPointIterations = 10;
+		updateAlphaBeta = false;
+		alphaBetaUpdate = 10;
 		double aSum = 0;
 		for (int i = 0; i < alpha.length; i++) {
 			aSum += alpha[i];
@@ -82,29 +82,29 @@ public class LDAGibbsSampler<T> {
 		}
 		samplingRatios = new double[alpha.length];
 	}
-
-	public void setAlphaUpdate(int alphaUpdate) {
-		this.alphaUpdate = alphaUpdate;
+	
+	public int getAlphaBetaUpdate() {
+		return alphaBetaUpdate;
+	}
+	
+	public void setAlphaBetaUpdate(int alphaBetaUpdate) {
+		this.alphaBetaUpdate = alphaBetaUpdate;
 	}
 
-	public int getAlphaUpdate() {
-		return alphaUpdate;
+	public void setMinkasFixPointIterations(int minkasFixPointIterations) {
+		this.minkasFixPointIterations = minkasFixPointIterations;
 	}
-
-	public int getAlphaFixPointIterations() {
-		return alphaFixPointIterations;
+	
+	public int getMinkasFixPointIterations() {
+		return minkasFixPointIterations;
 	}
-
-	public void setAlphaFixPointIterations(int alphaFixPointIterations) {
-		this.alphaFixPointIterations = alphaFixPointIterations;
+	
+	public boolean isUpdateAlphaBeta() {
+		return updateAlphaBeta;
 	}
-
-	public boolean isUpdateAlpha() {
-		return updateAlpha;
-	}
-
-	public void setUpdateAlpha(boolean updateAlpha) {
-		this.updateAlpha = updateAlpha;
+	
+	public void setUpdateAlphaBeta(boolean updateAlphaBeta) {
+		this.updateAlphaBeta = updateAlphaBeta;
 	}
 
 	public static double[] symmetricAlpha(double alpha, int topics) {
@@ -163,13 +163,12 @@ public class LDAGibbsSampler<T> {
 					}
 					topicProb[k] += topicFrCount[k];
 				}
-			} else if (updateAlpha && i > 0 && i % alphaUpdate == 0) {
-				for (int j = 0; j < alphaFixPointIterations; j++) {
+			} else if (updateAlphaBeta && i > 0 && i % alphaBetaUpdate == 0) {
+				for (int j = 0; j < minkasFixPointIterations; j++) {
 					updateAlpha(alpha);
 				}
-				for (int j = 0; j < alphaFixPointIterations; j++) {
-					beta = updateSymmetricBeta(beta);
-					betaSum = nWords * beta;
+				for (int j = 0; j < minkasFixPointIterations; j++) {
+					updateBeta();
 				}
 				System.out.println(beta);
 				System.out.println(Arrays.toString(alpha));
@@ -192,6 +191,11 @@ public class LDAGibbsSampler<T> {
 		if (solutionListener != null) {
 			solutionListener.done(this);
 		}
+	}
+	
+	protected void updateBeta() {
+		beta = updateSymmetricBeta(beta);
+		betaSum = nWords * beta;		
 	}
 
 	public double getPhi(int topicIndex, int wordIndex) {
@@ -325,12 +329,11 @@ public class LDAGibbsSampler<T> {
 		for (int k = 0; k < alpha.length; k++) {
 			sumAlpha += alpha[k];
 		}
-		double digammaSumAlpha = documentSize.length * Gamma.digamma(sumAlpha);
 		double sumDigammaNSumAlpha = 0;
 		for (int i = 0; i < documentSize.length; i++) {
 			sumDigammaNSumAlpha += Gamma.digamma(documentSize[i] + sumAlpha);
 		}
-		double diff = sumDigammaNSumAlpha - digammaSumAlpha;
+		double diff = sumDigammaNSumAlpha - documentSize.length * Gamma.digamma(sumAlpha);
 		for (int k = 0; k < alpha.length; k++) {
 			double sumDigammaNiAlpha = 0;
 			for (int i = 0; i < documentSize.length; i++) {
