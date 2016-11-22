@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
+import org.apache.commons.math3.special.Gamma;
 import org.hhn.topicgrouper.doc.Document;
 import org.hhn.topicgrouper.doc.DocumentProvider;
 
@@ -31,7 +32,11 @@ public class LDAGibbsSampler<T> {
 
 	private double phi[][];
 	private double topicProb[];
-
+	
+	private boolean updateAlpha;
+	private int alphaUpdate;
+	private int alphaFixPointIterations;
+	
 	public LDAGibbsSampler(DocumentProvider<T> documentProvider, int topics,
 			double alpha, double beta, Random random) {
 		this(documentProvider, symmetricAlpha(alpha, topics), beta, random);
@@ -40,6 +45,9 @@ public class LDAGibbsSampler<T> {
 	public LDAGibbsSampler(DocumentProvider<T> documentProvider,
 			double[] alpha, double beta, Random random) {
 		this.alpha = alpha;
+		alphaFixPointIterations = 10;
+		updateAlpha = false;
+		alphaUpdate = 10;
 		double aSum = 0;
 		for (int i = 0; i < alpha.length; i++) {
 			aSum += alpha[i];
@@ -72,6 +80,30 @@ public class LDAGibbsSampler<T> {
 			h++;
 		}
 		samplingRatios = new double[alpha.length];
+	}
+	
+	public void setAlphaUpdate(int alphaUpdate) {
+		this.alphaUpdate = alphaUpdate;
+	}
+	
+	public int getAlphaUpdate() {
+		return alphaUpdate;
+	}
+	
+	public int getAlphaFixPointIterations() {
+		return alphaFixPointIterations;
+	}
+	
+	public void setAlphaFixPointIterations(int alphaFixPointIterations) {
+		this.alphaFixPointIterations = alphaFixPointIterations;
+	}
+	
+	public boolean isUpdateAlpha() {
+		return updateAlpha;
+	}
+	
+	public void setUpdateAlpha(boolean updateAlpha) {
+		this.updateAlpha = updateAlpha;
 	}
 
 	public static double[] symmetricAlpha(double alpha, int topics) {
@@ -120,9 +152,9 @@ public class LDAGibbsSampler<T> {
 				}
 				h++;
 			}
-
+			
 			if (i > burnIn) {
-				// Update psi by averaging over current counts.
+				// Update phi by averaging over current counts.
 				for (int k = 0; k < topicWordAssignmentCount.length; k++) {
 					for (int j = 0; j < topicWordAssignmentCount[k].length; j++) {
 						phi[k][j] += ((double) topicWordAssignmentCount[k][j])
@@ -130,6 +162,12 @@ public class LDAGibbsSampler<T> {
 					}
 					topicProb[k] += topicFrCount[k];
 				}
+			}
+			else if (updateAlpha && i > 0 && i % alphaUpdate == 0) {
+				for (int j = 0; j < alphaFixPointIterations; j++) {
+					updateAlpha(alpha);
+				}
+				System.out.println(Arrays.toString(alpha));
 			}
 
 			afterSampling(i, iterations);
@@ -150,11 +188,11 @@ public class LDAGibbsSampler<T> {
 			solutionListener.done(this);
 		}
 	}
-	
+
 	public double getPhi(int topicIndex, int wordIndex) {
 		return phi[topicIndex][wordIndex];
 	}
-	
+
 	public double getTopicProb(int topicIndex) {
 		return topicProb[topicIndex];
 	}
@@ -272,6 +310,31 @@ public class LDAGibbsSampler<T> {
 		return provider.getVocab().getNumberOfWords();
 	}
 
+	/*
+	 * Update on the basis of equation 55 from
+	 * "Estimating a Dirichlet distribution by Thomas P. Minka" - also known as
+	 * "Minka's Update"
+	 */
+	public void updateAlpha(double[] alpha) {
+		double sumAlpha = 0;
+		for (int k = 0; k < alpha.length; k++) {
+			sumAlpha += alpha[k];
+		}
+		double digammaSumAlpha = documentSize.length * Gamma.digamma(sumAlpha);
+		double sumDigammaNSumAlpha = 0;
+		for (int i = 0; i < documentSize.length; i++) {
+			sumDigammaNSumAlpha += Gamma.digamma(documentSize[i] + sumAlpha);
+		}
+		double diff = sumDigammaNSumAlpha - digammaSumAlpha;
+		for (int k = 0; k < alpha.length; k++) {
+			double sumDigammaNiAlpha = 0;
+			for (int i = 0; i < documentSize.length; i++) {
+				sumDigammaNiAlpha += Gamma.digamma(documentTopicAssignmentCount[i][k] + alpha[k]);
+			}
+			alpha[k] *= (sumDigammaNiAlpha - documentSize.length * Gamma.digamma(alpha[k])) / diff;
+		}
+	}
+
 	public class FoldInStore {
 		private final int[] dTopicAssignmentCounts;
 		private int[][] dWordOccurrenceLastTopicAssignments;
@@ -280,7 +343,7 @@ public class LDAGibbsSampler<T> {
 		public FoldInStore() {
 			dTopicAssignmentCounts = new int[alpha.length];
 		}
-		
+
 		public LDAGibbsSampler<T> getSampler() {
 			return LDAGibbsSampler.this;
 		}
