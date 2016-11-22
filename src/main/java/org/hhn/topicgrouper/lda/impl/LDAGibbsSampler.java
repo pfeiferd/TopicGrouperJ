@@ -16,10 +16,11 @@ public class LDAGibbsSampler<T> {
 	private final Random random;
 	private final double[] alpha;
 	private final double alphaSum;
-	private final double beta;
-	private final double betaSum;
+	private double beta;
+	private double betaSum;
 	private final DocumentProvider<T> provider;
 
+	private final int nWords;
 	private final int[][] documentTopicAssignmentCount;
 	private final int[] documentSize;
 	private final int[][] topicWordAssignmentCount;
@@ -32,11 +33,11 @@ public class LDAGibbsSampler<T> {
 
 	private double phi[][];
 	private double topicProb[];
-	
+
 	private boolean updateAlpha;
 	private int alphaUpdate;
 	private int alphaFixPointIterations;
-	
+
 	public LDAGibbsSampler(DocumentProvider<T> documentProvider, int topics,
 			double alpha, double beta, Random random) {
 		this(documentProvider, symmetricAlpha(alpha, topics), beta, random);
@@ -52,17 +53,17 @@ public class LDAGibbsSampler<T> {
 		for (int i = 0; i < alpha.length; i++) {
 			aSum += alpha[i];
 		}
+		this.provider = documentProvider;
+		nWords = provider.getVocab().getNumberOfWords();
 		this.alphaSum = aSum;
 		this.beta = beta;
-		this.betaSum = beta * documentProvider.getVocab().getNumberOfWords();
-		this.provider = documentProvider;
+		this.betaSum = beta * nWords;
 		this.random = random;
 		documents = provider.getDocuments();
 		documentTopicAssignmentCount = new int[documents.size()][alpha.length];
 		documentSize = new int[documents.size()];
-		topicWordAssignmentCount = new int[alpha.length][provider.getVocab()
-				.getNumberOfWords()];
-		phi = new double[alpha.length][provider.getVocab().getNumberOfWords()];
+		topicWordAssignmentCount = new int[alpha.length][nWords];
+		phi = new double[alpha.length][nWords];
 		topicProb = new double[alpha.length];
 		topicFrCount = new int[alpha.length];
 		documentWordOccurrenceLastTopicAssignment = new int[documents.size()][][];
@@ -81,27 +82,27 @@ public class LDAGibbsSampler<T> {
 		}
 		samplingRatios = new double[alpha.length];
 	}
-	
+
 	public void setAlphaUpdate(int alphaUpdate) {
 		this.alphaUpdate = alphaUpdate;
 	}
-	
+
 	public int getAlphaUpdate() {
 		return alphaUpdate;
 	}
-	
+
 	public int getAlphaFixPointIterations() {
 		return alphaFixPointIterations;
 	}
-	
+
 	public void setAlphaFixPointIterations(int alphaFixPointIterations) {
 		this.alphaFixPointIterations = alphaFixPointIterations;
 	}
-	
+
 	public boolean isUpdateAlpha() {
 		return updateAlpha;
 	}
-	
+
 	public void setUpdateAlpha(boolean updateAlpha) {
 		this.updateAlpha = updateAlpha;
 	}
@@ -152,7 +153,7 @@ public class LDAGibbsSampler<T> {
 				}
 				h++;
 			}
-			
+
 			if (i > burnIn) {
 				// Update phi by averaging over current counts.
 				for (int k = 0; k < topicWordAssignmentCount.length; k++) {
@@ -162,11 +163,15 @@ public class LDAGibbsSampler<T> {
 					}
 					topicProb[k] += topicFrCount[k];
 				}
-			}
-			else if (updateAlpha && i > 0 && i % alphaUpdate == 0) {
+			} else if (updateAlpha && i > 0 && i % alphaUpdate == 0) {
 				for (int j = 0; j < alphaFixPointIterations; j++) {
 					updateAlpha(alpha);
 				}
+				for (int j = 0; j < alphaFixPointIterations; j++) {
+					beta = updateSymmetricBeta(beta);
+					betaSum = nWords * beta;
+				}
+				System.out.println(beta);
 				System.out.println(Arrays.toString(alpha));
 			}
 
@@ -329,10 +334,41 @@ public class LDAGibbsSampler<T> {
 		for (int k = 0; k < alpha.length; k++) {
 			double sumDigammaNiAlpha = 0;
 			for (int i = 0; i < documentSize.length; i++) {
-				sumDigammaNiAlpha += Gamma.digamma(documentTopicAssignmentCount[i][k] + alpha[k]);
+				sumDigammaNiAlpha += Gamma
+						.digamma(documentTopicAssignmentCount[i][k] + alpha[k]);
 			}
-			alpha[k] *= (sumDigammaNiAlpha - documentSize.length * Gamma.digamma(alpha[k])) / diff;
+			alpha[k] *= (sumDigammaNiAlpha - documentSize.length
+					* Gamma.digamma(alpha[k]))
+					/ diff;
 		}
+	}
+
+	/*
+	 * Update on the basis of equation 55 from
+	 * "Estimating a Dirichlet distribution by Thomas P. Minka" - also known as
+	 * "Minka's Update"
+	 */
+	public double updateSymmetricBeta(double beta) {
+		double sumBeta = nWords * beta;
+
+		double sumDigammaNSumBeta = 0;
+		for (int i = 0; i < topicFrCount.length; i++) {
+			sumDigammaNSumBeta += Gamma.digamma(topicFrCount[i] + sumBeta);
+		}
+		double diff = nWords
+				* (sumDigammaNSumBeta - topicFrCount.length
+						* Gamma.digamma(sumBeta));
+
+		double sumDigammaNKAlpha = 0;
+		for (int k = 0; k < nWords; k++) {
+			for (int i = 0; i < topicFrCount.length; i++) {
+				sumDigammaNKAlpha += Gamma
+						.digamma(topicWordAssignmentCount[i][k] + beta);
+			}
+		}
+		return beta
+				* (sumDigammaNKAlpha - nWords * topicFrCount.length
+						* Gamma.digamma(beta)) / diff;
 	}
 
 	public class FoldInStore {
