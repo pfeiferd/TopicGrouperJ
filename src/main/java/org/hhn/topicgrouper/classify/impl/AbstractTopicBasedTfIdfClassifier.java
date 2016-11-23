@@ -77,6 +77,8 @@ public abstract class AbstractTopicBasedTfIdfClassifier<T, L> extends AbstractTo
 		double bestValue = 0;
 		L bestLabel = null;
 
+		// Uses cosine-similarity.
+		// (normalizing d ist not necessary for comparison - just a constant...)
 		for (L label : lvs.keySet()) {
 			double[] lv = lvs.get(label);
 			double sum = 0;
