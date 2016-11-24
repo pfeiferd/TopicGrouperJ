@@ -17,10 +17,10 @@ import org.hhn.topicgrouper.doc.DocumentProvider;
 public class LDAGibbsSampler<T> {
 	private final Random random;
 
-	private final double[] alpha;
-	private final double alphaSum;
-	private double beta;
-	private double betaSum;
+	protected final double[] alpha;
+	protected double alphaSum;
+	protected double beta;
+	protected double betaSum;
 
 	protected final DocumentProvider<T> provider;
 
@@ -50,18 +50,19 @@ public class LDAGibbsSampler<T> {
 	public LDAGibbsSampler(DocumentProvider<T> documentProvider,
 			double[] alpha, double beta, Random random) {
 		this.alpha = alpha;
+		this.alphaSum = alphaSum();
+		
 		minkasFixPointIterations = 10;
 		updateAlphaBeta = false;
 		alphaBetaUpdate = 10;
-		double aSum = 0;
-		for (int i = 0; i < alpha.length; i++) {
-			aSum += alpha[i];
-		}
+		
+		
 		this.provider = documentProvider;
 		nWords = provider.getVocab().getNumberOfWords();
-		this.alphaSum = aSum;
+		
 		this.beta = beta;
-		this.betaSum = beta * nWords;
+		this.betaSum = betaSum();
+		
 		this.random = random;
 		documents = provider.getDocuments();
 		documentTopicAssignmentCount = new int[documents.size()][alpha.length];
@@ -75,13 +76,11 @@ public class LDAGibbsSampler<T> {
 		for (Document<T> d : documents) {
 			documentWordOccurrenceLastTopicAssignment[h] = new TIntObjectHashMap<int[]>();
 			TIntIterator it = d.getWordIndices().iterator();
-			int h2 = 0;
 			while (it.hasNext()) {
 				int wordIndex = it.next();
 				int fr = d.getWordFrequency(wordIndex);
 				documentWordOccurrenceLastTopicAssignment[h].put(wordIndex,
 						new int[fr]);
-				h2++;
 			}
 			h++;
 		}
@@ -170,17 +169,11 @@ public class LDAGibbsSampler<T> {
 				}
 			} else if (updateAlphaBeta && i > 0 && i % alphaBetaUpdate == 0) {
 				for (int j = 0; j < minkasFixPointIterations; j++) {
-					updateAlpha(alpha);
+					updateAlpha();
 				}
 				for (int j = 0; j < minkasFixPointIterations; j++) {
 					updateBeta();
 				}
-				if (i >= 200) {
-					System.out.println("stop");
-					reportBeta();
-				}
-				System.out.println(beta);
-				System.out.println(Arrays.toString(alpha));
 			}
 
 			afterSampling(i, iterations);
@@ -204,10 +197,27 @@ public class LDAGibbsSampler<T> {
 
 	protected void reportBeta() {
 	}
+	
+	protected void updateAlpha() {
+		updateAlpha(alpha);
+		alphaSum = alphaSum();
+	}
+	
+	protected double alphaSum() {
+		double alphaSum = 0;
+		for (int i = 0; i < alpha.length; i++) {
+			alphaSum += alpha[i];
+		}
+		return alphaSum;
+	}
+	
+	protected double betaSum() {
+		return nWords * beta;
+	}
 
 	protected void updateBeta() {
 		beta = updateSymmetricBeta(beta);
-		betaSum = nWords * beta;
+		betaSum = betaSum();
 	}
 
 	public double getPhi(int topicIndex, int wordIndex) {
