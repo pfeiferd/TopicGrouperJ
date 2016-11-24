@@ -16,10 +16,12 @@ import org.hhn.topicgrouper.doc.DocumentProvider;
 
 public class LDAGibbsSampler<T> {
 	private final Random random;
+
 	private final double[] alpha;
 	private final double alphaSum;
 	private double beta;
 	private double betaSum;
+
 	protected final DocumentProvider<T> provider;
 
 	protected final int nWords;
@@ -31,10 +33,10 @@ public class LDAGibbsSampler<T> {
 	protected final TIntObjectMap<int[]>[] documentWordOccurrenceLastTopicAssignment;
 	private final List<Document<T>> documents;
 
-	private double samplingRatios[];
+	private final double samplingRatios[];
 
-	private double phi[][];
-	private double topicProb[];
+	private final double phi[][];
+	protected final double topicProb[];
 
 	private boolean updateAlphaBeta;
 	private int alphaBetaUpdate;
@@ -199,10 +201,10 @@ public class LDAGibbsSampler<T> {
 			solutionListener.done(this);
 		}
 	}
-	
+
 	protected void reportBeta() {
 	}
-	
+
 	protected void updateBeta() {
 		beta = updateSymmetricBeta(beta);
 		betaSum = nWords * beta;

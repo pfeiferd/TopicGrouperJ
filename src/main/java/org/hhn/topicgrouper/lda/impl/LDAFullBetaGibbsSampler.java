@@ -82,13 +82,104 @@ public class LDAFullBetaGibbsSampler<T> extends LDAGibbsSampler<T> {
 			}
 		}
 	}
-	
+
+	private double[] logpkAlpha = new double[topicProb.length];
+	private double smoothingAlphaPrecision = 0.001;
+	private double smoothingAlphaPrecisionNom = smoothingAlphaPrecision
+			* topicProb.length;
+
+	public void updateAlphaPrecision(double[] alpha) {
+		for (int j = 0; j < alpha.length; j++) {
+			logpkAlpha[j] = 0;
+			for (int i = 0; i < documentSize.length; i++) {
+				// TODO: Smoothing required.
+				logpkAlpha[j] += Math
+						.log((documentTopicAssignmentCount[i][j] + smoothingAlphaPrecision)
+								/ (documentSize[i] + smoothingAlphaPrecisionNom));
+			}
+			logpkAlpha[j] = logpkAlpha[j] / documentSize.length;
+		}
+
+		double s = 0;
+		for (int i = 0; i < alpha.length; i++) {
+			s += alpha[i];
+		}
+		for (int i = 0; i < alpha.length; i++) {
+			alpha[i] /= s;
+		}
+		double sum1 = 0;
+		double sum2 = 0;
+		for (int k = 0; k < alpha.length; k++) {
+			if (alpha[k] > 0) {
+				sum1 += alpha[k] * Gamma.digamma(s * alpha[k]);
+				sum2 += alpha[k] * logpkAlpha[k];
+			}
+		}
+
+		double h = (alpha.length - 1) / s - Gamma.digamma(s) + sum1 - sum2;
+		s = (alpha.length - 1) / h;
+
+		for (int i = 0; i < alpha.length; i++) {
+			alpha[i] *= s;
+		}
+	}
+
+	private double[] logpkBeta = new double[nWords];
+	private double smoothingBetaPrecision = 0.001;
+	private double smoothingBetaPrecisionNom = smoothingBetaPrecision
+			* topicProb.length;
+
+	public void updateBetaPrecision(int topicIndex, double[] beta) {
+		for (int j = 0; j < nWords; j++) {
+			logpkBeta[j] = 0;
+			for (int i = 0; i < documentSize.length; i++) {
+				int[] assignment = documentWordOccurrenceLastTopicAssignment[i]
+						.get(j);
+				int count = 0;
+				if (assignment != null) {
+					for (int h = 0; h < assignment.length; h++) {
+						if (assignment[h] == topicIndex) {
+							count++;
+						}
+					}
+				}
+				// TODO: Smoothing required.
+				logpkBeta[j] += Math.log((count + smoothingBetaPrecision)
+						/ (assignment.length + smoothingBetaPrecisionNom));
+			}
+			logpkBeta[j] = logpkBeta[j] / nWords;
+		}
+
+		double s = 0;
+		for (int i = 0; i < beta.length; i++) {
+			s += beta[i];
+		}
+		for (int i = 0; i < beta.length; i++) {
+			beta[i] /= s;
+		}
+		double sum1 = 0;
+		double sum2 = 0;
+		for (int k = 0; k < beta.length; k++) {
+			if (beta[k] > 0) {
+				sum1 += beta[k] * Gamma.digamma(s * beta[k]);
+				sum2 += beta[k] * logpkBeta[k];
+			}
+		}
+
+		double h = (beta.length - 1) / s - Gamma.digamma(s) + sum1 - sum2;
+		s = (beta.length - 1) / h;
+
+		for (int i = 0; i < beta.length; i++) {
+			beta[i] *= s;
+		}
+	}
+
 	@Override
 	protected void reportBeta() {
 		for (int i = 0; i < fullBeta.length; i++) {
 			for (int j = 0; j < nWords; j++) {
 				T word = provider.getVocab().getWord(j);
-				System.out.print(word + "=" + fullBeta[i][j] + " ");				
+				System.out.print(word + "=" + fullBeta[i][j] + " ");
 			}
 			System.out.println();
 		}
