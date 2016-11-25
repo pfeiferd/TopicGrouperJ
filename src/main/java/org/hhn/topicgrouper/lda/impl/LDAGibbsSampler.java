@@ -61,7 +61,7 @@ public class LDAGibbsSampler<T> {
 		nWords = provider.getVocab().getNumberOfWords();
 		
 		this.beta = beta;
-		this.betaSum = betaSum();
+		this.betaSum = nWords * beta;
 		
 		this.random = random;
 		documents = provider.getDocuments();
@@ -195,14 +195,9 @@ public class LDAGibbsSampler<T> {
 		}
 	}
 
-	protected void reportBeta() {
-	}
-	
-	protected void updateAlpha() {
-		updateAlpha(alpha);
-		alphaSum = alphaSum();
-	}
-	
+//	protected void reportBeta() {
+//	}
+		
 	protected double alphaSum() {
 		double alphaSum = 0;
 		for (int i = 0; i < alpha.length; i++) {
@@ -211,13 +206,8 @@ public class LDAGibbsSampler<T> {
 		return alphaSum;
 	}
 	
-	protected double betaSum() {
-		return nWords * beta;
-	}
-
 	protected void updateBeta() {
-		beta = updateSymmetricBeta(beta);
-		betaSum = betaSum();
+		updateSymmetricBeta();
 	}
 
 	public double getPhi(int topicIndex, int wordIndex) {
@@ -344,17 +334,13 @@ public class LDAGibbsSampler<T> {
 	 * "Estimating a Dirichlet distribution by Thomas P. Minka" - also known as
 	 * "Minka's Update"
 	 */
-	public void updateAlpha(double[] alpha) {
-		double sumAlpha = 0;
-		for (int k = 0; k < alpha.length; k++) {
-			sumAlpha += alpha[k];
-		}
+	protected void updateAlpha() {
 		double sumDigammaNSumAlpha = 0;
 		for (int i = 0; i < documentSize.length; i++) {
-			sumDigammaNSumAlpha += Gamma.digamma(documentSize[i] + sumAlpha);
+			sumDigammaNSumAlpha += Gamma.digamma(documentSize[i] + alphaSum);
 		}
 		double diff = sumDigammaNSumAlpha - documentSize.length
-				* Gamma.digamma(sumAlpha);
+				* Gamma.digamma(alphaSum);
 		for (int k = 0; k < alpha.length; k++) {
 			double sumDigammaNiAlpha = 0;
 			for (int i = 0; i < documentSize.length; i++) {
@@ -365,6 +351,7 @@ public class LDAGibbsSampler<T> {
 					* Gamma.digamma(alpha[k]))
 					/ diff;
 		}
+		alphaSum = alphaSum();
 	}
 
 	/*
@@ -372,27 +359,25 @@ public class LDAGibbsSampler<T> {
 	 * "Estimating a Dirichlet distribution by Thomas P. Minka" - also known as
 	 * "Minka's Update"
 	 */
-	public double updateSymmetricBeta(double beta) {
-		double sumBeta = nWords * beta;
-
+	protected void updateSymmetricBeta() {
 		double sumDigammaNSumBeta = 0;
 		for (int i = 0; i < topicFrCount.length; i++) {
-			sumDigammaNSumBeta += Gamma.digamma(topicFrCount[i] + sumBeta);
+			sumDigammaNSumBeta += Gamma.digamma(topicFrCount[i] + betaSum);
 		}
 		double diff = nWords
 				* (sumDigammaNSumBeta - topicFrCount.length
-						* Gamma.digamma(sumBeta));
+						* Gamma.digamma(betaSum));
 
-		double sumDigammaNKAlpha = 0;
+		double sumDigammaNKBeta = 0;
 		for (int k = 0; k < nWords; k++) {
 			for (int i = 0; i < topicFrCount.length; i++) {
-				sumDigammaNKAlpha += Gamma
+				sumDigammaNKBeta += Gamma
 						.digamma(topicWordAssignmentCount[i][k] + beta);
 			}
 		}
-		return beta
-				* (sumDigammaNKAlpha - nWords * topicFrCount.length
+		beta *= (sumDigammaNKBeta - nWords * topicFrCount.length
 						* Gamma.digamma(beta)) / diff;
+		betaSum = nWords * beta;
 	}
 
 	public class FoldInStore {

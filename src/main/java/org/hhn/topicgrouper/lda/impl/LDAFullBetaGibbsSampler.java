@@ -26,7 +26,7 @@ public class LDAFullBetaGibbsSampler<T> extends LDAGibbsSampler<T> {
 		super(documentProvider, alpha, 0, random);
 		this.fullBeta = fullBeta;
 		fullBetaSum = new double[fullBeta.length];
-		updateFullBetaSum(fullBetaSum);
+		updateFullBetaSum();
 	}
 
 	public double getSmoothingAlphaPrecision() {
@@ -48,11 +48,10 @@ public class LDAFullBetaGibbsSampler<T> extends LDAGibbsSampler<T> {
 	@Override
 	protected void updateAlpha() {
 		if (updatePrecisionOnly) {
-			updateAlphaPrecision(alpha);
+			updateAlphaPrecision();
 		} else {
-			updateAlpha(alpha);
+			super.updateAlpha();
 		}
-		alphaSum = alphaSum();
 	}
 
 	@Override
@@ -68,28 +67,32 @@ public class LDAFullBetaGibbsSampler<T> extends LDAGibbsSampler<T> {
 	@Override
 	protected void updateBeta() {
 		if (updatePrecisionOnly) {
-			updateBetaPrecision(fullBeta);
+			updateBetaPrecision();
 		} else {
-			updateFullBeta(fullBeta);
+			updateFullBeta();
 		}
-		updateFullBetaSum(fullBetaSum);
 	}
 
-	public void updateFullBeta(double[][] fullBeta) {
+	protected void updateFullBeta() {
 		for (int j = 0; j < topicFrCount.length; j++) {
-			double[] alpha = fullBeta[j];
-			double sumAlpha = fullBetaSum[j];
+			double[] beta = fullBeta[j];
+			double sumBeta = fullBetaSum[j];
 
-			double sumDigammaNSumAlpha = 0;
+			double sumDigammaNSumBeta = 0;
+			int nonZeroCasesA = 0;
 			for (int i = 0; i < documentSize.length; i++) {
-				sumDigammaNSumAlpha += Gamma
-						.digamma(documentTopicAssignmentCount[i][j] + sumAlpha);
+				if (documentTopicAssignmentCount[i][j] > 0) {
+					sumDigammaNSumBeta += Gamma
+							.digamma(documentTopicAssignmentCount[i][j]
+									+ sumBeta);
+					nonZeroCasesA++;
+				}
 			}
-			double diff = sumDigammaNSumAlpha - documentSize.length
-					* Gamma.digamma(sumAlpha);
+			double diff = sumDigammaNSumBeta - nonZeroCasesA
+					* Gamma.digamma(sumBeta);
 
 			for (int k = 0; k < nWords; k++) {
-				double sumDigammaNiAlpha = 0;
+				double sumDigammaNiBeta = 0;
 				int nonZeroCases = 0;
 				for (int i = 0; i < documentSize.length; i++) {
 					int[] assignment = documentWordOccurrenceLastTopicAssignment[i]
@@ -103,20 +106,20 @@ public class LDAFullBetaGibbsSampler<T> extends LDAGibbsSampler<T> {
 						}
 					}
 					if (count > 0) {
-						sumDigammaNiAlpha += Gamma.digamma(count + alpha[k]);
+						sumDigammaNiBeta += Gamma.digamma(count + beta[k]);
 						nonZeroCases++;
 					}
 				}
-				alpha[k] *= nonZeroCases == 0 ? 0
-						: (sumDigammaNiAlpha - nonZeroCases
-								* Gamma.digamma(alpha[k]))
+				beta[k] *= nonZeroCases == 0 ? 0
+						: (sumDigammaNiBeta - nonZeroCases
+								* Gamma.digamma(beta[k]))
 								/ diff;
 			}
 		}
-
+		updateFullBetaSum();
 	}
 
-	protected void updateFullBetaSum(double[] fullBetaSum) {
+	protected void updateFullBetaSum() {
 		for (int i = 0; i < fullBeta.length; i++) {
 			fullBetaSum[i] = 0;
 			for (int j = 0; j < fullBeta[i].length; j++) {
@@ -125,11 +128,10 @@ public class LDAFullBetaGibbsSampler<T> extends LDAGibbsSampler<T> {
 		}
 	}
 
-	public void updateAlphaPrecision(double[] alpha) {
+	protected void updateAlphaPrecision() {
 		for (int j = 0; j < alpha.length; j++) {
 			logpkAlpha[j] = 0;
 			for (int i = 0; i < documentSize.length; i++) {
-				// TODO: Smoothing required.
 				logpkAlpha[j] += Math
 						.log((documentTopicAssignmentCount[i][j] + smoothingAlphaPrecision)
 								/ (documentSize[i] + smoothingAlphaPrecisionNom));
@@ -159,9 +161,10 @@ public class LDAFullBetaGibbsSampler<T> extends LDAGibbsSampler<T> {
 		for (int i = 0; i < alpha.length; i++) {
 			alpha[i] *= s;
 		}
+		alphaSum = alphaSum();
 	}
 
-	public void updateBetaPrecision(double[][] fullBeta) {
+	protected void updateBetaPrecision() {
 		for (int t = 0; t < fullBeta.length; t++) {
 			double[] beta = fullBeta[t];
 			for (int j = 0; j < nWords; j++) {
@@ -177,7 +180,6 @@ public class LDAFullBetaGibbsSampler<T> extends LDAGibbsSampler<T> {
 							}
 						}
 					}
-					// TODO: Smoothing required.
 					logpkBeta[j] += Math.log((count + smoothingBetaPrecision)
 							/ (assignment.length + smoothingBetaPrecisionNom));
 				}
@@ -207,9 +209,10 @@ public class LDAFullBetaGibbsSampler<T> extends LDAGibbsSampler<T> {
 				beta[i] *= s;
 			}
 		}
+		updateFullBetaSum();
 	}
 
-	@Override
+//	@Override
 	protected void reportBeta() {
 		for (int i = 0; i < fullBeta.length; i++) {
 			for (int j = 0; j < nWords; j++) {
