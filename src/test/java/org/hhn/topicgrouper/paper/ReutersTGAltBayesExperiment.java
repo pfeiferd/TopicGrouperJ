@@ -7,7 +7,7 @@ import org.hhn.topicgrouper.classify.impl.AbstractTopicBasedAltBayesClassifier;
 import org.hhn.topicgrouper.tg.TGSolution;
 
 public class ReutersTGAltBayesExperiment extends
-		AbstractTGClassificationExperiment {
+		ReutersTGNaiveBayesExperiment {
 	public ReutersTGAltBayesExperiment() throws IOException {
 		super();
 	}

@@ -6,8 +6,7 @@ import org.hhn.topicgrouper.classify.SupervisedDocumentClassifier;
 import org.hhn.topicgrouper.classify.impl.AbstractTopicBasedTfIdfClassifier;
 import org.hhn.topicgrouper.tg.TGSolution;
 
-public class ReutersTGTfIdfExperiment extends
-		AbstractTGClassificationExperiment {
+public class ReutersTGTfIdfExperiment extends ReutersTGNaiveBayesExperiment {
 
 	public ReutersTGTfIdfExperiment() throws IOException {
 		super();

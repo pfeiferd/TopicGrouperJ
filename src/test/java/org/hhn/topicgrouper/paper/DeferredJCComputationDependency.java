@@ -91,8 +91,12 @@ public class DeferredJCComputationDependency {
 
 	public static abstract class JCCsRunner<T> {
 		public void run(int steps, int avgC) throws IOException {
+			if (!new File("./target/jcupdates").exists()) {
+				new File("./target/jcupdates").mkdir();
+			}
+
 			PrintStream pw = new PrintStream(new FileOutputStream(new File(
-					"./target/" + getFileName() + ".csv")));
+					"./target/jcupdates/" + getFileName() + ".csv")));
 
 			pw.println("nwords;ndeferredjccs;err;durationms;durationms_err;ndocs;");
 
@@ -133,7 +137,7 @@ public class DeferredJCComputationDependency {
 						@Override
 						public void done() {
 							tgDeferredJCCs[counter[0]] = topicGrouper
-									.getDeferredJCRecomputations();
+									.getJCUpdates();
 
 						}
 

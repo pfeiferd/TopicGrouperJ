@@ -7,7 +7,7 @@ import org.hhn.topicgrouper.classify.impl.AbstractTopicBasedSVMClassifier;
 import org.hhn.topicgrouper.classify.impl.AbstractTopicBasedTfIdfClassifier;
 import org.hhn.topicgrouper.tg.TGSolution;
 
-public class ReutersTGSVMExperiment extends AbstractTGClassificationExperiment {
+public class ReutersTGSVMExperiment extends ReutersTGNaiveBayesExperiment {
 	public ReutersTGSVMExperiment() throws IOException {
 		super();
 	}
