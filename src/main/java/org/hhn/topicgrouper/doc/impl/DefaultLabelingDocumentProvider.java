@@ -49,7 +49,7 @@ public class DefaultLabelingDocumentProvider<T, L> extends
 	}
 
 	public DefaultLabeledDocument newLabeledDocument(L label) {
-		DefaultLabeledDocument document = new DefaultLabeledDocument(label);
+		DefaultLabeledDocument document = new DefaultLabeledDocument(label, entries.size());
 		entries.add(document);
 		List<LabeledDocument<T, L>> docs = labelsToDocuments.get(label);
 		if (docs == null) {
@@ -123,7 +123,8 @@ public class DefaultLabelingDocumentProvider<T, L> extends
 			LabeledDocument<T, L> {
 		private final L label;
 
-		public DefaultLabeledDocument(L label) {
+		public DefaultLabeledDocument(L label, int index) {
+			super(index);
 			this.label = label;
 		}
 

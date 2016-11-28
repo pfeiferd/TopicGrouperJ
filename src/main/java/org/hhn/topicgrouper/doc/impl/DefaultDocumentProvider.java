@@ -18,7 +18,7 @@ public class DefaultDocumentProvider<T> extends WordMapDocumentProvider<T> {
 	}
 
 	public DefaultDocument newDocument() {
-		DefaultDocument document = new DefaultDocument();
+		DefaultDocument document = new DefaultDocument(entries.size());
 		entries.add(document);
 		return document;
 	}
@@ -70,10 +70,19 @@ public class DefaultDocumentProvider<T> extends WordMapDocumentProvider<T> {
 				d.removed = true;
 			}
 		}
+		// Update indices (quite ugly...)
+		int i = 0;
+		for (Document<T> d2 : entries) {
+			((DefaultDocument)d2).index = i++;
+		}
 	}
 
 	public class DefaultDocument extends AbstractDocumentImpl<T> {
 		private boolean removed = false;
+		
+		public DefaultDocument(int index) {
+			super(index);
+		}
 
 		public void addWord(T word) {
 			addWord(word, 1);

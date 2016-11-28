@@ -20,6 +20,11 @@ public class EachWordDocumentSplitter<T> implements DocumentSplitter<T> {
 	public EachWordDocumentSplitter(final boolean reduceRefDoc) {
 		reducedDocument = new Document<T>() {
 			@Override
+			public int getIndex() {
+				return d.getIndex();
+			}
+			
+			@Override
 			public int getWords() {
 				return d.getWords();
 			}
@@ -47,6 +52,11 @@ public class EachWordDocumentSplitter<T> implements DocumentSplitter<T> {
 		};
 
 		oneWordDocument = new Document<T>() {
+			@Override
+			public int getIndex() {
+				return d.getIndex();
+			}
+			
 			@Override
 			public int getWords() {
 				return d.getWords();

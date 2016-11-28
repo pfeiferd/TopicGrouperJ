@@ -10,10 +10,18 @@ import org.hhn.topicgrouper.doc.Document;
 public abstract class AbstractDocumentImpl<T> implements Document<T> {
 	private int size;
 	private final TIntIntMap frequencies;
+	
+	protected int index;
 
-	public AbstractDocumentImpl() {
+	public AbstractDocumentImpl(int index) {
 		this.frequencies = new TIntIntHashMap();
 		size = 0;
+		this.index = index;
+	}
+	
+	@Override
+	public int getIndex() {
+		return index;
 	}
 
 	@Override

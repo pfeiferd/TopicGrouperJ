@@ -49,8 +49,8 @@ public class FiftyFiftyDocumentSplitter<T> implements DocumentSplitter<T> {
 		counter++;
 		splitCount = 0;
 		this.d = d;
-		a = new SplitDocument();
-		b = new SplitDocument();
+		a = new SplitDocument(d.getIndex());
+		b = new SplitDocument(d.getIndex());
 
 		int half = d.getSize() / 2;
 		int fillA = 0;
@@ -96,6 +96,10 @@ public class FiftyFiftyDocumentSplitter<T> implements DocumentSplitter<T> {
 	}
 
 	protected class SplitDocument extends AbstractDocumentImpl<T> {
+		public SplitDocument(int index) {
+			super(index);
+		}
+		
 		@Override
 		public DocumentProvider<T> getProvider() {
 			return d.getProvider();
