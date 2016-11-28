@@ -109,7 +109,7 @@ public class TWCLDAPaperDocumentGenerator implements DocumentProvider<String>, V
 
 		for (int i = 0; i < docs; i++) {
 			double[] topicPerDocDist = dirichlet.sample(dirichletAlpha);
-			AbstractDocumentImpl<String> document = new AbstractDocumentImpl<String>() {
+			AbstractDocumentImpl<String> document = new AbstractDocumentImpl<String>(i) {
 				@Override
 				public DocumentProvider<String> getProvider() {
 					return TWCLDAPaperDocumentGenerator.this;
