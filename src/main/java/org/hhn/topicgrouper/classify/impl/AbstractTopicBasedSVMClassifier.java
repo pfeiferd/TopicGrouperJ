@@ -72,7 +72,7 @@ public abstract class AbstractTopicBasedSVMClassifier<T, L> extends
 		//System.out.println(d);
 		SvmClassifier classifier = new SvmClassifierImpl(model);
 		double[] ftd = new double[topicIndices.length];
-		computeTopicFrequency(d, ftd, true);
+		computeTopicFrequencyTest(d, ftd, true);
 
 		List<SvmDocument> classified = classifier.classify(Collections
 				.singletonList((SvmDocument) new SVMDocumentAdapter(d, null,

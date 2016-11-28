@@ -39,6 +39,11 @@ public abstract class AbstractTopicBasedClassifier<T, L> implements
 		}
 	}
 
+	protected void computeTopicFrequencyTest(Document<T> d, double[] v,
+			boolean add) {
+		computeTopicFrequency(d, v, add);
+	}
+
 	protected int computeDocumentFrequency(List<Document<T>> ds, int topicIndex) {
 		int df = 0;
 		for (Document<T> d : ds) {

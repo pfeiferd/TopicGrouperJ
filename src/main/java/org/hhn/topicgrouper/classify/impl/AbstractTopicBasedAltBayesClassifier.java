@@ -59,7 +59,7 @@ public abstract class AbstractTopicBasedAltBayesClassifier<T, L> extends
 		L bestLabel = null;
 		int ntopics = topicIndices.length;
 		double[] ftd = new double[ntopics];
-		computeTopicFrequency(d, ftd, true);
+		computeTopicFrequencyTest(d, ftd, true);
 
 		int l = 0;
 		for (L label : labels) {

@@ -72,7 +72,10 @@ public abstract class AbstractTopicBasedTfIdfClassifier<T, L> extends AbstractTo
 	}
 
 	public L classify(Document<T> d) {
-		computeDocumentVector(d, vHelp);
+		computeTopicFrequencyTest(d, vHelp, false);
+		for (int i = 0; i < vHelp.length; i++) {
+			vHelp[i] = vHelp[i] * idf.get(i);
+		}
 
 		double bestValue = 0;
 		L bestLabel = null;
