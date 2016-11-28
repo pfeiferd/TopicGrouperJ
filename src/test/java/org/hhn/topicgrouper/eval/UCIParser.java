@@ -50,7 +50,7 @@ public class UCIParser {
 		int wordIndex = 1;
 		String word = nextWord(reader);
 		while (word != null && !word.isEmpty()) {
-			System.out.println(wordIndex + " " + word);
+//			System.out.println(wordIndex + " " + word);
 			orgVocab.addEntry(word);
 			if (stemmingVocab != null) {
 				String stem = wordIndexToStem.get(wordIndex);
@@ -133,7 +133,7 @@ public class UCIParser {
 	}
 	
 	public static void main(String[] args) throws IOException {
-		UCIParser uciParser = new UCIParser(false, new File("./src/test/resources/kos"), "kos", -1);
+		UCIParser uciParser = new UCIParser(true, new File("./src/test/resources/kos"), "kos", 100);
 		DocumentProvider<String> provider = uciParser.getDocumentProvider();
 		System.out.println(provider.getDocuments().size());
 		System.out.println(provider.getVocab().getNumberOfWords());
