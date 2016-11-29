@@ -46,7 +46,6 @@ public class ReutersLDAClassificationExperiment {
 	// return new LabelingHoldOutSplitter<String, String>(new Random(42),
 	// provider, 0.1, 20, 10);
 	// }
-	
 
 	public void run() {
 		final int[] t = new int[1];
@@ -55,15 +54,19 @@ public class ReutersLDAClassificationExperiment {
 			final LDAGibbsSampler<String> ldaGibbsSampler = new LDAGibbsSampler<String>(
 					trainingProvider, topics, 0.1, 0.1, new Random(42));
 			ldaGibbsSampler.setUpdateAlphaBeta(true);
-			ldaGibbsSampler.solve(200, 200, new BasicLDAResultReporter<String>(System.out, 10) {
+			ldaGibbsSampler.solve(200, 200, new BasicLDAResultReporter<String>(
+					System.out, 10) {
 				@Override
 				public void done(LDAGibbsSampler<String> sampler) {
 					super.done(sampler);
 					SupervisedDocumentClassifier<String, String> classifier = createClassifier(ldaGibbsSampler);
 					classifier.train(trainingProvider);
-					AbstractTGClassificationExperiment.testClassifier(testProvider, classifier, t[0]);
+					double microAvg = classifier.test(testProvider, true);
+					double macroAvg = classifier.test(testProvider, false);
+					System.out
+							.println(t[0] + "; " + microAvg + "; " + macroAvg);
 				}
-				
+
 				@Override
 				public void updatedSolution(LDAGibbsSampler<String> sampler,
 						int iteration) {

@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Random;
 
 import org.hhn.topicgrouper.classify.SupervisedDocumentClassifier;
+import org.hhn.topicgrouper.classify.impl.AbstractTopicBasedNBClassifier;
 import org.hhn.topicgrouper.doc.DocumentProvider;
 import org.hhn.topicgrouper.doc.LabeledDocument;
 import org.hhn.topicgrouper.doc.LabelingDocumentProvider;
@@ -52,9 +53,9 @@ public abstract class AbstractTGClassificationExperiment extends
 	// provider, 0.1, 20, 10);
 	// }
 
+	protected abstract void createTrainingAndTestProvider(
+			LabelingDocumentProvider<String, String>[] res);
 
-	protected abstract void createTrainingAndTestProvider(LabelingDocumentProvider<String, String>[] res);
-	
 	@Override
 	protected TGSolver<String> createSolver(
 			DocumentProvider<String> documentProvider) {
@@ -93,39 +94,16 @@ public abstract class AbstractTGClassificationExperiment extends
 						.createClassifier(solution);
 				if (classifier != null) {
 					classifier.train(trainingProvider);
-					testClassifier(testProvider, classifier, solution.getNumberOfTopics());
+					((AbstractTopicBasedNBClassifier<String, String>) classifier)
+							.optimizeLambda(0.00001, 10, trainingProvider, 10,
+									true);
+					double microAvg = classifier.test(testProvider, true);
+					double macroAvg = classifier.test(testProvider, false);
+					System.out.println(solution.getNumberOfTopics() + "; "
+							+ microAvg + "; " + macroAvg);
 				}
 			}
 		};
-	}
-
-	public static void testClassifier(
-			LabelingDocumentProvider<String, String> testProvider,
-			SupervisedDocumentClassifier<String, String> classifier,
-			int topics) {
-		int hits = 0;
-		int tests = 0;
-		Map<String, Integer> counts = new HashMap<String, Integer>();
-
-		for (LabeledDocument<String, String> dt : testProvider
-				.getLabeledDocuments()) {
-			String label = classifier.classify(dt);
-			if (label.equals(dt.getLabel())) {
-				Integer v = counts.get(label);
-				counts.put(label, v == null ? 1 : v + 1);
-				hits++;
-			}
-			tests++;
-		}
-		System.out.println(topics + "; "
-				+ (((double) hits) / tests) + " " + tests);
-		double avg = 0;
-		for (String label : counts.keySet()) {
-			avg += ((double) counts.get(label))
-					/ testProvider.getDocumentsWithLabel(label).size();
-		}
-		avg = avg / counts.keySet().size();
-		System.out.println(avg);
 	}
 
 	protected abstract SupervisedDocumentClassifier<String, String> createClassifier(
