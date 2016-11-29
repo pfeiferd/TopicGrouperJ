@@ -2,13 +2,18 @@ package org.hhn.topicgrouper.classify.impl;
 
 import gnu.trove.iterator.TIntIterator;
 import gnu.trove.map.TIntIntMap;
+import gnu.trove.map.TObjectIntMap;
 import gnu.trove.map.hash.TIntIntHashMap;
+import gnu.trove.map.hash.TObjectIntHashMap;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 import org.hhn.topicgrouper.classify.SupervisedDocumentClassifier;
 import org.hhn.topicgrouper.doc.Document;
+import org.hhn.topicgrouper.doc.LabeledDocument;
+import org.hhn.topicgrouper.doc.LabelingDocumentProvider;
 
 public abstract class AbstractTopicBasedClassifier<T, L> implements
 		SupervisedDocumentClassifier<T, L> {
@@ -58,6 +63,38 @@ public abstract class AbstractTopicBasedClassifier<T, L> implements
 			}
 		}
 		return df;
+	}
+
+	@Override
+	public double test(LabelingDocumentProvider<T, L> testProvider,
+			boolean microAvg) {
+		int hits = 0;
+		int tests = 0;
+		int macroAvg = 0;
+		int usedLabels = 0; 
+
+		for (L label : testProvider.getAllLabels()) {
+			int labelHits = 0;
+			int labelTests = 0;
+			for (LabeledDocument<T, L> dt : testProvider
+					.getDocumentsWithLabel(label)) {
+				L clabel = classify(dt);
+				if (clabel.equals(label)) {
+					labelHits++;
+					hits++;
+				}
+				labelTests++;
+				tests++;
+			}
+			usedLabels += labelTests == 0 ? 0 : 1;
+			macroAvg += labelTests == 0 ? 0 : ((double) labelHits) / labelTests;
+		}
+
+		if (microAvg) {
+			return ((double) hits) / tests;
+		} else {
+			return macroAvg / usedLabels;
+		}
 	}
 
 	protected abstract int[] getTopicIndices();
