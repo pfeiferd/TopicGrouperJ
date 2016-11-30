@@ -95,15 +95,19 @@ public abstract class AbstractTGClassificationExperiment extends
 				if (classifier != null) {
 					classifier.train(trainingProvider);
 					((AbstractTopicBasedNBClassifier<String, String>) classifier)
-							.optimizeLambda(0.00001, 10, trainingProvider, 10,
+							.optimizeLambda(0, 10, trainingProvider, 10,
 									true);
 					double microAvg = classifier.test(testProvider, true);
 					double macroAvg = classifier.test(testProvider, false);
-					System.out.println(solution.getNumberOfTopics() + "; "
-							+ microAvg + "; " + macroAvg);
+					printResult(solution.getNumberOfTopics(), microAvg, macroAvg);
 				}
 			}
 		};
+	}
+	
+	protected void printResult(int topics, double microAvg, double macroAvg) {
+		System.out.println(topics + "; "
+				+ microAvg + "; " + macroAvg);		
 	}
 
 	protected abstract SupervisedDocumentClassifier<String, String> createClassifier(

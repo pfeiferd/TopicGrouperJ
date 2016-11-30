@@ -74,7 +74,7 @@ public class ReutersLDAClassificationExperiment {
 			});
 		}
 	}
-
+	
 	protected DocumentProvider<String> createDocumentProvider() {
 		return trainingProvider;
 	}
