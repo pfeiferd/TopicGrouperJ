@@ -1,7 +1,9 @@
 package org.hhn.topicgrouper.paper;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.Random;
 
 import org.hhn.topicgrouper.classify.SupervisedDocumentClassifier;
@@ -14,17 +16,25 @@ import org.hhn.topicgrouper.tg.TGSolution;
 
 public class ReutersTGNaiveBayesExperiment extends
 		AbstractTGClassificationExperiment {
+	private final PrintStream output;
+
 	public ReutersTGNaiveBayesExperiment() throws IOException {
 		super();
+		output = new PrintStream(
+				new FileOutputStream(new File("./target/"
+						+ ReutersTGNaiveBayesExperiment.class.getSimpleName()
+						+ ".csv")));
+		output.println("topics; microAvg; macroAvg");
 	}
-	
+
 	@Override
 	protected void createTrainingAndTestProvider(
 			LabelingDocumentProvider<String, String>[] res) {
 		createModApteSplit(res);
 	}
 
-	public static void createModApteSplit(LabelingDocumentProvider<String, String>[] res) {
+	public static void createModApteSplit(
+			LabelingDocumentProvider<String, String>[] res) {
 		Reuters21578 reuters = new Reuters21578(true);
 		LabelingDocumentProvider<String, String> trainingData = reuters
 				.getCorpusDocumentProvider(new File(
@@ -44,11 +54,11 @@ public class ReutersTGNaiveBayesExperiment extends
 				+ trainingProvider.getDocuments().size());
 		System.out.println("Vocab: "
 				+ trainingProvider.getVocab().getNumberOfWords());
-		
+
 		res[0] = testProvider;
 		res[1] = trainingProvider;
 	}
-	
+
 	@Override
 	protected SupervisedDocumentClassifier<String, String> createClassifier(
 			final TGSolution<String> solution) {
@@ -60,7 +70,7 @@ public class ReutersTGNaiveBayesExperiment extends
 				protected int[] getTopicIndices() {
 					return topicIds;
 				}
-				
+
 				@Override
 				protected int getTopicIndex(int wordIndex) {
 					return solution.getTopicForWord(wordIndex);
@@ -69,6 +79,12 @@ public class ReutersTGNaiveBayesExperiment extends
 		} else {
 			return null;
 		}
+	}
+
+	@Override
+	protected void printResult(int topics, double microAvg, double macroAvg) {
+		super.printResult(topics, microAvg, macroAvg);
+		output.println(topics + "; " + microAvg + "; " + macroAvg);
 	}
 
 	public static void main(String[] args) throws IOException {
