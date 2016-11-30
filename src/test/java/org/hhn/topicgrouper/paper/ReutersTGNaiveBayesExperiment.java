@@ -22,7 +22,7 @@ public class ReutersTGNaiveBayesExperiment extends
 		super();
 		output = new PrintStream(
 				new FileOutputStream(new File("./target/"
-						+ ReutersTGNaiveBayesExperiment.class.getSimpleName()
+						+ getClass().getSimpleName()
 						+ ".csv")));
 		output.println("topics; microAvg; macroAvg");
 	}

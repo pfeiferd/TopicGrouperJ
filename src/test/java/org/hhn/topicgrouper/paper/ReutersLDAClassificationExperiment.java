@@ -1,25 +1,22 @@
 package org.hhn.topicgrouper.paper;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import java.io.PrintStream;
 import java.util.Random;
 
 import org.hhn.topicgrouper.classify.SupervisedDocumentClassifier;
 import org.hhn.topicgrouper.classify.impl.lda.LDANBClassifier;
 import org.hhn.topicgrouper.doc.DocumentProvider;
-import org.hhn.topicgrouper.doc.LabeledDocument;
 import org.hhn.topicgrouper.doc.LabelingDocumentProvider;
-import org.hhn.topicgrouper.doc.impl.DefaultVocab;
-import org.hhn.topicgrouper.doc.impl.LabelingHoldOutSplitter;
-import org.hhn.topicgrouper.eval.Reuters21578;
 import org.hhn.topicgrouper.lda.impl.LDAGibbsSampler;
 import org.hhn.topicgrouper.lda.report.BasicLDAResultReporter;
 
 public class ReutersLDAClassificationExperiment {
 	protected final LabelingDocumentProvider<String, String> testProvider;
 	protected final LabelingDocumentProvider<String, String> trainingProvider;
+	private final PrintStream output;
 
 	public ReutersLDAClassificationExperiment() throws IOException {
 		// Use ModApte split:
@@ -28,6 +25,10 @@ public class ReutersLDAClassificationExperiment {
 		ReutersTGNaiveBayesExperiment.createModApteSplit(res);
 		testProvider = res[0];
 		trainingProvider = res[1];
+
+		output = new PrintStream(new FileOutputStream(new File("./target/"
+				+ getClass().getSimpleName() + ".csv")));
+		output.println("topics; microAvg; macroAvg");
 
 		// LabelingDocumentProvider<String, String> provider = initProvider();
 		// LabelingHoldOutSplitter<String, String> splitter =
@@ -65,6 +66,7 @@ public class ReutersLDAClassificationExperiment {
 					double macroAvg = classifier.test(testProvider, false);
 					System.out
 							.println(t[0] + "; " + microAvg + "; " + macroAvg);
+					output.println(t[0] + "; " + microAvg + "; " + macroAvg);
 				}
 
 				@Override
@@ -74,7 +76,7 @@ public class ReutersLDAClassificationExperiment {
 			});
 		}
 	}
-	
+
 	protected DocumentProvider<String> createDocumentProvider() {
 		return trainingProvider;
 	}

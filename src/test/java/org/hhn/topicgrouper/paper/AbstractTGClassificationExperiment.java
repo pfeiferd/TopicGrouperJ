@@ -1,21 +1,13 @@
 package org.hhn.topicgrouper.paper;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
 
 import org.hhn.topicgrouper.classify.SupervisedDocumentClassifier;
 import org.hhn.topicgrouper.classify.impl.AbstractTopicBasedNBClassifier;
 import org.hhn.topicgrouper.doc.DocumentProvider;
-import org.hhn.topicgrouper.doc.LabeledDocument;
 import org.hhn.topicgrouper.doc.LabelingDocumentProvider;
-import org.hhn.topicgrouper.doc.impl.DefaultVocab;
-import org.hhn.topicgrouper.doc.impl.LabelingHoldOutSplitter;
 import org.hhn.topicgrouper.eval.AbstractTGTester;
-import org.hhn.topicgrouper.eval.Reuters21578;
 import org.hhn.topicgrouper.tg.TGSolution;
 import org.hhn.topicgrouper.tg.TGSolutionListener;
 import org.hhn.topicgrouper.tg.TGSolver;
