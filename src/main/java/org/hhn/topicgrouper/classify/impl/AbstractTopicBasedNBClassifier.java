@@ -75,7 +75,7 @@ public abstract class AbstractTopicBasedNBClassifier<T, L> extends
 	public void optimizeLambda(double minLambda, double maxLambda,
 			LabelingDocumentProvider<T, L> provider, int steps, boolean micro,
 			double res2) {
-		System.out.println(steps + " " + minLambda);
+		//System.out.println(steps + " " + minLambda + " " + maxLambda + " " + res2);
 		if (steps <= 0) {
 			return;
 		}
@@ -86,13 +86,17 @@ public abstract class AbstractTopicBasedNBClassifier<T, L> extends
 		double res3 = test(provider, micro);
 
 		if (res1 < res2 && res2 < res3) {
-			optimizeLambda(res2, maxLambda, provider, steps - 1, micro, res3);
+			optimizeLambda((minLambda + maxLambda) / 2, maxLambda, provider, steps - 1, micro, res3);
 		} else if (res1 > res2 && res2 > res3) {
-			optimizeLambda(minLambda, res2, provider, steps - 1, micro, res1);
+			optimizeLambda(minLambda, (minLambda + maxLambda) / 2, provider, steps - 1, micro, res1);
 		} else if (res1 < res2 && res2 > res3) {
-			optimizeLambda(res1, res3, provider, steps - 1, micro, res2);
+			optimizeLambda(minLambda + diff * 0.25, minLambda + diff * 0.75, provider, steps - 1, micro, res2);
+		} else if (res1 > res3) {
+			//throw new IllegalStateException("unexpected case");
+			optimizeLambda(minLambda, (minLambda + maxLambda) / 2, provider, steps - 1, micro, res1);
 		} else {
-			throw new IllegalStateException("unexpected case");
+			//throw new IllegalStateException("unexpected case");
+			optimizeLambda((minLambda + maxLambda) / 2, maxLambda, provider, steps - 1, micro, res3);			
 		}
 	}
 
