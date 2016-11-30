@@ -2,12 +2,9 @@ package org.hhn.topicgrouper.classify.impl;
 
 import gnu.trove.iterator.TIntIterator;
 import gnu.trove.map.TIntIntMap;
-import gnu.trove.map.TObjectIntMap;
 import gnu.trove.map.hash.TIntIntHashMap;
-import gnu.trove.map.hash.TObjectIntHashMap;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 
 import org.hhn.topicgrouper.classify.SupervisedDocumentClassifier;
@@ -70,8 +67,8 @@ public abstract class AbstractTopicBasedClassifier<T, L> implements
 			boolean microAvg) {
 		int hits = 0;
 		int tests = 0;
-		int macroAvg = 0;
 		int usedLabels = 0; 
+		double macroAvg = 0;
 
 		for (L label : testProvider.getAllLabels()) {
 			int labelHits = 0;

@@ -65,21 +65,34 @@ public abstract class AbstractTopicBasedNBClassifier<T, L> extends
 
 	public void optimizeLambda(double minLambda, double maxLambda,
 			LabelingDocumentProvider<T, L> provider, int steps, boolean micro) {
+		smoothingLambda = (minLambda + maxLambda) / 2;
+		double middleRes = test(provider, micro);
+		optimizeLambda(minLambda, maxLambda, provider, steps, micro, middleRes);
+	}
+
+	// Assumes that we have a function that monotically rises up to its max and then monotically falls again (or just one of the two).
+	// We are tying to find the max.
+	public void optimizeLambda(double minLambda, double maxLambda,
+			LabelingDocumentProvider<T, L> provider, int steps, boolean micro,
+			double res2) {
 		System.out.println(steps + " " + minLambda);
 		if (steps <= 0) {
 			return;
 		}
-		smoothingLambda = minLambda;
+		double diff = maxLambda - minLambda;
+		smoothingLambda = minLambda + diff * 0.25;
 		double res1 = test(provider, micro);
-		smoothingLambda = maxLambda;
-		double res2 = test(provider, micro);
+		smoothingLambda = minLambda + diff * 0.75;
+		double res3 = test(provider, micro);
 
-		if (res1 > res2) {
-			optimizeLambda(minLambda, (maxLambda - minLambda) / 2, provider,
-					steps - 1, micro);
+		if (res1 < res2 && res2 < res3) {
+			optimizeLambda(res2, maxLambda, provider, steps - 1, micro, res3);
+		} else if (res1 > res2 && res2 > res3) {
+			optimizeLambda(minLambda, res2, provider, steps - 1, micro, res1);
+		} else if (res1 < res2 && res2 > res3) {
+			optimizeLambda(res1, res3, provider, steps - 1, micro, res2);
 		} else {
-			optimizeLambda((maxLambda - minLambda) / 2, maxLambda, provider,
-					steps - 1, micro);
+			throw new IllegalStateException("unexpected case");
 		}
 	}
 
