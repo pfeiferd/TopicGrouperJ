@@ -9,6 +9,6 @@ public class AllExperimentsRunner extends EvalRunner {
 	}
 	
 	public static void main(String[] args) {
-		new AllExperimentsRunner().run();
+		new AllExperimentsRunner().run(8);
 	}
 }
