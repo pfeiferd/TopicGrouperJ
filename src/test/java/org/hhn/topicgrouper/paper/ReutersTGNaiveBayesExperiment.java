@@ -17,14 +17,16 @@ import org.hhn.topicgrouper.tg.TGSolution;
 public class ReutersTGNaiveBayesExperiment extends
 		AbstractTGClassificationExperiment {
 	private final PrintStream output;
+	private final PrintStream outputOpt;
 
 	public ReutersTGNaiveBayesExperiment() throws IOException {
 		super();
-		output = new PrintStream(
-				new FileOutputStream(new File("./target/"
-						+ getClass().getSimpleName()
-						+ ".csv")));
+		output = new PrintStream(new FileOutputStream(new File("./target/"
+				+ getClass().getSimpleName() + ".csv")));
 		output.println("topics; microAvg; macroAvg");
+		outputOpt = new PrintStream(new FileOutputStream(new File("./target/"
+				+ getClass().getSimpleName() + "Opt.csv")));
+		outputOpt.println("topics; microAvg; macroAvg");
 	}
 
 	@Override
@@ -40,12 +42,12 @@ public class ReutersTGNaiveBayesExperiment extends
 				.getCorpusDocumentProvider(new File(
 						"src/test/resources/reuters21578"), true, false);
 		LabelingDocumentProvider<String, String> trainingProvider = new LabelingHoldOutSplitter<String, String>(
-				new Random(42), trainingData, 0, 30, 10).getRest();
+				new Random(42), trainingData, 0, 5, 10).getRest();
 		LabelingDocumentProvider<String, String> testData = reuters
 				.getCorpusDocumentProvider(new File(
 						"src/test/resources/reuters21578"), false, true);
 		LabelingDocumentProvider<String, String> testProvider = new LabelingHoldOutSplitter<String, String>(
-				new Random(42), testData, 1, 0, 10,
+				new Random(42), testData, 1, 0, 5,
 				(DefaultVocab<String>) trainingProvider.getVocab())
 				.getHoldOut();
 
@@ -82,9 +84,21 @@ public class ReutersTGNaiveBayesExperiment extends
 	}
 
 	@Override
-	protected void printResult(int topics, double microAvg, double macroAvg) {
-		super.printResult(topics, microAvg, macroAvg);
-		output.println(topics + "; " + microAvg + "; " + macroAvg);
+	protected void printResult(PrintStream out, boolean optmized, int topics, double microAvg,
+			double macroAvg) {
+		if (optmized) {
+			outputOpt.println(topics + "; " + microAvg + "; " + macroAvg);
+		} else {
+			super.printResult(out, optmized, topics, microAvg, macroAvg);
+			output.println(topics + "; " + microAvg + "; " + macroAvg);
+		}
+	}
+	
+	@Override
+	protected void done() {
+		super.done();
+		output.close();
+		outputOpt.close();
 	}
 
 	public static void main(String[] args) throws IOException {

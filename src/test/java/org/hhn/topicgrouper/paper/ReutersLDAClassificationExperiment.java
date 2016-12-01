@@ -50,11 +50,11 @@ public class ReutersLDAClassificationExperiment {
 
 	public void run() {
 		final int[] t = new int[1];
-		for (int topics = 1; topics <= 500; topics += 10) {
-			t[0] = topics;
+		for (int topics = 0; topics <= 500; topics += 10) {
+			t[0] = topics == 0 ? 1 : topics;
 			final LDAGibbsSampler<String> ldaGibbsSampler = new LDAGibbsSampler<String>(
-					trainingProvider, topics, 0.1, 0.1, new Random(42));
-			ldaGibbsSampler.setUpdateAlphaBeta(true);
+					trainingProvider, topics == 0 ? 1 : topics, 0.1, 0.1, new Random(42));
+//			ldaGibbsSampler.setUpdateAlphaBeta(true);
 			ldaGibbsSampler.solve(200, 200, new BasicLDAResultReporter<String>(
 					System.out, 10) {
 				@Override
