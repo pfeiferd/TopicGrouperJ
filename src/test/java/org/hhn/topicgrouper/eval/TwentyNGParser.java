@@ -78,19 +78,21 @@ public class TwentyNGParser {
 						BufferedReader reader = new BufferedReader(
 								new FileReader(news[j]));
 						int read = reader.read(buffer, offset, buffer.length
-								- offset) + offset;
+								- offset);
 						while (read != -1) {
-							int pos = read - 1;
+							int pos = read - 1  + offset;
 							for (; pos >= 0
 									&& !Character.isWhitespace(buffer[pos]); pos--) {
 							}
 							extendDocument(d, buffer, 0, pos);
+							read += offset;
 							for (offset = 0; pos < read; offset++, pos++) {
 								buffer[offset] = buffer[pos];
 							}
 							read = reader.read(buffer, offset, buffer.length
 									- offset);
 						}
+						reader.close();
 					}
 				}
 			}
