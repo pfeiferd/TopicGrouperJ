@@ -64,7 +64,7 @@ public class ReutersLDAClassificationExperiment {
 		final LDAGibbsSampler<String> ldaGibbsSampler = new LDAGibbsSampler<String>(
 				trainingProvider, createAlpha(topics), 0.1, new Random(42));
 		ldaGibbsSampler.setUpdateAlphaBeta(optimizeAlphaBeta);		
-		ldaGibbsSampler.solve(100, 100, new BasicLDAResultReporter<String>(
+		ldaGibbsSampler.solve(2000, 2000, new BasicLDAResultReporter<String>(
 				System.out, 10) {
 			@Override
 			public void done(LDAGibbsSampler<String> sampler) {
