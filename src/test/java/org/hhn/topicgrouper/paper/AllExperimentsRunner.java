@@ -2,12 +2,13 @@ package org.hhn.topicgrouper.paper;
 
 import org.hhn.topicgrouper.paper.classfication.ReutersLDAClassificationExperiment;
 import org.hhn.topicgrouper.paper.classfication.ReutersLDAClassificationExperimentOpt;
+import org.hhn.topicgrouper.paper.classfication.ReutersTGNaiveBayesExperiment;
 import org.hhn.topicgrouper.util.EvalRunner;
 
 public class AllExperimentsRunner extends EvalRunner {
 	@Override
 	protected Class[] getMainClasses() {
-		return new Class[] { /* ReutersTGNaiveBayesExperiment.class */
+		return new Class[] { ReutersTGNaiveBayesExperiment.class,
 				ReutersLDAClassificationExperiment.class,
 				ReutersLDAClassificationExperimentOpt.class };
 	}
