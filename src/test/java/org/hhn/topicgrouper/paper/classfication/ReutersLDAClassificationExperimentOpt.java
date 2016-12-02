@@ -2,8 +2,12 @@ package org.hhn.topicgrouper.paper.classfication;
 
 import java.io.IOException;
 
-public class ReutersLDAClassificationExperimentOpt {
+public class ReutersLDAClassificationExperimentOpt extends ReutersLDAClassificationExperiment {
+	public ReutersLDAClassificationExperimentOpt() throws IOException {
+		super();
+	}
+
 	public static void main(String[] args) throws IOException {
-		new ReutersLDAClassificationExperiment().run(true);
+		new ReutersLDAClassificationExperimentOpt().run(true);
 	}
 }

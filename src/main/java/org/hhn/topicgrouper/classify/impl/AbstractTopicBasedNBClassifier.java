@@ -77,6 +77,7 @@ public abstract class AbstractTopicBasedNBClassifier<T, L> extends
 			double res2) {
 		//System.out.println(steps + " " + minLambda + " " + maxLambda + " " + res2);
 		if (steps <= 0) {
+			smoothingLambda = (minLambda + maxLambda) / 2;
 			return;
 		}
 		double diff = maxLambda - minLambda;
