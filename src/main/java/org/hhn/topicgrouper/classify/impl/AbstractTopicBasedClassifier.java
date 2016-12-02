@@ -37,7 +37,11 @@ public abstract class AbstractTopicBasedClassifier<T, L> implements
 		while (it.hasNext()) {
 			int wordIndex = it.next();
 			int fr = d.getWordFrequency(wordIndex);
-			v[this.topicIndicesBack.get(getTopicIndex(wordIndex))] += fr;
+			int ti = getTopicIndex(wordIndex);
+			if (ti == -1) {
+				throw new IllegalStateException("unknown word");
+			}
+			v[this.topicIndicesBack.get(ti)] += fr;
 		}
 	}
 
@@ -54,7 +58,11 @@ public abstract class AbstractTopicBasedClassifier<T, L> implements
 			while (it.hasNext()) {
 				int wordIndex = it.next();
 				int fr = d.getWordFrequency(wordIndex);
-				if (fr > 0 && getTopicIndex(wordIndex) == topicIndex) {
+				int ti = getTopicIndex(wordIndex);
+				if (ti == -1) {
+					throw new IllegalStateException("unknown word");
+				}
+				if (fr > 0 && ti == topicIndex) {
 					df++;
 					break;
 				}
