@@ -3,6 +3,7 @@ package org.hhn.topicgrouper.classify.impl;
 import gnu.trove.map.TIntDoubleMap;
 import gnu.trove.map.hash.TIntDoubleHashMap;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +42,7 @@ public abstract class AbstractTopicBasedTfIdfClassifier<T, L> extends AbstractTo
 			List<LabeledDocument<T, L>> labeledDocs = provider
 					.getDocumentsWithLabel(label);
 			for (LabeledDocument<T, L> d : labeledDocs) {
+				Arrays.fill(vHelp, 0);
 				computeDocumentVector(d, vHelp);
 				for (int i = 0; i < lv.length; i++) {
 					lv[i] = lv[i] + vHelp[i];
@@ -55,7 +57,7 @@ public abstract class AbstractTopicBasedTfIdfClassifier<T, L> extends AbstractTo
 	}
 
 	protected void computeDocumentVector(Document<T> d, double[] v) {
-		computeTopicFrequency(d, v, false);
+		computeTopicFrequency(d, v);
 		for (int i = 0; i < v.length; i++) {
 			v[i] = v[i] * idf.get(i);
 		}
@@ -72,9 +74,9 @@ public abstract class AbstractTopicBasedTfIdfClassifier<T, L> extends AbstractTo
 	}
 
 	public L classify(Document<T> d) {
-		computeTopicFrequencyTest(d, vHelp, false);
-		for (int i = 0; i < vHelp.length; i++) {
-			vHelp[i] = vHelp[i] * idf.get(i);
+		double[] v = computeTopicFrequencyTest(d);
+		for (int i = 0; i < v.length; i++) {
+			v[i] = v[i] * idf.get(i);
 		}
 
 		double bestValue = 0;
@@ -86,7 +88,7 @@ public abstract class AbstractTopicBasedTfIdfClassifier<T, L> extends AbstractTo
 			double[] lv = lvs.get(label);
 			double sum = 0;
 			for (int i = 0; i < lv.length; i++) {
-				sum += lv[i] * vHelp[i];
+				sum += lv[i] * v[i];
 			}
 			if (sum >= bestValue) {
 				bestValue = sum;

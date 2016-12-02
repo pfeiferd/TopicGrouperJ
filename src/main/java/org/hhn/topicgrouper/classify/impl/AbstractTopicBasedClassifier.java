@@ -4,7 +4,6 @@ import gnu.trove.iterator.TIntIterator;
 import gnu.trove.map.TIntIntMap;
 import gnu.trove.map.hash.TIntIntHashMap;
 
-import java.util.Arrays;
 import java.util.List;
 
 import org.hhn.topicgrouper.classify.SupervisedDocumentClassifier;
@@ -29,10 +28,11 @@ public abstract class AbstractTopicBasedClassifier<T, L> implements
 		}
 	}
 
-	protected void computeTopicFrequency(Document<T> d, double[] v, boolean add) {
-		if (!add) {
-			Arrays.fill(v, 0);
-		}
+	protected int getNTopics() {
+		return topicIndices.length;
+	}
+
+	protected void computeTopicFrequency(Document<T> d, double[] v) {
 		TIntIterator it = d.getWordIndices().iterator();
 		while (it.hasNext()) {
 			int wordIndex = it.next();
@@ -41,9 +41,10 @@ public abstract class AbstractTopicBasedClassifier<T, L> implements
 		}
 	}
 
-	protected void computeTopicFrequencyTest(Document<T> d, double[] v,
-			boolean add) {
-		computeTopicFrequency(d, v, add);
+	protected double[] computeTopicFrequencyTest(Document<T> d) {
+		double[] ftd = new double[getNTopics()];
+		computeTopicFrequency(d, ftd);
+		return ftd;
 	}
 
 	protected int computeDocumentFrequency(List<Document<T>> ds, int topicIndex) {

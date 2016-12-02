@@ -1,10 +1,10 @@
 package org.hhn.topicgrouper.classify.impl;
 
-import gnu.trove.iterator.TIntIterator;
 import gnu.trove.map.TIntDoubleMap;
 import gnu.trove.map.hash.TIntDoubleHashMap;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -61,7 +61,8 @@ public abstract class AbstractTopicBasedSVMClassifier<T, L> extends
 		List<SvmDocument> docs = new ArrayList<SvmDocument>();
 		double[] ftd = new double[topicIndices.length];
 		for (LabeledDocument<T, L> d : provider.getLabeledDocuments()) {
-			computeTopicFrequency(d, ftd, false);
+			Arrays.fill(ftd, 0);
+			computeTopicFrequency(d, ftd);
 			docs.add(new SVMDocumentAdapter(d, d.getLabel(), ftd));
 		}
 
@@ -71,8 +72,7 @@ public abstract class AbstractTopicBasedSVMClassifier<T, L> extends
 	public L classify(Document<T> d) {
 		//System.out.println(d);
 		SvmClassifier classifier = new SvmClassifierImpl(model);
-		double[] ftd = new double[topicIndices.length];
-		computeTopicFrequencyTest(d, ftd, true);
+		double[] ftd = computeTopicFrequencyTest(d);
 
 		List<SvmDocument> classified = classifier.classify(Collections
 				.singletonList((SvmDocument) new SVMDocumentAdapter(d, null,

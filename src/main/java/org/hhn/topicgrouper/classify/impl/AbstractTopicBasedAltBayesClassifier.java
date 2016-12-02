@@ -1,6 +1,5 @@
 package org.hhn.topicgrouper.classify.impl;
 
-import gnu.trove.iterator.TIntIterator;
 import gnu.trove.list.TDoubleList;
 import gnu.trove.list.array.TDoubleArrayList;
 
@@ -44,7 +43,7 @@ public abstract class AbstractTopicBasedAltBayesClassifier<T, L> extends
 			}
 			Arrays.fill(sum, 0);
 			for (LabeledDocument<T, L> d : labeledDocs) {
-				computeTopicFrequency(d, sum, true);
+				computeTopicFrequency(d, sum);
 			}
 
 			for (int t = 0; t < ntopics; t++) {
@@ -58,8 +57,7 @@ public abstract class AbstractTopicBasedAltBayesClassifier<T, L> extends
 		double bestValue = Double.NEGATIVE_INFINITY;
 		L bestLabel = null;
 		int ntopics = topicIndices.length;
-		double[] ftd = new double[ntopics];
-		computeTopicFrequencyTest(d, ftd, true);
+		double[] ftd = computeTopicFrequencyTest(d);
 
 		int l = 0;
 		for (L label : labels) {

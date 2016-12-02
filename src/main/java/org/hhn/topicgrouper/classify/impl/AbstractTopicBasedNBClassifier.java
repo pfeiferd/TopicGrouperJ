@@ -52,7 +52,7 @@ public abstract class AbstractTopicBasedNBClassifier<T, L> extends
 			int total = 0;
 			Arrays.fill(sum, 0);
 			for (LabeledDocument<T, L> d : labeledDocs) {
-				computeTopicFrequency(d, sum, true);
+				computeTopicFrequency(d, sum);
 				total += d.getSize();
 			}
 			pt.add(total);
@@ -100,16 +100,11 @@ public abstract class AbstractTopicBasedNBClassifier<T, L> extends
 		}
 	}
 
-	protected int getNTopics() {
-		return topicIndices.length;
-	}
-
 	public L classify(Document<T> d) {
 		double bestValue = Double.NEGATIVE_INFINITY;
 		L bestLabel = null;
 		int ntopics = getNTopics();
-		double[] ftd = new double[ntopics];
-		computeTopicFrequencyTest(d, ftd, true);
+		double[] ftd = computeTopicFrequencyTest(d);
 		int l = 0;
 		for (L label : labels) {
 			double sum = logpc.get(l);
