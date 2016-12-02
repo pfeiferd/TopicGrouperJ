@@ -1,4 +1,4 @@
-package org.hhn.topicgrouper.paper;
+package org.hhn.topicgrouper.paper.jcupdates;
 
 import org.apache.commons.math3.distribution.BinomialDistribution;
 

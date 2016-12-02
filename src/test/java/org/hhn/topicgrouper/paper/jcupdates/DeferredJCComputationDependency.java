@@ -1,4 +1,4 @@
-package org.hhn.topicgrouper.paper;
+package org.hhn.topicgrouper.paper.jcupdates;
 
 import java.io.File;
 import java.io.FileOutputStream;

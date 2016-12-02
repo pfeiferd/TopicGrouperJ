@@ -1,4 +1,4 @@
-package org.hhn.topicgrouper.paper;
+package org.hhn.topicgrouper.paper.classfication;
 
 import java.io.File;
 import java.io.FileOutputStream;

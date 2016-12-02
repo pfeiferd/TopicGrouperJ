@@ -1,4 +1,4 @@
-package org.hhn.topicgrouper.paper;
+package org.hhn.topicgrouper.paper.classfication;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -48,45 +48,58 @@ public class ReutersLDAClassificationExperiment {
 	// provider, 0.1, 20, 10);
 	// }
 
-	public void run() {
-		final int[] t = new int[1];
-		for (int topics = 0; topics <= 500; topics += 10) {
-			t[0] = topics == 0 ? 1 : topics;
-			final LDAGibbsSampler<String> ldaGibbsSampler = new LDAGibbsSampler<String>(
-					trainingProvider, topics == 0 ? 1 : topics, 0.1, 0.1, new Random(42));
-//			ldaGibbsSampler.setUpdateAlphaBeta(true);
-			ldaGibbsSampler.solve(200, 200, new BasicLDAResultReporter<String>(
-					System.out, 10) {
-				@Override
-				public void done(LDAGibbsSampler<String> sampler) {
-					super.done(sampler);
-					SupervisedDocumentClassifier<String, String> classifier = createClassifier(ldaGibbsSampler);
-					classifier.train(trainingProvider);
-					double microAvg = classifier.test(testProvider, true);
-					double macroAvg = classifier.test(testProvider, false);
-					System.out
-							.println(t[0] + "; " + microAvg + "; " + macroAvg);
-					output.println(t[0] + "; " + microAvg + "; " + macroAvg);
-				}
-
-				@Override
-				public void updatedSolution(LDAGibbsSampler<String> sampler,
-						int iteration) {
-				}
-			});
+	public void run(boolean optimizeAlphaBeta) {
+		for (int topics = 1; topics <= 9; topics++) {
+			runExperiment(topics, optimizeAlphaBeta);
+		}
+		for (int topics = 10; topics <= 500; topics += 10) {
+			runExperiment(topics, optimizeAlphaBeta);
 		}
 	}
+	
+	protected void runExperiment(final int topics, boolean optimizeAlphaBeta) {
+		// Initial alpha and beta like in: http://psiexp.ss.uci.edu/research/papers/sciencetopics.pdf
+		// and
+		// http://stats.stackexchange.com/questions/59684/what-are-typical-values-to-use-for-alpha-and-beta-in-latent-dirichlet-allocation
+		final LDAGibbsSampler<String> ldaGibbsSampler = new LDAGibbsSampler<String>(
+				trainingProvider, createAlpha(topics), 0.1, new Random(42));
+		ldaGibbsSampler.setUpdateAlphaBeta(optimizeAlphaBeta);		
+		ldaGibbsSampler.solve(100, 100, new BasicLDAResultReporter<String>(
+				System.out, 10) {
+			@Override
+			public void done(LDAGibbsSampler<String> sampler) {
+				super.done(sampler);
+				SupervisedDocumentClassifier<String, String> classifier = createClassifier(ldaGibbsSampler);
+				classifier.train(trainingProvider);
+				double microAvg = classifier.test(testProvider, true);
+				double macroAvg = classifier.test(testProvider, false);
+				System.out
+						.println(topics + "; " + microAvg + "; " + macroAvg);
+				output.println(topics + "; " + microAvg + "; " + macroAvg);
+			}
 
+			@Override
+			public void updatedSolution(LDAGibbsSampler<String> sampler,
+					int iteration) {
+			}
+		});		
+	}
+
+	protected double[] createAlpha(int topics) {
+		return LDAGibbsSampler.symmetricAlpha(50d / topics, topics);
+	}
+	
 	protected DocumentProvider<String> createDocumentProvider() {
 		return trainingProvider;
 	}
 
 	protected SupervisedDocumentClassifier<String, String> createClassifier(
 			LDAGibbsSampler<String> ldaGibbsSampler) {
-		return new LDANBClassifier<String, String>(0.0001, ldaGibbsSampler, 200);
+		// Need a minimum smoothing value to make sure the model fails in no case.
+		return new LDANBClassifier<String, String>(0.000000000001, ldaGibbsSampler, 200, 50);
 	}
 
 	public static void main(String[] args) throws IOException {
-		new ReutersLDAClassificationExperiment().run();
+		new ReutersLDAClassificationExperiment().run(false);
 	}
 }
