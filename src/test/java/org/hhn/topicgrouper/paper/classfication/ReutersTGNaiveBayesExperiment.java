@@ -7,7 +7,7 @@ import java.io.PrintStream;
 import java.util.Random;
 
 import org.hhn.topicgrouper.classify.SupervisedDocumentClassifier;
-import org.hhn.topicgrouper.classify.impl.AbstractTopicBasedNBClassifier;
+import org.hhn.topicgrouper.classify.impl.tg.TGNBClassifier;
 import org.hhn.topicgrouper.doc.LabelingDocumentProvider;
 import org.hhn.topicgrouper.doc.impl.DefaultVocab;
 import org.hhn.topicgrouper.doc.impl.LabelingHoldOutSplitter;
@@ -42,7 +42,7 @@ public class ReutersTGNaiveBayesExperiment extends
 				.getCorpusDocumentProvider(new File(
 						"src/test/resources/reuters21578"), true, false);
 		LabelingDocumentProvider<String, String> trainingProvider = new LabelingHoldOutSplitter<String, String>(
-				new Random(42), trainingData, 0, 5, 10).getRest();
+				new Random(42), trainingData, 0, 50, 10).getRest();
 		LabelingDocumentProvider<String, String> testData = reuters
 				.getCorpusDocumentProvider(new File(
 						"src/test/resources/reuters21578"), false, true);
@@ -66,18 +66,7 @@ public class ReutersTGNaiveBayesExperiment extends
 			final TGSolution<String> solution) {
 		int nt = solution.getNumberOfTopics();
 		if (nt % 100 == 0 || nt < 300) {
-			final int[] topicIds = solution.getTopicIds();
-			return new AbstractTopicBasedNBClassifier<String, String>(1) {
-				@Override
-				protected int[] getTopicIndices() {
-					return topicIds;
-				}
-
-				@Override
-				protected int getTopicIndex(int wordIndex) {
-					return solution.getTopicForWord(wordIndex);
-				}
-			};
+			return new TGNBClassifier<String, String>(0, solution);
 		} else {
 			return null;
 		}
