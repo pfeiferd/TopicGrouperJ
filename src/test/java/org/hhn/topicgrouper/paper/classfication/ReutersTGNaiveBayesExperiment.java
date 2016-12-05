@@ -42,7 +42,7 @@ public class ReutersTGNaiveBayesExperiment extends
 				.getCorpusDocumentProvider(new File(
 						"src/test/resources/reuters21578"), true, false);
 		LabelingDocumentProvider<String, String> trainingProvider = new LabelingHoldOutSplitter<String, String>(
-				new Random(42), trainingData, 0, 50, 10).getRest();
+				new Random(42), trainingData, 0, 5, 10).getRest();
 		LabelingDocumentProvider<String, String> testData = reuters
 				.getCorpusDocumentProvider(new File(
 						"src/test/resources/reuters21578"), false, true);
