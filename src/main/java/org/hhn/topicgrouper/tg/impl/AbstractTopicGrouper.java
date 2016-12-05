@@ -656,16 +656,12 @@ public abstract class AbstractTopicGrouper<T> implements TGSolver<T> {
 		// System.out.print("} ");
 		// }
 
-		// private int counter = 0;
 
 		protected void toOneWordTopic(int tid, int pos) {
 			int wordIndex = topics[tid].get(pos);
-			// System.out.println("Homonym: " +
-			// documentProvider.getWord(wordIndex));
-			// if (wordIndex < 400) {
-			// counter++;
-			// }
-			// System.out.println("Errors: " + counter);
+//			 System.out.println("Homonym: " +
+//			 documentProvider.getVocab().getWord(wordIndex));
+//			 
 			topics[tid].removeAt(pos);
 
 			int otherWord = topics[tid].get(0);
