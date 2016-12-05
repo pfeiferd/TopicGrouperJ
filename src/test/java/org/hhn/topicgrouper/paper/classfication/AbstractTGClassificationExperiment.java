@@ -60,7 +60,7 @@ public abstract class AbstractTGClassificationExperiment extends
 	@Override
 	protected TGSolver<String> createSolver(
 			DocumentProvider<String> documentProvider) {
-		return new TopicGrouperWithTreeSet<String>(1, documentProvider, 1);
+		return new TopicGrouperWithTreeSet<String>(1, documentProvider, 1); // , 0.05);
 	}
 
 	@Override
@@ -144,7 +144,7 @@ public abstract class AbstractTGClassificationExperiment extends
 			classifier.train(trainingProvider);
 			if (optimizeLambda) {
 				((AbstractTopicBasedNBClassifier<String, String>) classifier)
-						.optimizeLambda(0, 10, trainingProvider, 10, false);
+						.optimizeLambda(0, 0.5, trainingProvider, 10, true);
 			}
 			double microAvg = classifier.test(testProvider, true);
 			double macroAvg = classifier.test(testProvider, false);

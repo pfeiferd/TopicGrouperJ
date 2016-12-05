@@ -56,15 +56,11 @@ public class ReutersLDAClassificationExperiment {
 			runExperiment(topics, optimizeAlphaBeta);
 		}
 	}
-	
+
 	protected void runExperiment(final int topics, boolean optimizeAlphaBeta) {
-		// Initial alpha and beta like in: http://psiexp.ss.uci.edu/research/papers/sciencetopics.pdf
-		// and
-		// http://stats.stackexchange.com/questions/59684/what-are-typical-values-to-use-for-alpha-and-beta-in-latent-dirichlet-allocation
-		final LDAGibbsSampler<String> ldaGibbsSampler = new LDAGibbsSampler<String>(
-				trainingProvider, createAlpha(topics), 0.1, new Random(42));
-		ldaGibbsSampler.setUpdateAlphaBeta(optimizeAlphaBeta);		
-		ldaGibbsSampler.solve(2000, 2000, new BasicLDAResultReporter<String>(
+		final LDAGibbsSampler<String> ldaGibbsSampler = createGibbsSampler(
+				topics, trainingProvider, optimizeAlphaBeta);
+		ldaGibbsSampler.solve(200, 200, new BasicLDAResultReporter<String>(
 				System.out, 10) {
 			@Override
 			public void done(LDAGibbsSampler<String> sampler) {
@@ -73,8 +69,7 @@ public class ReutersLDAClassificationExperiment {
 				classifier.train(trainingProvider);
 				double microAvg = classifier.test(testProvider, true);
 				double macroAvg = classifier.test(testProvider, false);
-				System.out
-						.println(topics + "; " + microAvg + "; " + macroAvg);
+				System.out.println(topics + "; " + microAvg + "; " + macroAvg);
 				output.println(topics + "; " + microAvg + "; " + macroAvg);
 			}
 
@@ -82,21 +77,35 @@ public class ReutersLDAClassificationExperiment {
 			public void updatedSolution(LDAGibbsSampler<String> sampler,
 					int iteration) {
 			}
-		});		
+		});
+	}
+
+	protected LDAGibbsSampler<String> createGibbsSampler(int topics,
+			DocumentProvider<String> documentProvider, boolean optimizeAlphaBeta) {
+		// Initial alpha and beta like in:
+		// http://psiexp.ss.uci.edu/research/papers/sciencetopics.pdf
+		// and
+		// http://stats.stackexchange.com/questions/59684/what-are-typical-values-to-use-for-alpha-and-beta-in-latent-dirichlet-allocation
+		LDAGibbsSampler<String> ldaGibbsSampler = new LDAGibbsSampler<String>(
+				documentProvider, createAlpha(topics), 0.1, new Random(42));
+		ldaGibbsSampler.setUpdateAlphaBeta(optimizeAlphaBeta);
+		return ldaGibbsSampler;
 	}
 
 	protected double[] createAlpha(int topics) {
 		return LDAGibbsSampler.symmetricAlpha(50d / topics, topics);
 	}
-	
+
 	protected DocumentProvider<String> createDocumentProvider() {
 		return trainingProvider;
 	}
 
 	protected SupervisedDocumentClassifier<String, String> createClassifier(
 			LDAGibbsSampler<String> ldaGibbsSampler) {
-		// Need a minimum smoothing value to make sure the model fails in no case.
-		return new LDANBClassifier<String, String>(0.000000000001, ldaGibbsSampler, 200, 50);
+		// Need a minimum smoothing value to make sure the model fails in no
+		// case.
+		return new LDANBClassifier<String, String>(0.000000000001,
+				ldaGibbsSampler, 200, 50);
 	}
 
 	public static void main(String[] args) throws IOException {
