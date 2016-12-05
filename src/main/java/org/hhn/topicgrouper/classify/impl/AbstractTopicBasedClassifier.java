@@ -102,7 +102,7 @@ public abstract class AbstractTopicBasedClassifier<T, L> implements
 			return macroAvg / usedLabels;
 		}
 	}
-
+	
 	protected abstract int[] getTopicIndices();
 
 	protected abstract int getTopicIndex(int wordIndex);

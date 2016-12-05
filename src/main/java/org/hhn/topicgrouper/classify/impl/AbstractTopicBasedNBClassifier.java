@@ -70,12 +70,14 @@ public abstract class AbstractTopicBasedNBClassifier<T, L> extends
 		optimizeLambda(minLambda, maxLambda, provider, steps, micro, middleRes);
 	}
 
-	// Assumes that we have a function that monotically rises up to its max and then monotically falls again (or just one of the two).
+	// Assumes that we have a function that monotically rises up to its max and
+	// then monotically falls again (or just one of the two).
 	// We are tying to find the max.
 	public void optimizeLambda(double minLambda, double maxLambda,
 			LabelingDocumentProvider<T, L> provider, int steps, boolean micro,
 			double res2) {
-		//System.out.println(steps + " " + minLambda + " " + maxLambda + " " + res2);
+//		System.out.println(steps + " " + minLambda + " " + maxLambda + " "
+//				+ res2);
 		if (steps <= 0) {
 			smoothingLambda = (minLambda + maxLambda) / 2;
 			return;
@@ -87,17 +89,22 @@ public abstract class AbstractTopicBasedNBClassifier<T, L> extends
 		double res3 = test(provider, micro);
 
 		if (res1 < res2 && res2 < res3) {
-			optimizeLambda((minLambda + maxLambda) / 2, maxLambda, provider, steps - 1, micro, res3);
+			optimizeLambda((minLambda + maxLambda) / 2, maxLambda, provider,
+					steps - 1, micro, res3);
 		} else if (res1 > res2 && res2 > res3) {
-			optimizeLambda(minLambda, (minLambda + maxLambda) / 2, provider, steps - 1, micro, res1);
+			optimizeLambda(minLambda, (minLambda + maxLambda) / 2, provider,
+					steps - 1, micro, res1);
 		} else if (res1 < res2 && res2 > res3) {
-			optimizeLambda(minLambda + diff * 0.25, minLambda + diff * 0.75, provider, steps - 1, micro, res2);
+			optimizeLambda(minLambda + diff * 0.25, minLambda + diff * 0.75,
+					provider, steps - 1, micro, res2);
 		} else if (res1 > res3) {
-			//throw new IllegalStateException("unexpected case");
-			optimizeLambda(minLambda, (minLambda + maxLambda) / 2, provider, steps - 1, micro, res1);
+			// throw new IllegalStateException("unexpected case");
+			optimizeLambda(minLambda, (minLambda + maxLambda) / 2, provider,
+					steps - 1, micro, res1);
 		} else {
-			//throw new IllegalStateException("unexpected case");
-			optimizeLambda((minLambda + maxLambda) / 2, maxLambda, provider, steps - 1, micro, res3);			
+			// throw new IllegalStateException("unexpected case");
+			optimizeLambda((minLambda + maxLambda) / 2, maxLambda, provider,
+					steps - 1, micro, res3);
 		}
 	}
 
@@ -121,12 +128,34 @@ public abstract class AbstractTopicBasedNBClassifier<T, L> extends
 		return bestLabel;
 	}
 
+	protected double[] computeTopicFrequencyTest(Document<T> d) {
+		double[] ftd = new double[getNTopics()];
+		computeTopicFrequency(d, ftd);
+
+		double[] ptd = getPt();
+		if (ptd != null) {
+			for (int i = 0; i < ftd.length; i++) {
+				ftd[i] = (1 - smoothingLambda) * ftd[i] + smoothingLambda
+						* ptd[i] * d.getSize();
+			}
+		}
+
+		return ftd;
+	}
+
 	protected double getLogPtc(int l, int topic) {
 		TDoubleList pt = ptc.get(l);
 		double total = pt.get(0);
 		double sumt = pt.get(topic + 1);
 
-		return Math.log((sumt + smoothingLambda)
-				/ (total + smoothingLambda * getNTopics()));
+		// return Math.log((sumt / total) * smoothingLambda + (1 -
+		// smoothingLambda) * Math.exp(logpc.get(l)));
+
+		return Math.log((sumt + 1)
+				/ (total + 1 * getNTopics()));
+	}
+
+	protected double[] getPt() {
+		return null;
 	}
 }
