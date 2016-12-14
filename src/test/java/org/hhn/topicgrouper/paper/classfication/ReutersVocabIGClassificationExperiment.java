@@ -5,15 +5,16 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 
-import org.hhn.topicgrouper.classify.impl.vocab.VocabNBClassifier;
+import org.hhn.topicgrouper.classify.impl.AbstractTopicBasedNBClassifier;
+import org.hhn.topicgrouper.classify.impl.vocab.VocabIGNBClassifier;
 import org.hhn.topicgrouper.doc.LabelingDocumentProvider;
 
-public class ReutersVocabClassificationExperiment {
+public class ReutersVocabIGClassificationExperiment {
 	protected final LabelingDocumentProvider<String, String> testProvider;
 	protected final LabelingDocumentProvider<String, String> trainingProvider;
 	private final PrintStream output;
 
-	public ReutersVocabClassificationExperiment() throws IOException {
+	public ReutersVocabIGClassificationExperiment() throws IOException {
 		// Use ModApte split:
 		LabelingDocumentProvider<String, String>[] res = new LabelingDocumentProvider[2];
 		ReutersTGNaiveBayesExperiment.createModApteSplit(res);
@@ -21,7 +22,7 @@ public class ReutersVocabClassificationExperiment {
 		trainingProvider = res[1];
 
 		output = new PrintStream(new FileOutputStream(new File("./target/"
-				+ getClass().getSimpleName() + "Opt.csv")));
+				+ getClass().getSimpleName() + ".csv")));
 		output.println("topics; microAvg; macroAvg");
 	}
 
@@ -35,8 +36,7 @@ public class ReutersVocabClassificationExperiment {
 	}
 
 	protected void runExperiment(final int topics, boolean optimize) {
-		VocabNBClassifier<String, String> classifier = new VocabNBClassifier<String, String>(
-				0, trainingProvider, topics);
+		AbstractTopicBasedNBClassifier<String, String> classifier = createClassifier(topics, trainingProvider);
 		classifier.train(trainingProvider);
 		if (optimize) {
 			classifier.optimizeLambda(0, 0.5, trainingProvider, 10, true);
@@ -46,8 +46,13 @@ public class ReutersVocabClassificationExperiment {
 		System.out.println(topics + "; " + microAvg + "; " + macroAvg);
 		output.println(topics + "; " + microAvg + "; " + macroAvg);
 	}
+	
+	protected AbstractTopicBasedNBClassifier<String, String> createClassifier(int topics, LabelingDocumentProvider<String, String> documentProvider) {
+		return new VocabIGNBClassifier<String, String>(
+				0, documentProvider, topics);
+	}
 
 	public static void main(String[] args) throws IOException {
-		new ReutersVocabClassificationExperiment().run(true);
+		new ReutersVocabIGClassificationExperiment().run(false);
 	}
 }
