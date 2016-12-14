@@ -11,15 +11,14 @@ import org.hhn.topicgrouper.doc.DocumentProvider.Vocab;
 import org.hhn.topicgrouper.doc.LabeledDocument;
 import org.hhn.topicgrouper.doc.LabelingDocumentProvider;
 
-public class VocabNBClassifier<T, L> extends
+public class VocabIGNBClassifier<T, L> extends
 		AbstractTopicBasedNBClassifier<T, L> {
 	protected final int[] topicIds;
 	protected final double[] pt;
 
-	public VocabNBClassifier(double lambda,
+	public VocabIGNBClassifier(double lambda,
 			LabelingDocumentProvider<T, L> documentProvider, int keepWords) {
 		super(lambda);
-		documentProvider.getVocab();
 		topicIds = getBestWords(documentProvider, keepWords);
 		pt = new double[topicIds.length];
 		for (int i = 0; i < pt.length; i++) {
@@ -43,9 +42,9 @@ public class VocabNBClassifier<T, L> extends
 		TObjectIntMap<L> negMap = new TObjectIntHashMap<L>();
 
 		for (int i = 0; i < vocab.getNumberOfWords(); i++) {
-			double ig = computeEntropy(i, documentProvider, posMap,
+			double score = computeScore(i, documentProvider, posMap,
 					negMap);
-			int pos = Arrays.binarySearch(igList, ig);
+			int pos = Arrays.binarySearch(igList, score);
 			if (pos < 0) {
 				pos = -pos - 1;
 			}
@@ -54,7 +53,7 @@ public class VocabNBClassifier<T, L> extends
 					igList[j + 1] = igList[j];
 					bestWords[j + 1] = bestWords[j];
 				}
-				igList[pos] = ig;
+				igList[pos] = score;
 				bestWords[pos] = i;
 			}
 		}
@@ -66,9 +65,12 @@ public class VocabNBClassifier<T, L> extends
 		return bestWords;
 	}
 
-	protected double computeEntropy(int wordIndex,
+	// The smaller the better...
+	protected double computeScore(int wordIndex,
 			LabelingDocumentProvider<T, L> documentProvider,
 			TObjectIntMap<L> posMap, TObjectIntMap<L> negMap) {
+		// Entropy (here same as Information Gain as score.)
+		
 		posMap.clear();
 		negMap.clear();
 		int wPosCount = 0;
