@@ -14,12 +14,18 @@ import org.hhn.topicgrouper.doc.LabelingDocumentProvider;
 public class VocabNBClassifier<T, L> extends
 		AbstractTopicBasedNBClassifier<T, L> {
 	protected final int[] topicIds;
+	protected final double[] pt;
 
 	public VocabNBClassifier(double lambda,
 			LabelingDocumentProvider<T, L> documentProvider, int keepWords) {
 		super(lambda);
 		documentProvider.getVocab();
 		topicIds = getBestWords(documentProvider, keepWords);
+		pt = new double[topicIds.length];
+		for (int i = 0; i < pt.length; i++) {
+			pt[i] = ((double) documentProvider.getWordFrequency(topicIds[i]))
+					/ documentProvider.getSize();
+		}
 	}
 
 	protected int[] getBestWords(
@@ -37,7 +43,7 @@ public class VocabNBClassifier<T, L> extends
 		TObjectIntMap<L> negMap = new TObjectIntHashMap<L>();
 
 		for (int i = 0; i < vocab.getNumberOfWords(); i++) {
-			double ig = computeInformationGain(i, documentProvider, posMap,
+			double ig = computeEntropy(i, documentProvider, posMap,
 					negMap);
 			int pos = Arrays.binarySearch(igList, ig);
 			if (pos < 0) {
@@ -52,15 +58,15 @@ public class VocabNBClassifier<T, L> extends
 				bestWords[pos] = i;
 			}
 		}
-		for (int i = 0; i < bestWords.length; i++) {
-			System.out.print(vocab.getWord(bestWords[i]));
-			System.out.print(" ");
-		}
-		System.out.println();
+//		for (int i = 0; i < bestWords.length; i++) {
+//			System.out.print(vocab.getWord(bestWords[i]));
+//			System.out.print(" ");
+//		}
+//		System.out.println();
 		return bestWords;
 	}
 
-	protected double computeInformationGain(int wordIndex,
+	protected double computeEntropy(int wordIndex,
 			LabelingDocumentProvider<T, L> documentProvider,
 			TObjectIntMap<L> posMap, TObjectIntMap<L> negMap) {
 		posMap.clear();
@@ -107,4 +113,10 @@ public class VocabNBClassifier<T, L> extends
 	protected int getTopicIndex(int wordIndex) {
 		return wordIndex;
 	}
+	
+	@Override
+	protected double[] getPt() {
+		return pt;
+	}
+
 }
