@@ -30,20 +30,21 @@ public class VocabNBClassifier<T, L> extends
 		double[] igList = new double[maxBest];
 		int[] bestWords = new int[maxBest];
 
-		Arrays.fill(igList, Integer.MIN_VALUE);
+		Arrays.fill(igList, Double.MAX_VALUE);
 		Arrays.fill(bestWords, -1);
 
 		TObjectIntMap<L> posMap = new TObjectIntHashMap<L>();
 		TObjectIntMap<L> negMap = new TObjectIntHashMap<L>();
 
 		for (int i = 0; i < vocab.getNumberOfWords(); i++) {
-			double ig = computeInformationGain(i, documentProvider, posMap, negMap);
-			int pos = Arrays.binarySearch(igList, i);
+			double ig = computeInformationGain(i, documentProvider, posMap,
+					negMap);
+			int pos = Arrays.binarySearch(igList, ig);
 			if (pos < 0) {
-				pos = -pos + 1;
+				pos = -pos - 1;
 			}
 			if (pos < igList.length) {
-				for (int j = pos; j < igList.length - 1; j++) {
+				for (int j = igList.length - 2; j >= pos; j--) {
 					igList[j + 1] = igList[j];
 					bestWords[j + 1] = bestWords[j];
 				}
@@ -51,7 +52,11 @@ public class VocabNBClassifier<T, L> extends
 				bestWords[pos] = i;
 			}
 		}
-
+		for (int i = 0; i < bestWords.length; i++) {
+			System.out.print(vocab.getWord(bestWords[i]));
+			System.out.print(" ");
+		}
+		System.out.println();
 		return bestWords;
 	}
 
@@ -60,9 +65,9 @@ public class VocabNBClassifier<T, L> extends
 			TObjectIntMap<L> posMap, TObjectIntMap<L> negMap) {
 		posMap.clear();
 		negMap.clear();
-		double sum = 0;
 		int wPosCount = 0;
 		int wNegCount = 0;
+		int docs = 0;
 
 		for (LabeledDocument<T, L> d : documentProvider.getLabeledDocuments()) {
 			if (d.getWordFrequency(wordIndex) > 0) {
@@ -80,14 +85,17 @@ public class VocabNBClassifier<T, L> extends
 				}
 				negMap.put(d.getLabel(), count + 1);
 			}
+			docs++;
 		}
+		double sumPos = 0;
+		double sumNeg = 0;
 		for (L label : documentProvider.getAllLabels()) {
 			double pLPosW = ((double) posMap.get(label)) / wPosCount;
-			sum += pLPosW == 0 ? 0 : pLPosW * Math.log(pLPosW);
+			sumPos += pLPosW == 0 ? 0 : pLPosW * Math.log(pLPosW);
 			double pLNegW = ((double) negMap.get(label)) / wNegCount;
-			sum += pLNegW == 0 ? 0 : pLNegW * Math.log(pLNegW);
+			sumNeg += pLNegW == 0 ? 0 : pLNegW * Math.log(pLNegW);
 		}
-		return sum;
+		return -(sumPos * wPosCount / docs) - (sumNeg * wNegCount / docs);
 	}
 
 	@Override
