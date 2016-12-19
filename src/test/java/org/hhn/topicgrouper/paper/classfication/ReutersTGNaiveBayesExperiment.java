@@ -65,7 +65,7 @@ public class ReutersTGNaiveBayesExperiment extends
 	protected SupervisedDocumentClassifier<String, String> createClassifier(
 			final TGSolution<String> solution) {
 		int nt = solution.getNumberOfTopics();
-		if (nt % 100 == 0 || nt < 300) {
+		if (nt < 10 || (nt < 100 && nt % 10 == 0) || (nt < 1000 && nt % 100 == 0)  || (nt < 10000 && nt % 1000 == 0) ) {
 			return new TGNBClassifier<String, String>(0, solution);
 		} else {
 			return null;

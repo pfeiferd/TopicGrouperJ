@@ -52,7 +52,10 @@ public class ReutersLDAClassificationExperiment {
 		for (int topics = 1; topics <= 9; topics++) {
 			runExperiment(topics, optimizeAlphaBeta);
 		}
-		for (int topics = 10; topics <= 500; topics += 10) {
+		for (int topics = 10; topics <= 99; topics += 10) {
+			runExperiment(topics, optimizeAlphaBeta);
+		}
+		for (int topics = 100; topics <= 1000; topics += 100) {
 			runExperiment(topics, optimizeAlphaBeta);
 		}
 	}
