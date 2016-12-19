@@ -1,6 +1,7 @@
 package org.hhn.topicgrouper.paper;
 
 import org.hhn.topicgrouper.paper.classfication.ReutersVocabDFClassificationExperiment;
+import org.hhn.topicgrouper.paper.classfication.ReutersVocabDFClassificationExperimentOpt;
 import org.hhn.topicgrouper.paper.classfication.ReutersVocabIGClassificationExperiment;
 import org.hhn.topicgrouper.paper.classfication.ReutersVocabIGClassificationExperimentOpt;
 import org.hhn.topicgrouper.util.EvalRunner;
@@ -11,7 +12,7 @@ public class AllExperimentsRunner extends EvalRunner {
 		return new Class[] { ReutersVocabIGClassificationExperiment.class,
 				ReutersVocabIGClassificationExperimentOpt.class,
 				ReutersVocabDFClassificationExperiment.class,
-				ReutersVocabIGClassificationExperimentOpt.class
+				ReutersVocabDFClassificationExperimentOpt.class
 				/*ReutersTGNaiveBayesExperiment.class,
 				ReutersLDAClassificationExperiment.class,
 				ReutersLDAClassificationExperimentOpt.class*/ };
