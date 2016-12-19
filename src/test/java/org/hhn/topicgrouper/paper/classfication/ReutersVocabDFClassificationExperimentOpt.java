@@ -2,8 +2,12 @@ package org.hhn.topicgrouper.paper.classfication;
 
 import java.io.IOException;
 
-public class ReutersVocabDFClassificationExperimentOpt {
+public class ReutersVocabDFClassificationExperimentOpt extends ReutersVocabDFClassificationExperiment {
+	public ReutersVocabDFClassificationExperimentOpt() throws IOException {
+		super();
+	}
+
 	public static void main(String[] args) throws IOException {
-		new ReutersVocabDFClassificationExperiment().run(true);
+		new ReutersVocabDFClassificationExperimentOpt().run(true);
 	}
 }
