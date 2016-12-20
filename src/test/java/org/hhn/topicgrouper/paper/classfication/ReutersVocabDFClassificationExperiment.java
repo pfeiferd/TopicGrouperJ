@@ -16,7 +16,7 @@ public class ReutersVocabDFClassificationExperiment extends ReutersVocabIGClassi
 			int topics,
 			LabelingDocumentProvider<String, String> documentProvider) {
 		return new VocabDFNBClassifier<String, String>(
-				0, documentProvider, topics);
+				0.3, documentProvider, topics);
 	}
 
 	public static void main(String[] args) throws IOException {
