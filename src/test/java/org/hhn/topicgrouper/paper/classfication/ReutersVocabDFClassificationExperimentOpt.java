@@ -6,8 +6,13 @@ public class ReutersVocabDFClassificationExperimentOpt extends ReutersVocabDFCla
 	public ReutersVocabDFClassificationExperimentOpt() throws IOException {
 		super();
 	}
+	
+	@Override
+	protected double initialLambda() {
+		return 0.3;
+	}
 
 	public static void main(String[] args) throws IOException {
-		new ReutersVocabDFClassificationExperimentOpt().run(true);
+		new ReutersVocabDFClassificationExperimentOpt().run(false);
 	}
 }

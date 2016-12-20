@@ -63,15 +63,19 @@ public class ReutersTGNaiveBayesExperiment extends
 
 	@Override
 	protected SupervisedDocumentClassifier<String, String> createClassifier(
-			final TGSolution<String> solution) {
+			final TGSolution<String> solution, boolean optimizeLambda) {
 		int nt = solution.getNumberOfTopics();
 		if (nt < 10 || (nt < 100 && nt % 10 == 0) || (nt < 1000 && nt % 100 == 0)  || (nt < 10000 && nt % 1000 == 0) ) {
-			return new TGNBClassifier<String, String>(0.3, solution);
+			return new TGNBClassifier<String, String>(initialLambda(optimizeLambda), solution);
 		} else {
 			return null;
 		}
 	}
 
+	protected double initialLambda(boolean optimizeLambda) {
+		return optimizeLambda ? 0.3 : 0;
+	}
+	
 	@Override
 	protected void printResult(PrintStream out, boolean optmized, int topics, double microAvg,
 			double macroAvg) {

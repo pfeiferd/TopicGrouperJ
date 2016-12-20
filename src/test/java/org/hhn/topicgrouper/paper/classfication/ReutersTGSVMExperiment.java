@@ -14,7 +14,8 @@ public class ReutersTGSVMExperiment extends ReutersTGNaiveBayesExperiment {
 
 	@Override
 	protected SupervisedDocumentClassifier<String, String> createClassifier(
-			final TGSolution<String> solution) {
+			final TGSolution<String> solution,
+			boolean optimizeLambda) {
 		int nt = solution.getNumberOfTopics();
 		if (nt % 500 == 0 || (nt < 300 && nt % 10 == 0)) {
 			final int[] topicsIds = solution.getTopicIds();

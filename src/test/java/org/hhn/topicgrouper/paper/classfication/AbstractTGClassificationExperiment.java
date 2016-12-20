@@ -139,13 +139,13 @@ public abstract class AbstractTGClassificationExperiment extends
 	protected void trainAndTest(PrintStream out, TGSolution<String> solution,
 			boolean optimizeLambda) {
 		SupervisedDocumentClassifier<String, String> classifier = AbstractTGClassificationExperiment.this
-				.createClassifier(solution);
+				.createClassifier(solution, optimizeLambda);
 		if (classifier != null) {
 			classifier.train(trainingProvider);
-			if (optimizeLambda) {
-				((AbstractTopicBasedNBClassifier<String, String>) classifier)
-						.optimizeLambda(0, 0.5, trainingProvider, 10, true);
-			}
+//			if (optimizeLambda) {
+//				((AbstractTopicBasedNBClassifier<String, String>) classifier)
+//						.optimizeLambda(0, 0.5, trainingProvider, 10, true);
+//			}
 			double microAvg = classifier.test(testProvider, true);
 			double macroAvg = classifier.test(testProvider, false);
 			printResult(out, optimizeLambda, solution.getNumberOfTopics(),
@@ -159,5 +159,5 @@ public abstract class AbstractTGClassificationExperiment extends
 	}
 
 	protected abstract SupervisedDocumentClassifier<String, String> createClassifier(
-			TGSolution<String> solution);
+			TGSolution<String> solution, boolean optimize);
 }

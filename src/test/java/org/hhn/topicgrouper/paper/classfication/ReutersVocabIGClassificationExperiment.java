@@ -30,7 +30,10 @@ public class ReutersVocabIGClassificationExperiment {
 		for (int topics = 1; topics <= 9; topics++) {
 			runExperiment(topics, optimize);
 		}
-		for (int topics = 10; topics <= 1000; topics += 10) {
+		for (int topics = 10; topics <= 99; topics += 10) {
+			runExperiment(topics, optimize);
+		}
+		for (int topics = 100; topics <= 1000; topics += 100) {
 			runExperiment(topics, optimize);
 		}
 	}
@@ -49,7 +52,11 @@ public class ReutersVocabIGClassificationExperiment {
 	
 	protected AbstractTopicBasedNBClassifier<String, String> createClassifier(int topics, LabelingDocumentProvider<String, String> documentProvider) {
 		return new VocabIGNBClassifier<String, String>(
-				0.3, documentProvider, topics);
+				initialLambda(), documentProvider, topics);
+	}
+	
+	protected double initialLambda() {
+		return 0;
 	}
 
 	public static void main(String[] args) throws IOException {

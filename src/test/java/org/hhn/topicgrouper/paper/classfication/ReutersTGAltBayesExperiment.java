@@ -14,7 +14,8 @@ public class ReutersTGAltBayesExperiment extends
 
 	@Override
 	protected SupervisedDocumentClassifier<String, String> createClassifier(
-			final TGSolution<String> solution) {
+			final TGSolution<String> solution,
+			boolean optimizeLambda) {
 		int nt = solution.getNumberOfTopics();
 		if (nt % 100 == 0 || nt < 300) {
 			final int[] topicIds = solution.getTopicIds();

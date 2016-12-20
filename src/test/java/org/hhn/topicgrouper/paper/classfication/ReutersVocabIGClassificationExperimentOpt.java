@@ -7,7 +7,12 @@ public class ReutersVocabIGClassificationExperimentOpt extends ReutersVocabIGCla
 		super();
 	}
 
+	@Override
+	protected double initialLambda() {
+		return 0.3;
+	}
+	
 	public static void main(String[] args) throws IOException {
-		new ReutersVocabIGClassificationExperimentOpt().run(true);
+		new ReutersVocabIGClassificationExperimentOpt().run(false);
 	}
 }
