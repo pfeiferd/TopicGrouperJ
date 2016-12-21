@@ -24,11 +24,12 @@ public class TwentyNGTGNaiveBayesExperiment extends
 			LabelingDocumentProvider<String, String>[] res) {
 		LabelingDocumentProvider<String, String> provider = new TwentyNGParser(
 				null, false, true).getCorpusDocumentProvider(new File(
-				"src/test/resources/20news-18828"), 0.5);
+				"src/test/resources/20news-18828"), 1);
 		LabelingHoldOutSplitter<String, String> splitter = new LabelingHoldOutSplitter<String, String>(
 				new Random(42), provider, 0.4, 5, -1);
-		System.out.println(provider.getDocuments().size());
-		System.out.println(provider.getVocab().getNumberOfWords());
+		System.out.println(splitter.getHoldOut().getDocuments().size());
+		System.out.println(splitter.getRest().getDocuments().size());
+		System.out.println(splitter.getHoldOut().getVocab().getNumberOfWords());
 		res[0] = splitter.getHoldOut();
 		res[1] = splitter.getRest();
 	}
