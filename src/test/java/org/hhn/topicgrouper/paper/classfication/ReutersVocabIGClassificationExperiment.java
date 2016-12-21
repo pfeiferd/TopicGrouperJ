@@ -15,17 +15,21 @@ public class ReutersVocabIGClassificationExperiment {
 	private final PrintStream output;
 
 	public ReutersVocabIGClassificationExperiment() throws IOException {
-		// Use ModApte split:
 		LabelingDocumentProvider<String, String>[] res = new LabelingDocumentProvider[2];
-		ReutersTGNaiveBayesExperiment.createModApteSplit(res);
 		testProvider = res[0];
 		trainingProvider = res[1];
-
+		createTrainingAndTestProvider(res);
 		output = new PrintStream(new FileOutputStream(new File("./target/"
 				+ getClass().getSimpleName() + ".csv")));
 		output.println("topics; microAvg; macroAvg");
 	}
 
+	protected void createTrainingAndTestProvider(
+			LabelingDocumentProvider<String, String>[] res) {
+		// Use ModApte split:
+		ReutersTGNaiveBayesExperiment.createModApteSplit(res);		
+	}
+	
 	public void run(boolean optimize) {
 		for (int topics = 1; topics <= 9; topics++) {
 			runExperiment(topics, optimize);

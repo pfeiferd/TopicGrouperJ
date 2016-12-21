@@ -19,34 +19,21 @@ public class ReutersLDAClassificationExperiment {
 	private final PrintStream output;
 
 	public ReutersLDAClassificationExperiment() throws IOException {
-		// Use ModApte split:
-		// Use ModApte split:
 		LabelingDocumentProvider<String, String>[] res = new LabelingDocumentProvider[2];
-		ReutersTGNaiveBayesExperiment.createModApteSplit(res);
+		createTrainingAndTestProvider(res);
 		testProvider = res[0];
 		trainingProvider = res[1];
 
 		output = new PrintStream(new FileOutputStream(new File("./target/"
 				+ getClass().getSimpleName() + ".csv")));
 		output.println("topics; microAvg; macroAvg");
-
-		// LabelingDocumentProvider<String, String> provider = initProvider();
-		// LabelingHoldOutSplitter<String, String> splitter =
-		// createHoldOutSplitter(provider);
-		// trainingProvider = splitter.getRest();
-		// testProvider = splitter.getHoldOut();
 	}
 
-	// protected LabelingDocumentProvider<String, String> initProvider() {
-	// return new Reuters21578(true).getCorpusDocumentProvider(new File(
-	// "src/test/resources/reuters21578"), true, true);
-	// }
-	//
-	// protected LabelingHoldOutSplitter<String, String> createHoldOutSplitter(
-	// LabelingDocumentProvider<String, String> provider) {
-	// return new LabelingHoldOutSplitter<String, String>(new Random(42),
-	// provider, 0.1, 20, 10);
-	// }
+	protected void createTrainingAndTestProvider(
+			LabelingDocumentProvider<String, String>[] res) {		
+		// Use ModApte split:
+		ReutersTGNaiveBayesExperiment.createModApteSplit(res);
+	}
 
 	public void run(boolean optimizeAlphaBeta) {
 		for (int topics = 1; topics <= 9; topics++) {

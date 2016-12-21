@@ -35,24 +35,7 @@ public abstract class AbstractTGClassificationExperiment extends
 		createTrainingAndTestProvider(res);
 		testProvider = res[0];
 		trainingProvider = res[1];
-
-		// LabelingDocumentProvider<String, String> provider = initProvider();
-		// LabelingHoldOutSplitter<String, String> splitter =
-		// createHoldOutSplitter(provider);
-		// trainingProvider = splitter.getRest();
-		// testProvider = splitter.getHoldOut();
 	}
-
-	// protected LabelingDocumentProvider<String, String> initProvider() {
-	// return new Reuters21578(true).getCorpusDocumentProvider(new File(
-	// "src/test/resources/reuters21578"), true, true);
-	// }
-	//
-	// protected LabelingHoldOutSplitter<String, String> createHoldOutSplitter(
-	// LabelingDocumentProvider<String, String> provider) {
-	// return new LabelingHoldOutSplitter<String, String>(new Random(42),
-	// provider, 0.1, 20, 10);
-	// }
 
 	protected abstract void createTrainingAndTestProvider(
 			LabelingDocumentProvider<String, String>[] res);
