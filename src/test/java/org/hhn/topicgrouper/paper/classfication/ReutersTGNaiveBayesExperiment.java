@@ -37,7 +37,7 @@ public class ReutersTGNaiveBayesExperiment extends
 
 	public static void createModApteSplit(
 			LabelingDocumentProvider<String, String>[] res) {
-		Reuters21578 reuters = new Reuters21578(false); // Including stop words.
+		Reuters21578 reuters = new Reuters21578(true); // Including stop words.
 		LabelingDocumentProvider<String, String> trainingData = reuters
 				.getCorpusDocumentProvider(new File(
 						"src/test/resources/reuters21578"), true, false);
