@@ -12,7 +12,7 @@ public class TwentyNGLDAClassificationExperiment extends ReutersLDAClassificatio
 	@Override
 	protected void createTrainingAndTestProvider(
 			LabelingDocumentProvider<String, String>[] res) {
-		TwentyNGTGNaiveBayesExperiment.createModApteSplit(res);
+		TwentyNGTGNaiveBayesExperiment.createSplit(res);
 	}
 
 	public static void main(String[] args) throws IOException {

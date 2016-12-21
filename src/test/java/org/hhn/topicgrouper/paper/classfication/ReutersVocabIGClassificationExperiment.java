@@ -16,9 +16,9 @@ public class ReutersVocabIGClassificationExperiment {
 
 	public ReutersVocabIGClassificationExperiment() throws IOException {
 		LabelingDocumentProvider<String, String>[] res = new LabelingDocumentProvider[2];
+		createTrainingAndTestProvider(res);
 		testProvider = res[0];
 		trainingProvider = res[1];
-		createTrainingAndTestProvider(res);
 		output = new PrintStream(new FileOutputStream(new File("./target/"
 				+ getClass().getSimpleName() + ".csv")));
 		output.println("topics; microAvg; macroAvg");
