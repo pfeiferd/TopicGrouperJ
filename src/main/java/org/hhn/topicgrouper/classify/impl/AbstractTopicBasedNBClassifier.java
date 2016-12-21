@@ -76,8 +76,8 @@ public abstract class AbstractTopicBasedNBClassifier<T, L> extends
 	public void optimizeLambda(double minLambda, double maxLambda,
 			LabelingDocumentProvider<T, L> provider, int steps, boolean micro,
 			double res2) {
-		System.out.println(steps + " " + minLambda + " " + maxLambda + " "
-				+ res2);
+//		System.out.println(steps + " " + minLambda + " " + maxLambda + " "
+//				+ res2);
 		if (steps <= 0) {
 			smoothingLambda = (minLambda + maxLambda) / 2;
 			return;
