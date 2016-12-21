@@ -42,12 +42,13 @@ public class LDANBClassifier<T, L> extends AbstractTopicBasedNBClassifier<T, L> 
 		for (int j = 0; j < foldInSamples; j++) {
 			int[] h = store.getDTopicAssignmentCounts();
 			for (int i = 0; i < res.length; i++) {
-				res[i] += h[i];
+				res[i] += (h[i] + ldaGibbsSampler.getAlpha(i))
+						/ (d.getSize() * ldaGibbsSampler.getAlphaSum());
 			}
 			store.nextFoldInPtdSample();
 		}
 		for (int i = 0; i < res.length; i++) {
-			res[i] /= foldInSamples;
+			res[i] = d.getSize() * res[i] / foldInSamples;
 		}
 
 		return res;
