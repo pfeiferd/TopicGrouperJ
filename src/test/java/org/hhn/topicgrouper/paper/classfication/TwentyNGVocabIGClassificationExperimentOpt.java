@@ -2,7 +2,7 @@ package org.hhn.topicgrouper.paper.classfication;
 
 import java.io.IOException;
 
-public class TwentyNGVocabIGClassificationExperimentOpt extends TwentyNGVocabDFClassificationExperiment {
+public class TwentyNGVocabIGClassificationExperimentOpt extends TwentyNGVocabIGClassificationExperiment {
 	public TwentyNGVocabIGClassificationExperimentOpt() throws IOException {
 		super();
 	}
