@@ -26,7 +26,7 @@ public class ReutersTGNaiveBayesExperiment extends
 		output.println("topics; microAvg; macroAvg");
 		outputOpt = new PrintStream(new FileOutputStream(new File("./target/"
 				+ getClass().getSimpleName() + "Opt.csv")));
-		outputOpt.println("topics; microAvg; macroAvg");
+		outputOpt.println("topics; microAvg; macroAvg; lambda");
 	}
 
 	@Override
@@ -78,11 +78,11 @@ public class ReutersTGNaiveBayesExperiment extends
 	
 	@Override
 	protected void printResult(PrintStream out, boolean optmized, int topics, double microAvg,
-			double macroAvg) {
+			double macroAvg, double lambda) {
 		if (optmized) {
-			outputOpt.println(topics + "; " + microAvg + "; " + macroAvg);
+			outputOpt.println(topics + "; " + microAvg + "; " + macroAvg + "; " + lambda);
 		} else {
-			super.printResult(out, optmized, topics, microAvg, macroAvg);
+			super.printResult(out, optmized, topics, microAvg, macroAvg, lambda);
 			output.println(topics + "; " + microAvg + "; " + macroAvg);
 		}
 	}

@@ -16,7 +16,6 @@ import org.hhn.topicgrouper.tg.TGSolutionListener;
 import org.hhn.topicgrouper.tg.TGSolutionListenerMultiplexer;
 import org.hhn.topicgrouper.tg.TGSolver;
 import org.hhn.topicgrouper.tg.impl.TopicGrouperWithTreeSet;
-import org.hhn.topicgrouper.tg.report.BasicTGSolutionReporter;
 import org.hhn.topicgrouper.tg.report.FreeMindXMLTopicHierarchyWriter;
 import org.hhn.topicgrouper.tg.report.MindMapSolutionReporter;
 
@@ -43,7 +42,8 @@ public abstract class AbstractTGClassificationExperiment extends
 	@Override
 	protected TGSolver<String> createSolver(
 			DocumentProvider<String> documentProvider) {
-		return new TopicGrouperWithTreeSet<String>(1, documentProvider, 1); // , 0.05);
+		return new TopicGrouperWithTreeSet<String>(1, documentProvider, 1); // ,
+																			// 0.05);
 	}
 
 	@Override
@@ -125,20 +125,26 @@ public abstract class AbstractTGClassificationExperiment extends
 				.createClassifier(solution, optimizeLambda);
 		if (classifier != null) {
 			classifier.train(trainingProvider);
-//			if (optimizeLambda) {
-//				((AbstractTopicBasedNBClassifier<String, String>) classifier)
-//						.optimizeLambda(0, 0.5, trainingProvider, 10, true);
-//			}
+			if (optimizeLambda) {
+				((AbstractTopicBasedNBClassifier<String, String>) classifier)
+						.optimizeLambda(0, 0.5, trainingProvider, 10, true);
+			}
 			double microAvg = classifier.test(testProvider, true);
 			double macroAvg = classifier.test(testProvider, false);
-			printResult(out, optimizeLambda, solution.getNumberOfTopics(),
-					microAvg, macroAvg);
+			printResult(
+					out,
+					optimizeLambda,
+					solution.getNumberOfTopics(),
+					microAvg,
+					macroAvg,
+					((AbstractTopicBasedNBClassifier<String, String>) classifier)
+							.getSmoothingLambda());
 		}
 	}
 
 	protected void printResult(PrintStream out, boolean optimized, int topics,
-			double microAvg, double macroAvg) {
-		out.println(topics + "; " + microAvg + "; " + macroAvg);
+			double microAvg, double macroAvg, double lambda) {
+		out.println(topics + "; " + microAvg + "; " + macroAvg + "; " + lambda);
 	}
 
 	protected abstract SupervisedDocumentClassifier<String, String> createClassifier(

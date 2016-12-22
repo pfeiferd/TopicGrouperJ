@@ -13,6 +13,6 @@ public class TwentyNGVocabDFClassificationExperimentOpt extends TwentyNGVocabDFC
 	}
 	
 	public static void main(String[] args) throws IOException {
-		new TwentyNGVocabDFClassificationExperimentOpt().run(false);
+		new TwentyNGVocabDFClassificationExperimentOpt().run(true);
 	}
 }

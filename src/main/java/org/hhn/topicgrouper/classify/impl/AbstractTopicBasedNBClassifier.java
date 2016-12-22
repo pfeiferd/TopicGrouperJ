@@ -25,6 +25,10 @@ public abstract class AbstractTopicBasedNBClassifier<T, L> extends
 		labels = new ArrayList<L>();
 		smoothingLambda = lambda;
 	}
+	
+	public double getSmoothingLambda() {
+		return smoothingLambda;
+	}
 
 	public void train(LabelingDocumentProvider<T, L> provider) {
 		ptc.clear();

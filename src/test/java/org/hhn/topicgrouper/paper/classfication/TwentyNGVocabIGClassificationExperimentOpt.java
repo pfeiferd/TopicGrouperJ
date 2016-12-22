@@ -13,6 +13,6 @@ public class TwentyNGVocabIGClassificationExperimentOpt extends TwentyNGVocabIGC
 	}
 	
 	public static void main(String[] args) throws IOException {
-		new TwentyNGVocabIGClassificationExperimentOpt().run(false);
+		new TwentyNGVocabIGClassificationExperimentOpt().run(true);
 	}
 }
