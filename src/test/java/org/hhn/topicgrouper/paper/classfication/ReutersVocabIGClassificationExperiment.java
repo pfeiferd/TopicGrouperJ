@@ -21,7 +21,7 @@ public class ReutersVocabIGClassificationExperiment {
 		trainingProvider = res[1];
 		output = new PrintStream(new FileOutputStream(new File("./target/"
 				+ getClass().getSimpleName() + ".csv")));
-		output.println("topics; microAvg; macroAvg");
+		output.println("topics; microAvg; macroAvg; lambda");
 	}
 
 	protected void createTrainingAndTestProvider(
@@ -50,8 +50,8 @@ public class ReutersVocabIGClassificationExperiment {
 		}
 		double microAvg = classifier.test(testProvider, true);
 		double macroAvg = classifier.test(testProvider, false);
-		System.out.println(topics + "; " + microAvg + "; " + macroAvg);
-		output.println(topics + "; " + microAvg + "; " + macroAvg);
+		System.out.println(topics + "; " + microAvg + "; " + macroAvg + "; " + classifier.getSmoothingLambda());
+		output.println(topics + "; " + microAvg + "; " + macroAvg + "; " + classifier.getSmoothingLambda());
 	}
 	
 	protected AbstractTopicBasedNBClassifier<String, String> createClassifier(int topics, LabelingDocumentProvider<String, String> documentProvider) {
