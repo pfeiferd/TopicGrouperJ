@@ -54,9 +54,10 @@ public class TwentyNGParser {
 				entry.addWord(word);				
 			}
 // Original code:
-//			if (word.length() > 1) {
+//			if (word.length() > 2) {
 //				char c = word.charAt(0);
 //				if (Character.isLetter(c)) {
+//					entry.addWord(word);
 //					// System.out.println(word);
 //				}
 //			}
