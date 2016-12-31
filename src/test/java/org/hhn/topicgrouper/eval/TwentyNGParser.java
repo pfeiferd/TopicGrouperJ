@@ -50,14 +50,30 @@ public class TwentyNGParser {
 		Iterator<String> it = t.iterator();
 		while (it.hasNext()) {
 			String word = it.next();
-			if (word.length() > 1) {
-				char c = word.charAt(0);
-				if (Character.isLetter(c)) {
-					// System.out.println(word);
-					entry.addWord(word);
-				}
+			if (isProperWord(word)) {
+				entry.addWord(word);				
+			}
+// Original code:
+//			if (word.length() > 1) {
+//				char c = word.charAt(0);
+//				if (Character.isLetter(c)) {
+//					// System.out.println(word);
+//				}
+//			}
+		}
+	}
+	
+	protected boolean isProperWord(String word) {
+		if (word.length() <= 2) {
+			return false;
+		}
+		for (int i = 0; i < word.length(); i++) {
+			char c = word.charAt(i);
+			if (!Character.isAlphabetic(c) || Character.isDigit(c)) {
+				return false;
 			}
 		}
+		return true;
 	}
 
 	public LabelingDocumentProvider<String, String> getCorpusDocumentProvider(File folder,
