@@ -23,7 +23,7 @@ public class TwentyNGTGNaiveBayesExperiment extends
 	public static void createSplit(
 			LabelingDocumentProvider<String, String>[] res) {
 		LabelingDocumentProvider<String, String> provider = new TwentyNGParser(
-				null, false, true).getCorpusDocumentProvider(new File(
+				null, true, true).getCorpusDocumentProvider(new File(
 				"src/test/resources/20news-18828"), 1);
 		LabelingHoldOutSplitter<String, String> splitter = new LabelingHoldOutSplitter<String, String>(
 				new Random(42), provider, 0.4, 5, -1);
