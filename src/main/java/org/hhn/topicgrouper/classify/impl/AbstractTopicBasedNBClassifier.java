@@ -13,9 +13,9 @@ import org.hhn.topicgrouper.doc.LabelingDocumentProvider;
 
 public abstract class AbstractTopicBasedNBClassifier<T, L> extends
 		AbstractTopicBasedClassifier<T, L> {
-	private final List<L> labels;
-	private final List<TDoubleList> ptc;
-	private final TDoubleList logpc;
+	protected final List<L> labels;
+	protected final List<TDoubleList> ptc;
+	protected final TDoubleList logpc;
 
 	private double smoothingLambda;
 

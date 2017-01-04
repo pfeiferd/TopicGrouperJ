@@ -1,5 +1,7 @@
 package org.hhn.topicgrouper.classify.impl.lda;
 
+import gnu.trove.list.TDoubleList;
+
 import org.hhn.topicgrouper.classify.impl.AbstractTopicBasedNBClassifier;
 import org.hhn.topicgrouper.doc.Document;
 import org.hhn.topicgrouper.lda.impl.LDAGibbsSampler;
@@ -25,9 +27,22 @@ public class LDANBClassifier<T, L> extends AbstractTopicBasedNBClassifier<T, L> 
 			// To be exact, we would have to average over several the examples.
 			// TODO: Really wanna do this? --> No - we go over so many document
 			// - that's enough averaging...
-			v[i] += ldaGibbsSampler.getDocumentTopicAssignmentCount(
+			int c = ldaGibbsSampler.getDocumentTopicAssignmentCount(
 					d.getIndex(), i);
+			// Alpha smoothing via Dirichlet
+			v[i] += (c + ldaGibbsSampler.getAlpha(i))
+					/ (d.getSize() + ldaGibbsSampler.getAlphaSum()) * d.getSize();
 		}
+	}
+	
+	@Override
+	protected double getLogPtc(int l, int topic) {
+		TDoubleList pt = ptc.get(l);
+		double total = pt.get(0);
+		double sumt = pt.get(topic + 1);
+		
+		// No smoothing here any more - already done in computeTopicFrequency()
+		return Math.log(sumt /total);
 	}
 
 	@Override
