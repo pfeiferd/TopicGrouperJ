@@ -64,7 +64,7 @@ public class TwentyNGParser {
 		}
 	}
 	
-	protected boolean isProperWord(String word) {
+	public static boolean isProperWord(String word) {
 		if (word.length() <= 2) {
 			return false;
 		}
