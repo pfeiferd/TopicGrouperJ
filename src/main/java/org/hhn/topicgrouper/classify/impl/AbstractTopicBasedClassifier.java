@@ -38,10 +38,9 @@ public abstract class AbstractTopicBasedClassifier<T, L> implements
 			int wordIndex = it.next();
 			int fr = d.getWordFrequency(wordIndex);
 			int ti = getTopicIndex(wordIndex);
-			if (ti == -1) {
-				throw new IllegalStateException("unknown word");
+			if (ti != -1) {
+				v[this.topicIndicesBack.get(ti)] += fr;
 			}
-			v[this.topicIndicesBack.get(ti)] += fr;
 		}
 	}
 
@@ -59,12 +58,11 @@ public abstract class AbstractTopicBasedClassifier<T, L> implements
 				int wordIndex = it.next();
 				int fr = d.getWordFrequency(wordIndex);
 				int ti = getTopicIndex(wordIndex);
-				if (ti == -1) {
-					throw new IllegalStateException("unknown word");
-				}
-				if (fr > 0 && ti == topicIndex) {
-					df++;
-					break;
+				if (ti != -1) {
+					if (fr > 0 && ti == topicIndex) {
+						df++;
+						break;
+					}
 				}
 			}
 		}

@@ -113,7 +113,7 @@ public class VocabIGNBClassifier<T, L> extends
 
 	@Override
 	protected int getTopicIndex(int wordIndex) {
-		return wordIndex;
+		return topicIndicesBack.containsKey(wordIndex) ? wordIndex : -1;
 	}
 	
 	@Override
