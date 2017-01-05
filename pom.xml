@@ -43,6 +43,12 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+			<groupId>nz.ac.waikato.cms.weka</groupId>
+			<artifactId>weka-stable</artifactId>
+			<version>3.8.0</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
 			<groupId>de.hs-heilbronn.mi</groupId>
 			<artifactId>zlibsvm-core</artifactId>
 			<version>1.0</version>
@@ -66,8 +72,8 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
 					<encoding>UTF-8</encoding>
-					<source>1.6</source>
-					<target>1.6</target>
+					<source>1.7</source>
+					<target>1.7</target>
 				</configuration>
 			</plugin>
 		</plugins>
