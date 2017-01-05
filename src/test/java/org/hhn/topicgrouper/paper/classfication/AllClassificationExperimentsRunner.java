@@ -6,20 +6,29 @@ public class AllClassificationExperimentsRunner extends EvalRunner {
 	@Override
 	protected Class[] getMainClasses() {
 		return new Class[] { 
-				TwentyNGVocabIGClassificationExperiment.class,
+			/*	TwentyNGVocabIGClassificationExperiment.class,
 				TwentyNGVocabIGClassificationExperimentOpt.class,
 				TwentyNGVocabDFClassificationExperiment.class,
 				TwentyNGVocabDFClassificationExperimentOpt.class,
 				TwentyNGTGNaiveBayesExperiment.class,
 				TwentyNGLDAClassificationExperiment.class,
-				TwentyNGLDAClassificationExperimentOpt.class /*,
+				TwentyNGLDAClassificationExperimentOpt.class, */
+				
 				ReutersVocabIGClassificationExperiment.class,
 				ReutersVocabIGClassificationExperimentOpt.class,
 				ReutersVocabDFClassificationExperiment.class,
 				ReutersVocabDFClassificationExperimentOpt.class,
 				ReutersTGNaiveBayesExperiment.class,
 				ReutersLDAClassificationExperiment.class,
-				ReutersLDAClassificationExperimentOpt.class */	
+				ReutersLDAClassificationExperimentOpt.class,
+				
+				OHSUMEDVocabIGClassificationExperiment.class,
+				OHSUMEDVocabIGClassificationExperimentOpt.class,
+				OHSUMEDVocabDFClassificationExperiment.class,
+				OHSUMEDVocabDFClassificationExperimentOpt.class,
+				OHSUMEDTGNaiveBayesExperiment.class,
+				OHSUMEDLDAClassificationExperiment.class,
+				OHSUMEDLDAClassificationExperimentOpt.class 
 		};
 	}
 
