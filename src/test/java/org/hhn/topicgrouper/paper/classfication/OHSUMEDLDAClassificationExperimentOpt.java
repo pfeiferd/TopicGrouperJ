@@ -2,7 +2,7 @@ package org.hhn.topicgrouper.paper.classfication;
 
 import java.io.IOException;
 
-public class OHSUMEDLDAClassificationExperimentOpt extends TwentyNGLDAClassificationExperiment {
+public class OHSUMEDLDAClassificationExperimentOpt extends OHSUMEDLDAClassificationExperiment {
 	public OHSUMEDLDAClassificationExperimentOpt() throws IOException {
 		super();
 	}

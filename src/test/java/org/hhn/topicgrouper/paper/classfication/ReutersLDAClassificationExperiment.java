@@ -30,7 +30,7 @@ public class ReutersLDAClassificationExperiment {
 	}
 
 	protected void createTrainingAndTestProvider(
-			LabelingDocumentProvider<String, String>[] res) {		
+			LabelingDocumentProvider<String, String>[] res) {
 		// Use ModApte split:
 		ReutersTGNaiveBayesExperiment.createModApteSplit(res);
 	}
@@ -92,10 +92,7 @@ public class ReutersLDAClassificationExperiment {
 
 	protected SupervisedDocumentClassifier<String, String> createClassifier(
 			LDAGibbsSampler<String> ldaGibbsSampler) {
-		// Need a minimum smoothing value to make sure the model fails in no
-		// case.
-		return new LDANBClassifier<String, String>(0.000000000001,
-				ldaGibbsSampler, 200, 50);
+		return new LDANBClassifier<String, String>(0, ldaGibbsSampler, 200, 50);
 	}
 
 	public static void main(String[] args) throws IOException {

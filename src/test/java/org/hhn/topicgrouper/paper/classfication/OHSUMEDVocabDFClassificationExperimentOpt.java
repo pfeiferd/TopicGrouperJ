@@ -2,7 +2,7 @@ package org.hhn.topicgrouper.paper.classfication;
 
 import java.io.IOException;
 
-public class OHSUMEDVocabDFClassificationExperimentOpt extends TwentyNGVocabDFClassificationExperiment {
+public class OHSUMEDVocabDFClassificationExperimentOpt extends OHSUMEDVocabDFClassificationExperiment {
 	public OHSUMEDVocabDFClassificationExperimentOpt() throws IOException {
 		super();
 	}
