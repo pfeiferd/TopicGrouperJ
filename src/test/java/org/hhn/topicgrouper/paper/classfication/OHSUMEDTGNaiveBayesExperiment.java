@@ -24,7 +24,7 @@ public class OHSUMEDTGNaiveBayesExperiment extends
 		LabelingDocumentProvider<String, String> provider = new OHSUMEDParser()
 				.getCorpusDocumentProvider("src/test/resources/ohscal.wc.arff");
 		LabelingHoldOutSplitter<String, String> splitter = new LabelingHoldOutSplitter<String, String>(
-				new Random(42), provider, 0.4, 5, -1);
+				new Random(42), provider, 0.25, 3, -1);
 		System.out.println(splitter.getHoldOut().getDocuments().size());
 		System.out.println(splitter.getRest().getDocuments().size());
 		System.out.println(splitter.getHoldOut().getVocab().getNumberOfWords());
