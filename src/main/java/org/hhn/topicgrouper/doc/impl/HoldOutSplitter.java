@@ -42,7 +42,7 @@ public class HoldOutSplitter<T> {
 		};
 		holdOut = new DefaultDocumentProvider<T>((DefaultVocab<T>)rest.getVocab());
 		for (Document<T> d : holdOutDocuments) {
-			holdOut.addDocument(d, minGlobalWordFrequency, filter);
+			holdOut.addDocument(d, 0, filter);
 		}
 	}
 

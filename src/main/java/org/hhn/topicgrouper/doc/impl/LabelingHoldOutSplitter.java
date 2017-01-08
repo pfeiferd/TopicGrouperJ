@@ -77,7 +77,7 @@ public class LabelingHoldOutSplitter<T, L> {
 				rest.addLabeledDocument(d, minGlobalWordFrequency);
 			}
 			for (LabeledDocument<T, L> d : holdOutDocuments) {
-				holdOut.addLabeledDocument(d, minGlobalWordFrequency, filter);
+				holdOut.addLabeledDocument(d, 0, filter);
 			}
 		}
 	}
