@@ -26,7 +26,7 @@ public class TwentyNGTGNaiveBayesExperiment extends
 				null, true, true).getCorpusDocumentProvider(new File(
 				"src/test/resources/20news-18828"), 1);
 		LabelingHoldOutSplitter<String, String> splitter = new LabelingHoldOutSplitter<String, String>(
-				new Random(42), provider, 0.4, 5, -1);
+				new Random(42), provider, 0.25, 5, -1);
 		System.out.println(splitter.getHoldOut().getDocuments().size());
 		System.out.println(splitter.getRest().getDocuments().size());
 		System.out.println(splitter.getHoldOut().getVocab().getNumberOfWords());
