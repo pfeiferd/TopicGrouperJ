@@ -13,6 +13,6 @@ public class ReutersVocabDFClassificationExperimentOpt extends ReutersVocabDFCla
 	}
 
 	public static void main(String[] args) throws IOException {
-		new ReutersVocabDFClassificationExperimentOpt().run(false);
+		new ReutersVocabDFClassificationExperimentOpt().run(true);
 	}
 }
