@@ -47,7 +47,7 @@ public class ReutersTGNaiveBayesExperiment extends
 				.getCorpusDocumentProvider(new File(
 						"src/test/resources/reuters21578"), false, true);
 		LabelingDocumentProvider<String, String> testProvider = new LabelingHoldOutSplitter<String, String>(
-				new Random(42), testData, 1, 0, 10,
+				new Random(42), testData, 1, 0, testData.getAllLabels(),
 				(DefaultVocab<String>) trainingProvider.getVocab())
 				.getHoldOut();
 
@@ -65,8 +65,11 @@ public class ReutersTGNaiveBayesExperiment extends
 	protected SupervisedDocumentClassifier<String, String> createClassifier(
 			final TGSolution<String> solution, boolean optimizeLambda) {
 		int nt = solution.getNumberOfTopics();
-		if (nt < 10 || (nt < 100 && nt % 10 == 0) || (nt < 1000 && nt % 100 == 0)  || (nt < 10000 && nt % 1000 == 0) ) {
-			return new TGNBClassifier<String, String>(initialLambda(optimizeLambda), solution);
+		if (nt < 10 || (nt < 100 && nt % 10 == 0)
+				|| (nt < 1000 && nt % 100 == 0)
+				|| (nt < 10000 && nt % 1000 == 0)) {
+			return new TGNBClassifier<String, String>(
+					initialLambda(optimizeLambda), solution);
 		} else {
 			return null;
 		}
@@ -75,18 +78,19 @@ public class ReutersTGNaiveBayesExperiment extends
 	protected double initialLambda(boolean optimizeLambda) {
 		return optimizeLambda ? 0.3 : 0;
 	}
-	
+
 	@Override
-	protected void printResult(PrintStream out, boolean optmized, int topics, double microAvg,
-			double macroAvg, double lambda) {
+	protected void printResult(PrintStream out, boolean optmized, int topics,
+			double microAvg, double macroAvg, double lambda) {
 		if (optmized) {
-			outputOpt.println(topics + "; " + microAvg + "; " + macroAvg + "; " + lambda);
+			outputOpt.println(topics + "; " + microAvg + "; " + macroAvg + "; "
+					+ lambda);
 		} else {
 			super.printResult(out, optmized, topics, microAvg, macroAvg, lambda);
 			output.println(topics + "; " + microAvg + "; " + macroAvg);
 		}
 	}
-	
+
 	@Override
 	protected void done() {
 		super.done();
