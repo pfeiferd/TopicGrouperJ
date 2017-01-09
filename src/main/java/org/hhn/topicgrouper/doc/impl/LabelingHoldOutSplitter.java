@@ -20,17 +20,23 @@ public class LabelingHoldOutSplitter<T, L> {
 	public LabelingHoldOutSplitter(Random random,
 			LabelingDocumentProvider<T, L> origDocuments, double holdOutRatio,
 			int minGlobalWordFrequency, int maxLabels) {
-		this(random, origDocuments, holdOutRatio, minGlobalWordFrequency, maxLabels, new DefaultVocab<T>());
+		this(random, origDocuments, holdOutRatio, minGlobalWordFrequency,
+				maxLabels, new DefaultVocab<T>());
 	}
-	
+
 	public LabelingHoldOutSplitter(Random random,
 			LabelingDocumentProvider<T, L> origDocuments, double holdOutRatio,
 			int minGlobalWordFrequency, int maxLabels, DefaultVocab<T> vocab) {
-		Collection<L> selectedLabels;
+		this(random, origDocuments, holdOutRatio, minGlobalWordFrequency,
+				selectMostFrequentLabels(origDocuments, maxLabels), vocab);
+	}
+
+	protected static <T, L> Collection<L> selectMostFrequentLabels(
+			LabelingDocumentProvider<T, L> origDocuments, int maxLabels) {
 		if (maxLabels > 0) {
 			Collection<L> labels = new ArrayList<L>(
 					origDocuments.getAllLabels());
-			selectedLabels = new ArrayList<L>();
+			Collection<L> selectedLabels = new ArrayList<L>();
 
 			// Get the most frequent labels.
 			for (int i = 0; i < maxLabels || labels.isEmpty(); i++) {
@@ -47,10 +53,16 @@ public class LabelingHoldOutSplitter<T, L> {
 				labels.remove(bestLabel);
 				selectedLabels.add(bestLabel);
 			}
+			return selectedLabels;
+		} else {
+			return origDocuments.getAllLabels();
 		}
-		else {
-			selectedLabels = origDocuments.getAllLabels();
-		}
+	}
+
+	public LabelingHoldOutSplitter(Random random,
+			LabelingDocumentProvider<T, L> origDocuments, double holdOutRatio,
+			int minGlobalWordFrequency, Collection<L> selectedLabels,
+			DefaultVocab<T> vocab) {
 
 		rest = new DefaultLabelingDocumentProvider<T, L>(vocab);
 		if (vocab == null) {
