@@ -1,6 +1,5 @@
 package org.hhn.topicgrouper.paper.perplexity.docs;
 
-import org.hhn.topicgrouper.paper.perplexity.tgldamix.APExtractMixPerplexityExp;
 import org.hhn.topicgrouper.util.EvalRunner;
 
 public class AllPerplexityExperimentsRunner extends EvalRunner {
@@ -9,19 +8,17 @@ public class AllPerplexityExperimentsRunner extends EvalRunner {
 	@Override
 	protected Class<?>[] getMainClasses() {
 		return new Class[] {
-/*				APExtractPLSAPerplexityExperiment.class,  */
-/*				APExtractTGPerplexityExperiment.class,
+				APExtractPLSAPerplexityExperiment.class,
+				APExtractTGPerplexityExperiment.class,
 				APExtractLDAPerplexityExperiment.class,
-				APExtractLDAPerplexityExperimentOpt.class, */
-//				APExtractMixPerplexityExp.class,
-//				APExtractTGLRPerplexityExperiment.class,
+				APExtractLDAPerplexityExperimentOpt.class,
+				APExtractTGLRPerplexityExperiment.class,
 				APTGPerplexityExperiment.class,
-				/*				
 				APLDAPerplexityExperiment.class,
 				APLDAPerplexityExperimentOpt.class,
 				NIPSTGLRPerplexityExperiment.class,
 				NIPSLDAPerplexityExperiment.class,
-				NIPSLDAPerplexityExperimentOpt.class*/
+				NIPSLDAPerplexityExperimentOpt.class
 			};
 	}
 

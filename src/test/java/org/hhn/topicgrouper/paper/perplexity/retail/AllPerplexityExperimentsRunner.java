@@ -8,22 +8,19 @@ public class AllPerplexityExperimentsRunner extends EvalRunner {
 	@Override
 	protected Class<?>[] getMainClasses() {
 		return new Class[] { 
-				/* TaFengTGPerplexityExperiment.class, 
+				TaFengTGPerplexityExperiment.class, 
 				TaFengTGLRPerplexityExperiment.class,
 				TaFengLDAPerplexityExperiment.class,
-				TaFengLDAPerplexityExperimentOpt.class, */
-				
-				/* OnlineRetailTGPerplexityExperiment.class, */
-//				OnlineRetailTGLRPerplexityExperiment.class,
+				TaFengLDAPerplexityExperimentOpt.class,
+				OnlineRetailTGPerplexityExperiment.class,
+				OnlineRetailTGLRPerplexityExperiment.class,
 				OnlineRetailLDAPerplexityExperiment.class,
 				OnlineRetailLDAPerplexityExperimentOpt.class, 
-				
-//				
-//				/* USSupermarketTGPerplexityExperiment.class, */
-//				USSupermarketTGLRPerplexityExperiment.class,
-//				USSupermarketLDAPerplexityExperiment.class,
-//				USSupermarketLDAPerplexityExperimentOpt.class
-				};
+				USSupermarketTGPerplexityExperiment.class,
+				USSupermarketTGLRPerplexityExperiment.class,
+				USSupermarketLDAPerplexityExperiment.class,
+				USSupermarketLDAPerplexityExperimentOpt.class
+			};
 	}
 
 	public static void main(String[] args) {

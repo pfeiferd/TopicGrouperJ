@@ -218,10 +218,7 @@ public class PLSA<T> extends AbstractTopicModelerWithProvider<T> {
 	}
 
 	/**
-	 * 
 	 * avoid zero number.if input number is zero, we will return a magic number.
-	 * 
-	 * 
 	 */
 	private final static double MAGICNUM = 0.0000000000000001;
 

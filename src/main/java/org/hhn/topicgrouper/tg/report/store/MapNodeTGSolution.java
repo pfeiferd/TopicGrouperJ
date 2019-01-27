@@ -176,11 +176,6 @@ public class MapNodeTGSolution<T> implements TGSolution<T> {
 	}
 
 	@Override
-	public TIntCollection getHomonymns() {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
 	public double[] getTopicLogLikelihoods() {
 		return logLikelihoods;
 	}

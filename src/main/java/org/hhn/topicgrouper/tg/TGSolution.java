@@ -23,7 +23,5 @@ public interface TGSolution<T> {
 	
 	public Vocab<T> getVocab();
 		
-	public TIntCollection getHomonymns();
-	
 	public double[] getTopicLogLikelihoods();
 }

@@ -19,13 +19,12 @@ public class AllPerplexityExperimentsRunner extends EvalRunner {
 				TWCUnigramPerplexityChangeAlphaExp.class,
 				TWCUnigramPerplexityChangeAlphaExp2.class,
 				TWCPerfectPerplexityChangeAlphaExp.class,
-				TWCPerfectPerplexityChangeAlphaExp2.class
-				/*,
+				TWCPerfectPerplexityChangeAlphaExp2.class,
 				TWCTGPerplexityExperiment.class,
 				TWCTGLRPerplexityExperiment.class,
 				TWCLDAPerplexityExperiment.class,
 				TWCLDAPerplexityExperimentOpt.class,
-				TWCPLSAPerplexityExperiment.class*/
+				TWCPLSAPerplexityExperiment.class
 		};
 	}
 

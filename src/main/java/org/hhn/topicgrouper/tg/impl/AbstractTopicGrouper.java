@@ -381,11 +381,6 @@ public abstract class AbstractTopicGrouper<T> implements TGSolver<T> {
 		}
 
 		@Override
-		public TIntCollection getHomonymns() {
-			return null;
-		}
-
-		@Override
 		public int getNumberOfTopics() {
 			return nTopics[0];
 		}

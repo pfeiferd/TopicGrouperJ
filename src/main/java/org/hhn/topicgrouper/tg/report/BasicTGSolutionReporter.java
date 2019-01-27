@@ -138,13 +138,6 @@ public class BasicTGSolutionReporter<T> implements TGSolutionListener<T> {
 			printTopic(solution, solution.getTopics()[newTopicIndex], pw);
 			pw.println("All topics: ");
 			printTopics(solution, pw);
-			TIntCollection homonyms = solution.getHomonymns();
-			if (homonyms != null) {
-				pw.print("Homonyms (");
-				pw.print(homonyms.size());
-				pw.print("): ");
-				printTopic(solution, homonyms, pw);
-			}
 			pw.println("*****************************");
 		}
 		if (solution.getNumberOfTopics() <= reportDetailsAtTopicSize) {

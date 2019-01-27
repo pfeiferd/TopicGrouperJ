@@ -103,7 +103,7 @@ public class EHACTopicGrouper<T> extends AbstractTopicGrouper<T> {
 					jc2.init(j, newLikelihood, newImprovement);
 					allJcs[jci].offer(jc2);
 
-					Object[] otherQueue = allJcs[j].queue;
+					Object[] otherQueue = allJcs[j].getQueue();
 					int otherQueueSize = allJcs[j].size();
 					for (int i = 0; i < otherQueueSize; i++) {
 						JoinCandidate jc3 = (JoinCandidate) otherQueue[i];
