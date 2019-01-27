@@ -48,11 +48,6 @@
 			<version>3.8.0</version>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
-			<groupId>de.hs-heilbronn.mi</groupId>
-			<artifactId>zlibsvm-core</artifactId>
-			<version>1.0</version>
-		</dependency>
 	</dependencies>
 	<build>
 		<plugins>
