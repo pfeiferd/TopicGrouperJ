@@ -29,9 +29,8 @@ public class MyPriorityQueue<E> extends PriorityQueue<E> {
 	}
 	
 	public E removeAt(int i) {
-		E res;
 		try {
-			res = (E) removeAtMethod.invoke(this, i);
+			return (E) removeAtMethod.invoke(this, i);
 		} catch (IllegalAccessException e) {
 			throw new RuntimeException(e);
 		} catch (IllegalArgumentException e) {
@@ -39,7 +38,6 @@ public class MyPriorityQueue<E> extends PriorityQueue<E> {
 		} catch (InvocationTargetException e) {
 			throw new RuntimeException(e);
 		}
-		return res;
 	}
 	
 	public Object[] getQueue() {
