@@ -21,5 +21,5 @@ https://link.springer.com/chapter/10.1007/978-3-030-15712-8_38
 Also, there is an extended version of this publication available on ArXiv:
 http://arxiv.org/abs/1904.06483
 
-The related conference slide can be found here:
+The related conference slides can be found here:
 https://github.com/pfeiferd/TopicGrouperJ/blob/master/TopicGrouperECIR2019.pdf
