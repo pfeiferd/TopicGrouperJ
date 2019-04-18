@@ -15,7 +15,7 @@ towards the leaves. Topic Grouper is not governed by a background
 distribution such as the Dirichlet and avoids hyper parameter
 optimizations.
 
-This the publication behind the appoach:
+This is the publication behind the appoach:
 https://link.springer.com/chapter/10.1007/978-3-030-15712-8_38
 
 Also, there is an extended version of this publication available on ArXiv:
