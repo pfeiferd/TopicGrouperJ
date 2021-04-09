@@ -2,7 +2,9 @@ package org.hhn.topicgrouper.doc;
 
 import gnu.trove.set.TIntSet;
 
-public interface Document<T> {
+import java.io.Serializable;
+
+public interface Document<T> extends Serializable {
 	public int getIndex();
 	
 	public int getWords();

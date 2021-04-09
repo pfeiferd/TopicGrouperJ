@@ -96,6 +96,8 @@ public class FiftyFiftyDocumentSplitter<T> implements DocumentSplitter<T> {
 	}
 
 	protected class SplitDocument extends AbstractDocumentImpl<T> {
+		private static final long serialVersionUID = 6914217677401557723L;
+
 		public SplitDocument(int index) {
 			super(index);
 		}

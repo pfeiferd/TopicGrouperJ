@@ -8,6 +8,9 @@ import gnu.trove.set.TIntSet;
 import org.hhn.topicgrouper.doc.Document;
 
 public abstract class AbstractDocumentImpl<T> implements Document<T> {
+
+	private static final long serialVersionUID = -7104682442715739555L;
+
 	private int size;
 	private final TIntIntMap frequencies;
 	

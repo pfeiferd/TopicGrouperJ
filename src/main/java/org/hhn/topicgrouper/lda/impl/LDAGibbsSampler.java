@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
@@ -17,7 +18,10 @@ import org.hhn.topicgrouper.doc.Document;
 import org.hhn.topicgrouper.doc.DocumentProvider;
 import org.hhn.topicgrouper.validation.AbstractTopicModelerWithProvider;
 
-public class LDAGibbsSampler<T> extends AbstractTopicModelerWithProvider<T> {
+public class LDAGibbsSampler<T> extends AbstractTopicModelerWithProvider<T> implements Serializable {
+
+	private static final long serialVersionUID = 4896261724252881347L;
+
 	protected final double[] alpha;
 	protected double alphaSum;
 	protected double beta;
@@ -38,7 +42,7 @@ public class LDAGibbsSampler<T> extends AbstractTopicModelerWithProvider<T> {
 	private int alphaBetaUpdate;
 	private int minkasFixPointIterations;
 
-	private PrintStream log;
+	private transient PrintStream log;
 
 	public LDAGibbsSampler(Random random, DocumentProvider<T> documentProvider,
 			int topics, double alphaConc, double beta) {

@@ -121,6 +121,7 @@ public class DefaultLabelingDocumentProvider<T, L> extends
 	
 	public class DefaultLabeledDocument extends DefaultDocument implements
 			LabeledDocument<T, L> {
+		private static final long serialVersionUID = -378851753041871327L;
 		private final L label;
 
 		public DefaultLabeledDocument(L label, int index) {
