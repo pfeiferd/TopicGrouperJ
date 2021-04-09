@@ -78,6 +78,7 @@ public class DefaultDocumentProvider<T> extends WordMapDocumentProvider<T> {
 	}
 
 	public class DefaultDocument extends AbstractDocumentImpl<T> {
+		private static final long serialVersionUID = 6606498048898601551L;
 		private boolean removed = false;
 		
 		public DefaultDocument(int index) {
