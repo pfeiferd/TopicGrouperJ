@@ -22,20 +22,20 @@ public class LDAGibbsSampler<T> extends AbstractTopicModelerWithProvider<T> impl
 
 	private static final long serialVersionUID = 4896261724252881347L;
 
-	protected final double[] alpha;
+	protected double[] alpha;
 	protected double alphaSum;
 	protected double beta;
 	protected double betaSum;
 
-	protected final int[][] documentTopicAssignmentCount;
-	protected final int[] documentSize;
-	protected final int[][] topicWordAssignmentCount;
+	protected int[][] documentTopicAssignmentCount;
+	protected int[] documentSize;
+	protected int[][] topicWordAssignmentCount;
 
-	protected final int[] topicFrCount;
-	protected final TIntObjectMap<int[]>[] documentWordOccurrenceLastTopicAssignment;
-	private final List<Document<T>> documents;
+	protected int[] topicFrCount;
+	protected TIntObjectMap<int[]>[] documentWordOccurrenceLastTopicAssignment;
+	private List<Document<T>> documents;
 
-	private final double samplingRatios[];
+	private double samplingRatios[];
 
 	private boolean updateAlpha;
 	private boolean updateBeta;
@@ -43,6 +43,10 @@ public class LDAGibbsSampler<T> extends AbstractTopicModelerWithProvider<T> impl
 	private int minkasFixPointIterations;
 
 	private transient PrintStream log;
+
+	protected LDAGibbsSampler() {
+		//no-args -> serialization constructor
+	}
 
 	public LDAGibbsSampler(Random random, DocumentProvider<T> documentProvider,
 			int topics, double alphaConc, double beta) {

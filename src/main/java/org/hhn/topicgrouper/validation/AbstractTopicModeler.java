@@ -3,11 +3,15 @@ package org.hhn.topicgrouper.validation;
 import org.hhn.topicgrouper.doc.DocumentProvider.Vocab;
 
 public abstract class AbstractTopicModeler<T> {
-	protected final Vocab<T> vocab;
-	protected final double phi[][];
-	protected final double topicProb[];
-	protected final int nWords;
-	protected final int nTopics;
+	protected Vocab<T> vocab;
+	protected double phi[][];
+	protected double topicProb[];
+	protected int nWords;
+	protected int nTopics;
+
+	protected AbstractTopicModeler() {
+		//no-args -> serialization constructor
+	}
 
 	public AbstractTopicModeler(Vocab<T> vocab,
 			int nTopics) {

@@ -5,8 +5,12 @@ import java.util.Random;
 import org.hhn.topicgrouper.doc.DocumentProvider;
 
 public abstract class AbstractTopicModelerWithProvider<T> extends AbstractTopicModeler<T> {
-	protected final Random random;
-	protected final DocumentProvider<T> provider;
+	protected Random random;
+	protected DocumentProvider<T> provider;
+
+	protected AbstractTopicModelerWithProvider() {
+		//no-args -> serialization constructor
+	}
 
 	public AbstractTopicModelerWithProvider(Random random, DocumentProvider<T> provider, int nTopics) {
 		super(provider.getVocab(), nTopics);
