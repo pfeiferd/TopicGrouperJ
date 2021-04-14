@@ -2,7 +2,10 @@ package org.hhn.topicgrouper.validation;
 
 import org.hhn.topicgrouper.doc.DocumentProvider.Vocab;
 
-public abstract class AbstractTopicModeler<T> {
+import java.io.Serializable;
+
+public abstract class AbstractTopicModeler<T> implements Serializable {
+	private static final long serialVersionUID = 8817316166524305524L;
 	protected Vocab<T> vocab;
 	protected double phi[][];
 	protected double topicProb[];

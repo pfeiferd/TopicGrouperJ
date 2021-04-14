@@ -8,10 +8,13 @@ import gnu.trove.map.hash.TObjectIntHashMap;
 import org.hhn.topicgrouper.doc.DocumentProvider.Vocab;
 
 public class DefaultVocab<T> implements Vocab<T> {
+
+	private static final long serialVersionUID = 6159283740829188125L;
+
 	protected final TObjectIntMap<T> wordToIndex;
 	protected final TIntObjectMap<T> indexToWord;
 	private int nextIndex;
-	
+
 	public DefaultVocab() {
 		this.wordToIndex = new TObjectIntHashMap<T>();
 		this.indexToWord = new TIntObjectHashMap<T>();

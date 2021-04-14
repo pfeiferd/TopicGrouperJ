@@ -9,11 +9,18 @@ import org.hhn.topicgrouper.doc.Document;
 import org.hhn.topicgrouper.doc.DocumentProvider;
 
 public class WordMapDocumentProvider<T> implements DocumentProvider<T> {
-	private final List<Document<T>> immutableList;
-	protected final List<Document<T>> entries;
-	protected final TIntList indexToFr;
-	protected final DefaultVocab<T> vocab;
+
+	private static final long serialVersionUID = -7108768570880922450L;
+
+	private List<Document<T>> immutableList;
+	protected List<Document<T>> entries;
+	protected TIntList indexToFr;
+	protected DefaultVocab<T> vocab;
 	protected int size;
+
+	protected WordMapDocumentProvider() {
+		//no-args constructor for serialization
+	}
 
 	public WordMapDocumentProvider(DefaultVocab<T> vocab, List<Document<T>> entries,
 			TIntList indexToFr) {

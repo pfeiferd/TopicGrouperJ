@@ -9,6 +9,9 @@ import org.hhn.topicgrouper.doc.Document;
 import org.hhn.topicgrouper.doc.DocumentProvider;
 
 public class DefaultDocumentProvider<T> extends WordMapDocumentProvider<T> {
+
+	private static final long serialVersionUID = -6944447751973536193L;
+
 	public DefaultDocumentProvider() {
 		this(new DefaultVocab<T>());
 	}

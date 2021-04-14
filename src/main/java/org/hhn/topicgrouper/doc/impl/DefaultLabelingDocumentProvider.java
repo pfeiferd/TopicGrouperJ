@@ -13,6 +13,9 @@ import org.hhn.topicgrouper.doc.LabelingDocumentProvider;
 
 public class DefaultLabelingDocumentProvider<T, L> extends
 		DefaultDocumentProvider<T> implements LabelingDocumentProvider<T, L> {
+
+	private static final long serialVersionUID = -3504489751831118587L;
+
 	protected final Map<L, List<LabeledDocument<T, L>>> labelsToDocuments;
 	protected final Map<L, List<LabeledDocument<T, L>>> labelsToDocumentsImmutable;
 
