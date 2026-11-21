@@ -3,6 +3,11 @@ package org.hhn.topicgrouper.tg;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Forwards all events to a list of registered listeners.
+ *
+ * @param <T> the type of the words
+ */
 public class TGSolutionListenerMultiplexer<T> implements TGSolutionListener<T> {
 	private final List<TGSolutionListener<T>> listeners;
 

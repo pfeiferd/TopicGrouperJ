@@ -16,6 +16,15 @@ public class LabelingHoldOutSplitter<T, L> {
 	private DefaultLabelingDocumentProvider<T, L> holdOut;
 	private DefaultLabelingDocumentProvider<T, L> rest;
 
+	/**
+	 * Splits labeled documents into hold out and training part per label, using the most frequent labels and a new vocabulary.
+	 *
+	 * @param random source of randomness
+	 * @param origDocuments the documents to split
+	 * @param holdOutRatio fraction of the documents of each label moved to the hold out set
+	 * @param minGlobalWordFrequency words with a lower global frequency are dropped from the training set
+	 * @param maxLabels number of most frequent labels to keep, 0 or less = all labels
+	 */
 	public LabelingHoldOutSplitter(Random random,
 			LabelingDocumentProvider<T, L> origDocuments, double holdOutRatio,
 			int minGlobalWordFrequency, int maxLabels) {
@@ -23,6 +32,16 @@ public class LabelingHoldOutSplitter<T, L> {
 				maxLabels, new DefaultVocab<T>());
 	}
 
+	/**
+	 * Splits labeled documents into hold out and training part per label, using the most frequent labels.
+	 *
+	 * @param random source of randomness
+	 * @param origDocuments the documents to split
+	 * @param holdOutRatio fraction of the documents of each label moved to the hold out set
+	 * @param minGlobalWordFrequency words with a lower global frequency are dropped from the training set
+	 * @param maxLabels number of most frequent labels to keep, 0 or less = all labels
+	 * @param vocab vocabulary for the training set, <code>null</code> for a new one
+	 */
 	public LabelingHoldOutSplitter(Random random,
 			LabelingDocumentProvider<T, L> origDocuments, double holdOutRatio,
 			int minGlobalWordFrequency, int maxLabels, DefaultVocab<T> vocab) {
@@ -30,6 +49,13 @@ public class LabelingHoldOutSplitter<T, L> {
 				selectMostFrequentLabels(origDocuments, maxLabels), vocab);
 	}
 
+	/**
+	 * Selects the labels with the most documents.
+	 *
+	 * @param origDocuments the documents
+	 * @param maxLabels number of labels to select; 0 or less selects all labels
+	 * @return the selected labels
+	 */
 	protected static <T, L> Collection<L> selectMostFrequentLabels(
 			LabelingDocumentProvider<T, L> origDocuments, int maxLabels) {
 		if (maxLabels > 0) {
@@ -58,6 +84,16 @@ public class LabelingHoldOutSplitter<T, L> {
 		}
 	}
 
+	/**
+	 * Splits labeled documents into hold out and training part per label, so that the ratio is kept for every label.
+	 *
+	 * @param random source of randomness
+	 * @param origDocuments the documents to split
+	 * @param holdOutRatio fraction of the documents of each label moved to the hold out set
+	 * @param minGlobalWordFrequency words with a lower global frequency are dropped from the training set
+	 * @param selectedLabels only documents with these labels are used
+	 * @param vocab vocabulary for the training set, <code>null</code> for a new one
+	 */
 	public LabelingHoldOutSplitter(Random random,
 			LabelingDocumentProvider<T, L> origDocuments, double holdOutRatio,
 			int minGlobalWordFrequency, Collection<L> selectedLabels,
@@ -93,10 +129,16 @@ public class LabelingHoldOutSplitter<T, L> {
 		}
 	}
 
+	/**
+	 * @return the hold out documents
+	 */
 	public DefaultLabelingDocumentProvider<T, L> getHoldOut() {
 		return holdOut;
 	}
 
+	/**
+	 * @return the remaining (training) documents
+	 */
 	public DefaultLabelingDocumentProvider<T, L> getRest() {
 		return rest;
 	}

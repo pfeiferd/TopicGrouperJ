@@ -5,6 +5,12 @@ import java.util.Random;
 import org.apache.commons.math3.special.Gamma;
 import org.hhn.topicgrouper.doc.DocumentProvider;
 
+/**
+ * LDA Gibbs sampler with a full topic-by-word matrix of beta parameters instead of a single
+ * symmetric beta. The matrix can be re-estimated with Minka's fixed point iteration.
+ *
+ * @param <T> the type of the words
+ */
 public class LDAFullBetaGibbsSampler<T> extends LDAGibbsSampler<T> {
 	private final double[][] fullBeta;
 	private final double[] fullBetaSum;
@@ -23,6 +29,12 @@ public class LDAFullBetaGibbsSampler<T> extends LDAGibbsSampler<T> {
 
 	private boolean updatePrecisionOnly;
 
+	/**
+	 * @param random source of randomness
+	 * @param documentProvider the training documents
+	 * @param alpha the Dirichlet prior over the topics of a document
+	 * @param fullBeta beta[t][w], the Dirichlet prior of the words in topic t; modified by updates
+	 */
 	public LDAFullBetaGibbsSampler(Random random,
 			DocumentProvider<T> documentProvider, double[] alpha,
 			double[][] fullBeta) {
@@ -35,42 +47,72 @@ public class LDAFullBetaGibbsSampler<T> extends LDAGibbsSampler<T> {
 		updateFullBetaSum();
 	}
 
+	/**
+	 * @param betaConc factor by which all beta values are scaled
+	 */
 	public void setBetaConc(double betaConc) {
 		this.betaConc = betaConc;
 	}
 
+	/**
+	 * @param smoothingMixBeta weight of the uniform distribution when mixing it into beta
+	 */
 	public void setSmoothingMixBeta(double smoothingMixBeta) {
 		this.smoothingMixBeta = smoothingMixBeta;
 	}
 
+	/**
+	 * @return weight of the uniform distribution when mixing it into beta
+	 */
 	public double getSmoothingMixBeta() {
 		return smoothingMixBeta;
 	}
 
+	/**
+	 * @return factor by which all beta values are scaled
+	 */
 	public double getBetaConc() {
 		return betaConc;
 	}
 
+	/**
+	 * @param updatePrecisionOnly if true, updates only scale alpha and beta (Dirichlet precision) and keep their ratios
+	 */
 	public void setUpdatePrecisionOnly(boolean updatePrecisionOnly) {
 		this.updatePrecisionOnly = updatePrecisionOnly;
 	}
 
+	/**
+	 * @return whether updates only change the precision
+	 */
 	public boolean isUpdatePrecisionOnly() {
 		return updatePrecisionOnly;
 	}
 
+	/**
+	 * @return the smoothing constant used in the alpha precision update
+	 */
 	public double getSmoothingAlphaPrecision() {
 		return smoothingAlphaPrecision;
 	}
 
+	/**
+	 * @param smoothingAlphaPrecision the smoothing constant used in the alpha precision update
+	 */
 	public void setSmoothingAlphaPrecision(double smoothingAlphaPrecision) {
 		this.smoothingAlphaPrecision = smoothingAlphaPrecision;
 	}
 
+	/**
+	 * @return the smoothing constant used in the beta precision update
+	 */
 	public double getSmoothingBetaPrecision() {
 		return smoothingBetaPrecision;
 	}
 
+	/**
+	 * @param smoothingBetaPrecision the smoothing constant used in the beta precision update
+	 */
 	public void setSmoothingBetaPrecision(double smoothingBetaPrecision) {
 		this.smoothingBetaPrecision = smoothingBetaPrecision;
 	}
@@ -109,6 +151,11 @@ public class LDAFullBetaGibbsSampler<T> extends LDAGibbsSampler<T> {
 		}
 	}
 
+	/**
+	 * Minka fixed point update of every entry of the beta matrix.
+	 *
+	 * @throws IllegalStateException if the beta concentration is not 1
+	 */
 	protected void updateFullBeta() {
 		if (betaConc != 1) {
 			throw new IllegalStateException(
@@ -159,6 +206,9 @@ public class LDAFullBetaGibbsSampler<T> extends LDAGibbsSampler<T> {
 		updateFullBetaSum();
 	}
 
+	/**
+	 * Recomputes the row sums of the beta matrix.
+	 */
 	protected void updateFullBetaSum() {
 		for (int i = 0; i < fullBeta.length; i++) {
 			fullBetaSum[i] = 0;
@@ -267,6 +317,9 @@ public class LDAFullBetaGibbsSampler<T> extends LDAGibbsSampler<T> {
 	}
 
 	// @Override
+	/**
+	 * Prints the beta matrix to standard output.
+	 */
 	protected void reportBeta() {
 		for (int i = 0; i < fullBeta.length; i++) {
 			for (int j = 0; j < nWords; j++) {

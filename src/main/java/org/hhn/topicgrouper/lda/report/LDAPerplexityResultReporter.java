@@ -17,12 +17,26 @@ import org.hhn.topicgrouper.doc.DocumentProvider;
 import org.hhn.topicgrouper.lda.impl.LDAGibbsSampler;
 import org.hhn.topicgrouper.validation.BasicPerplexityCalculator;
 
+/**
+ * Listener that periodically computes the perplexity on test documents during training and
+ * plots it in a Swing chart.
+ *
+ * @param <T> the type of the words
+ */
 public class LDAPerplexityResultReporter<T> extends BasicLDAResultReporter<T> {
 	private final ITrace2D trace;
 	private final BasicPerplexityCalculator<T> calculator;
 	private final DocumentProvider<T> testDocumentProvider;
 	private final int perplexitySteps;
 
+	/**
+	 * Opens a window with the chart.
+	 *
+	 * @param testDocumentProvider the test documents
+	 * @param pw where to print, may be null
+	 * @param perplexitySteps compute the perplexity every this many iterations
+	 * @param calculator the perplexity calculator
+	 */
 	public LDAPerplexityResultReporter(
 			DocumentProvider<T> testDocumentProvider, PrintStream pw,
 			int perplexitySteps, BasicPerplexityCalculator<T> calculator) {
@@ -64,10 +78,19 @@ public class LDAPerplexityResultReporter<T> extends BasicLDAResultReporter<T> {
 		frame.setVisible(true);
 	}
 
+	/**
+	 * @return the chart trace
+	 */
 	protected ITrace2D getTrace() {
 		return trace;
 	}
 
+	/**
+	 * Called with each computed perplexity; prints it and adds it to the chart.
+	 *
+	 * @param step the iteration
+	 * @param value the perplexity
+	 */
 	protected void perplexityComputed(int step, double value) {
 		if (pw != null) {
 			pw.print("Perplexity: ");
@@ -96,6 +119,12 @@ public class LDAPerplexityResultReporter<T> extends BasicLDAResultReporter<T> {
 		}
 	}
 
+	/**
+	 * Prints the topics and computes the perplexity of the current sampler state.
+	 *
+	 * @param sampler the sampler
+	 * @return the perplexity on the test documents
+	 */
 	protected double computePerplexity(LDAGibbsSampler<T> sampler) {
 		printTopics(pw, sampler, topWords);
 		calculator.setTopicModeler(sampler);

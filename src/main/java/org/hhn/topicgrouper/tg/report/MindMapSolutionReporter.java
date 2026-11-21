@@ -12,16 +12,45 @@ import org.hhn.topicgrouper.tg.TGSolutionListener;
 import org.hhn.topicgrouper.tg.report.store.MapNode;
 import org.hhn.topicgrouper.tg.report.store.WordInfo;
 
+/**
+ * Solution listener that records the merge history as a binary tree of MapNodes, usable for mind map export and browsing.
+ * @param <T> the word type
+ */
 public class MindMapSolutionReporter<T> implements TGSolutionListener<T> {
 
+	/**
+	 * All nodes in creation order (leaves first, then merges).
+	 */
 	private final List<MapNode<T>> allNodes;
+	/**
+	 * Current root nodes by topic index.
+	 */
 	private final TIntObjectMap<MapNode<T>> currentNodes;
+	/**
+	 * Maximum number of top words kept per node.
+	 */
 	private final int topWords;
+	/**
+	 * Whether top words moved to a parent are removed from the child.
+	 */
 	private final boolean removeWordFromChildAtPull;
+	/**
+	 * Improvement ratio from which merged children are marked.
+	 */
 	private final double markRatioLevel;
+	/**
+	 * Topic count at or below which marking is considered.
+	 */
 	private final double minMarkTopics;
 	private final ImprovementAssessor assessor;
 
+	/**
+	 * Creates a reporter.
+	 * @param topWords number of top words per node
+	 * @param removeWordFromChildAtPull remove words from children when they are pulled up to the parent
+	 * @param markRatioLevel improvement ratio from which merged children are marked
+	 * @param minMarkTopics marking only happens at or below this number of topics
+	 */
 	public MindMapSolutionReporter(int topWords,
 			boolean removeWordFromChildAtPull, double markRatioLevel,
 			int minMarkTopics) {
@@ -34,10 +63,18 @@ public class MindMapSolutionReporter<T> implements TGSolutionListener<T> {
 		this.allNodes = new ArrayList<MapNode<T>>();
 	}
 
+	/**
+	 * Returns the current top-level nodes by topic index.
+	 * @return map from topic index to node
+	 */
 	public TIntObjectMap<MapNode<T>> getCurrentNodes() {
 		return currentNodes;
 	}
 
+	/**
+	 * Returns all nodes created so far, in creation order.
+	 * @return list of nodes
+	 */
 	public List<MapNode<T>> getAllNodes() {
 		return allNodes;
 	}
@@ -142,6 +179,12 @@ public class MindMapSolutionReporter<T> implements TGSolutionListener<T> {
 		}
 	}
 
+	/**
+	 * Moves the most frequent top word of the two children (and recursively of their descendants) to the target list.
+	 * @param target list receiving the word
+	 * @param child1 first child, may be null
+	 * @param child2 second child, may be null
+	 */
 	private void pullFromChildren(List<WordInfo<T>> target, MapNode<T> child1,
 			MapNode<T> child2) {
 		List<WordInfo<T>> child1List = child1 == null ? null : child1
@@ -168,6 +211,11 @@ public class MindMapSolutionReporter<T> implements TGSolutionListener<T> {
 		}
 	}
 
+	/**
+	 * Removes the first word of the child into the target and refills the child's list from its own children.
+	 * @param target list receiving the word
+	 * @param child child to take the word from
+	 */
 	private void doWordPull(List<WordInfo<T>> target, MapNode<T> child) {
 		List<WordInfo<T>> childList = child.getTopTopicWordInfos();
 		target.add(childList.remove(0));

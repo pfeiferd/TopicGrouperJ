@@ -19,6 +19,16 @@ import org.hhn.topicgrouper.tg.TGSolutionListener;
 import org.hhn.topicgrouper.tg.TGSolver;
 import org.hhn.topicgrouper.util.UnionFind;
 
+/**
+ * Base class of the Topic Grouper algorithm: an agglomerative clustering of the
+ * vocabulary. It starts with one topic per word and repeatedly joins the two topics
+ * whose union yields the highest increase of the log likelihood of the training
+ * documents. Subclasses decide how join candidates are managed
+ * ({@link EHACTopicGrouper}: fast but memory hungry, {@link LowMemTopicGrouper}:
+ * little memory).
+ *
+ * @param <T> the type of the words
+ */
 public abstract class AbstractTopicGrouper<T> implements TGSolver<T> {
 	protected final int minWordFrequency;
 	protected final DocumentProvider<T> documentProvider;
@@ -48,17 +58,22 @@ public abstract class AbstractTopicGrouper<T> implements TGSolver<T> {
 	protected final int minTopics;
 	protected final DocIndexAndWordFr searchDummy = new DocIndexAndWordFr();
 
+	/**
+	 * @param minWordFrequency only words occurring at least this often (&gt;= 1) in the documents are grouped
+	 * @param documentProvider the training documents
+	 * @param minTopics the algorithm stops when this number of topics is reached (values below 1 are treated as 1)
+	 * @throws IllegalArgumentException if minWordFrequency is below 1
+	 */
 	public AbstractTopicGrouper(int minWordFrequency,
 			DocumentProvider<T> documentProvider, int minTopics) {
+		if (minWordFrequency < 1) {
+			throw new IllegalArgumentException("minWordFrequency must be >= 1");
+		}
 		this.minWordFrequency = minWordFrequency;
 		this.documentProvider = documentProvider;
 		this.documents = documentProvider.getDocuments();
 		this.documentSizes = getDocumentSizes();
 		this.logDocumentSizes = getLogDocumentSizes();
-
-		if (minWordFrequency < 1) {
-			throw new IllegalArgumentException("minWordFrequency must be >= 1");
-		}
 
 		this.minTopics = Math.max(1, minTopics);
 		nWords = documentProvider.getVocab().getNumberOfWords();
@@ -88,6 +103,9 @@ public abstract class AbstractTopicGrouper<T> implements TGSolver<T> {
 		solution = createSolution();
 	}
 
+	/**
+	 * Creates the solution object handed to listeners. Can be overridden to provide a richer solution.
+	 */
 	protected TGSolution<T> createSolution() {
 		return new DefaultTGSolution();
 	}
@@ -143,6 +161,9 @@ public abstract class AbstractTopicGrouper<T> implements TGSolver<T> {
 	}
 
 	@Override
+	/**
+	 * Runs the algorithm and notifies the listener about each join.
+	 */
 	public void solve(TGSolutionListener<T> solutionListener) {
 		// Initialization
 		totalLogLikelihood = 0;
@@ -274,22 +295,29 @@ public abstract class AbstractTopicGrouper<T> implements TGSolver<T> {
 		return sum;
 	}
 
+	/**
+	 * Log likelihood change when the given word is moved from its current topic
+	 * to the given topic.
+	 *
+	 * @return 0 if the word already belongs to the topic
+	 * @throws IllegalArgumentException if the word is too infrequent to belong to a topic
+	 */
 	public double computeTopicWordLogLikelihood(int topic, int wordIndex) {
 		int htopic = wordToInitialTopic[wordIndex];
+		if (htopic == -1) {
+			throw new IllegalArgumentException("word " + wordIndex
+					+ " occurs less than minWordFrequency times and is not part of any topic");
+		}
 		int wtopic = topicUnionFind.find(htopic);
 
-		double joinedTopicLog;
-		double singleTopicLog;
-		double wordLog = computeOneWordTopicLogLikelihood(wordIndex);
 		if (wtopic == topic) {
 			return 0;
 		} else {
-			singleTopicLog = computeTopicWordLogLikelihoodHelp(wtopic, wordIndex, false);
-			joinedTopicLog = computeTopicWordLogLikelihoodHelp(topic, wordIndex, true); // Topic joined with word...
+			double singleTopicLog = computeTopicWordLogLikelihoodHelp(wtopic, wordIndex, false);
+			// Topic joined with word...
+			double joinedTopicLog = computeTopicWordLogLikelihoodHelp(topic, wordIndex, true);
 			return joinedTopicLog - singleTopicLog;
 		}
-
-		//return joinedTopicLog - singleTopicLog - wordLog;
 	}
 	
 	protected double computeTopicWordLogLikelihoodHelp(int topic, int wordIndex, boolean add) {
@@ -309,13 +337,24 @@ public abstract class AbstractTopicGrouper<T> implements TGSolver<T> {
 		}
 
 		sum += sumWordFrTimesLogWordFrByTopic[topic];
-		sum += sign * frWordTotal * Math.log(frWordTotal);
+		sum += sign * xLogX(frWordTotal);
 		int sizeSum = topicSizes[topic] + sign * frWordTotal;
-		sum -= (sizeSum) * Math.log(sizeSum);
+		sum -= xLogX(sizeSum);
 
-		return sum;		
+		return sum;
 	}
 
+	/**
+	 * Computes <code>x * log(x)</code> with the usual convention that the
+	 * result is 0 for x = 0 (instead of NaN).
+	 */
+	private static double xLogX(int x) {
+		return x <= 0 ? 0 : x * Math.log(x);
+	}
+
+	/**
+	 * Entry of the inverted index: a document and the frequency of a word in it (ordered by document).
+	 */
 	protected static class DocIndexAndWordFr implements
 			Comparable<DocIndexAndWordFr> {
 		public int docIndex;
@@ -326,6 +365,9 @@ public abstract class AbstractTopicGrouper<T> implements TGSolver<T> {
 		}
 	}
 
+	/**
+	 * The live view on the state of the solver.
+	 */
 	public class DefaultTGSolution implements TGSolution<T> {
 		@Override
 		public TIntCollection[] getTopics() {
@@ -390,6 +432,9 @@ public abstract class AbstractTopicGrouper<T> implements TGSolver<T> {
 		}
 	};
 
+	/**
+	 * A potential join of a topic with the topic <code>j</code>, with the resulting log likelihood and its improvement. Ordered by decreasing improvement.
+	 */
 	protected static class JoinCandidate implements Comparable<JoinCandidate> {
 		public int j;
 		public double logLikelihood;

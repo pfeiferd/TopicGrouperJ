@@ -15,6 +15,14 @@ public class HoldOutSplitter<T> {
 	private final DefaultDocumentProvider<T> holdOut;
 	private final DefaultDocumentProvider<T> rest;
 
+	/**
+	 * Splits documents randomly into hold out and training part, with frequencies counted on the training part and a new vocabulary.
+	 *
+	 * @param random source of randomness
+	 * @param origDocuments the documents to split
+	 * @param holdOutRatio fraction of documents (at most 1) moved to the hold out set
+	 * @param minWordFrequency words with lower frequency are removed from the training set
+	 */
 	public HoldOutSplitter(Random random, DocumentProvider<T> origDocuments,
 			double holdOutRatio, int minWordFrequency) {
 		this(random, origDocuments,
@@ -22,6 +30,16 @@ public class HoldOutSplitter<T> {
 						holdOutRatio)), minWordFrequency, true, null);
 	}
 
+	/**
+	 * Splits documents randomly into hold out and training part.
+	 *
+	 * @param random source of randomness
+	 * @param origDocuments the documents to split
+	 * @param holdOutRatio fraction of documents (at most 1) moved to the hold out set
+	 * @param minWordFrequency words with lower frequency are removed from the training set
+	 * @param minFrInRest whether word frequencies are determined on the training part only
+	 * @param vocab vocabulary for the hold out set, <code>null</code> to use the one of the training set
+	 */
 	public HoldOutSplitter(Random random, DocumentProvider<T> origDocuments,
 			double holdOutRatio, int minWordFrequency, boolean minFrInRest,
 			DefaultVocab<T> vocab) {
@@ -30,6 +48,12 @@ public class HoldOutSplitter<T> {
 						holdOutRatio)), minWordFrequency, minFrInRest, vocab);
 	}
 
+	/**
+	 * @param holdOutNumber number of randomly chosen documents moved to the hold out set
+	 * @param minWordFrequency words with lower frequency are removed from the training set
+	 * @param minFrInRest whether word frequencies are determined on the training part only
+	 * @param vocab vocabulary for the hold out set, <code>null</code> to use the one of the training set
+	 */
 	public HoldOutSplitter(Random random, DocumentProvider<T> origDocuments,
 			int holdOutNumber, int minWordFrequency, boolean minFrInRest,
 			DefaultVocab<T> vocab) {
@@ -69,10 +93,16 @@ public class HoldOutSplitter<T> {
 		}
 	}
 
+	/**
+	 * @return the hold out documents
+	 */
 	public DefaultDocumentProvider<T> getHoldOut() {
 		return holdOut;
 	}
 
+	/**
+	 * @return the remaining (training) documents
+	 */
 	public DefaultDocumentProvider<T> getRest() {
 		return rest;
 	}

@@ -22,30 +22,12 @@
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-math3</artifactId>
-			<version>3.6</version>
+			<version>3.6.1</version>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>3.8.1</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>de.julielab</groupId>
-			<artifactId>aliasi-lingpipe</artifactId>
-			<version>3.9.3</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>args4j</groupId>
-			<artifactId>args4j</artifactId>
-			<version>2.0.6</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>nz.ac.waikato.cms.weka</groupId>
-			<artifactId>weka-stable</artifactId>
-			<version>3.8.0</version>
+			<version>4.13.2</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
@@ -72,6 +54,15 @@
 					<encoding>UTF-8</encoding>
 					<source>1.8</source>
 					<target>1.8</target>
+					<!-- The paper experiments need libraries that are not on Maven Central, see profile legacy-experiments. -->
+					<testExcludes>
+						<testExclude>**/eval/**</testExclude>
+						<testExclude>**/paper/**</testExclude>
+						<testExclude>**/demo/**</testExclude>
+						<testExclude>**/com/aliasi/**</testExclude>
+						<testExclude>**/util/EvalRunner.java</testExclude>
+						<testExclude>**/util/DirichletSampler.java</testExclude>
+					</testExcludes>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -89,4 +80,44 @@
 			</plugin>
 		</plugins>
 	</build>
+	<profiles>
+		<!-- Original experiment code of the paper (src/test/java/.../paper, eval, demo).
+		     It needs a LingPipe 3.9.3 build that is not on Maven Central:
+		     install it with bin/updateRepository.sh and run Maven with -Plegacy-experiments.
+		     The reproducible evaluation lives in the module "evaluation". -->
+		<profile>
+			<id>legacy-experiments</id>
+			<dependencies>
+				<dependency>
+					<groupId>de.julielab</groupId>
+					<artifactId>aliasi-lingpipe</artifactId>
+					<version>3.9.3</version>
+					<scope>test</scope>
+				</dependency>
+				<dependency>
+					<groupId>args4j</groupId>
+					<artifactId>args4j</artifactId>
+					<version>2.37</version>
+					<scope>test</scope>
+				</dependency>
+				<dependency>
+					<groupId>nz.ac.waikato.cms.weka</groupId>
+					<artifactId>weka-stable</artifactId>
+					<version>3.8.0</version>
+					<scope>test</scope>
+				</dependency>
+			</dependencies>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-compiler-plugin</artifactId>
+						<configuration>
+							<testExcludes combine.self="override" />
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 </project>

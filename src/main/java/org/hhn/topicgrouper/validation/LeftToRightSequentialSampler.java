@@ -6,12 +6,34 @@ import gnu.trove.list.array.TIntArrayList;
 import java.util.Arrays;
 import java.util.Random;
 
+/**
+ * Left-to-right sampler that resamples the topic assignments of the preceding words
+ * sequentially (Wallach et al., "Evaluation Methods for Topic Models", Algorithm 3 in the
+ * unbiased variant described in Buntine, "Estimating Likelihoods for Topic Models",
+ * section 3.6), keeping the assignments across particles.
+ *
+ * @param <T> the type of the words
+ */
 public abstract class LeftToRightSequentialSampler<T> extends
 		LeftToRightSamplerBase<T> {
+	/**
+	 * Topic counts of the current particle.
+	 */
 	protected final int[] h;
+	/**
+	 * Running topic counts of the sampled assignments.
+	 */
 	protected final int[] counts;
+	/**
+	 * Current topic assignment of each preceding word.
+	 */
 	protected final TIntList zz;
 
+	/**
+	 * @param random source of randomness
+	 * @param particles number of particles
+	 * @param ntopics the number of topics
+	 */
 	public LeftToRightSequentialSampler(Random random, int particles,
 			int ntopics) {
 		super(random, particles, ntopics);

@@ -5,13 +5,22 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * An output stream that forwards everything to all added streams.
+ */
 public class OutputStreamMultiplexer extends OutputStream {
 	private final List<OutputStream> streams;
 	
+	/**
+	 * Creates a multiplexer without target streams.
+	 */
 	public OutputStreamMultiplexer() {
 		this.streams = new ArrayList<OutputStream>();
 	}
 	
+	/**
+	 * @param stream an additional target stream
+	 */
 	public void addOutputStream(OutputStream stream) {
 		streams.add(stream);
 	}

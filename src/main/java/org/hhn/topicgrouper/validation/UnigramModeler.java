@@ -2,7 +2,16 @@ package org.hhn.topicgrouper.validation;
 
 import org.hhn.topicgrouper.doc.DocumentProvider;
 
+/**
+ * Baseline model in which every topic is the unigram distribution of the training corpus.
+ *
+ * @param <T> the type of the words
+ */
 public class UnigramModeler<T> extends AbstractTopicModelerWithProvider<T> {
+	/**
+	 * @param provider the training documents
+	 * @param nTopics the number of topics
+	 */
 	public UnigramModeler(DocumentProvider<T> provider,
 			int nTopics) {
 		super(null, provider, nTopics);

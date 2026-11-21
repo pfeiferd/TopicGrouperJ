@@ -22,20 +22,64 @@ import org.hhn.topicgrouper.doc.DocumentProvider.Vocab;
 import org.hhn.topicgrouper.doc.impl.DefaultVocab;
 import org.hhn.topicgrouper.tg.TGSolution;
 
+/**
+ * TGSolution view on a recorded MapNode history; the number of topics can be changed to replay earlier solutions.
+ * @param <T> the word type
+ */
 public class MapNodeTGSolution<T> implements TGSolution<T> {
+	/**
+	 * Last node of the history, the root of the hierarchy.
+	 */
 	private final MapNode<T> root;
+	/**
+	 * All nodes in creation order.
+	 */
 	private final List<MapNode<T>> allNodes;
+	/**
+	 * Current number of topics.
+	 */
 	private int nTopics;
+	/**
+	 * Word ids per topic for the current number of topics.
+	 */
 	private TIntList[] topics;
+	/**
+	 * Node ids of the current topics.
+	 */
 	private int[] topicIds;
+	/**
+	 * Log likelihoods of the current topics.
+	 */
 	private double[] logLikelihoods;
+	/**
+	 * Total log likelihood of the current topics.
+	 */
 	private double totalLikelihood;
+	/**
+	 * Current topics by node id.
+	 */
 	private final TIntObjectMap<MapNode<T>> idToNode;
+	/**
+	 * Topic id per word id for the current solution.
+	 */
 	private final TIntIntMap wordToTopicIndex;
+	/**
+	 * Global frequency per word id.
+	 */
 	private final TIntIntMap wordToFrequency;
+	/**
+	 * Vocabulary rebuilt from the leaf nodes.
+	 */
 	private final MyVocab<T> vocab;
+	/**
+	 * Maximum number of topics, i.e. the number of words.
+	 */
 	private final int maxTopics;
 
+	/**
+	 * Creates a solution view; the last node is taken as root.
+	 * @param allNodes all nodes in creation order
+	 */
 	public MapNodeTGSolution(List<MapNode<T>> allNodes) {
 		this.allNodes = allNodes;
 		root = allNodes.get(allNodes.size() - 1);
@@ -47,10 +91,18 @@ public class MapNodeTGSolution<T> implements TGSolution<T> {
 		maxTopics = allNodes.size() - vocab.getNumberOfWords();
 	}
 	
+	/**
+	 * Returns the maximum number of topics (the vocabulary size).
+	 * @return maximum number of topics
+	 */
 	public int getMaxTopics() {
 		return maxTopics;
 	}
 	
+	/**
+	 * Fills the vocabulary and word frequencies from the leaves below the node.
+	 * @param node the node, may be null
+	 */
 	protected void collectVocab(MapNode<T> node) {
 		if (node == null) {
 			return;
@@ -66,6 +118,11 @@ public class MapNodeTGSolution<T> implements TGSolution<T> {
 	}
 
 
+	/**
+	 * Switches to the solution with n topics.
+	 * @param n number of topics, between 1 and getMaxTopics()
+	 * @throws IllegalArgumentException if n is out of range
+	 */
 	public void setNumberOfTopics(int n) {
 		if (n < 1 || n > maxTopics) {
 			throw new IllegalArgumentException();
@@ -93,6 +150,11 @@ public class MapNodeTGSolution<T> implements TGSolution<T> {
 		}
 	}
 
+	/**
+	 * Adds the word ids of all leaves below the node.
+	 * @param node the node, may be null
+	 * @param topicWords collection receiving the ids
+	 */
 	protected void collectTopicWords(MapNode<T> node, TIntCollection topicWords) {
 		if (node == null) {
 			return;
@@ -105,6 +167,11 @@ public class MapNodeTGSolution<T> implements TGSolution<T> {
 		}
 	}
 
+	/**
+	 * Returns the topic nodes of the solution with the given number of topics.
+	 * @param topics number of topics
+	 * @return the nodes forming that solution
+	 */
 	public List<MapNode<T>> getNodesByHistory(int topics) {
 		List<MapNode<T>> res = new ArrayList<MapNode<T>>();
 		if (allNodes != null) {
@@ -180,6 +247,10 @@ public class MapNodeTGSolution<T> implements TGSolution<T> {
 		return logLikelihoods;
 	}
 	
+	/**
+	 * Vocabulary that makes putEntry publicly accessible.
+	 * @param <T> the word type
+	 */
 	public static class MyVocab<T> extends DefaultVocab<T> {
 		@Override
 		public void putEntry(T word, int index) {
@@ -187,6 +258,13 @@ public class MapNodeTGSolution<T> implements TGSolution<T> {
 		}
 	}
 	
+	/**
+	 * Loads a serialized MapNode list from a file.
+	 * @param file file written by object serialization
+	 * @param <T> the word type
+	 * @return the node list
+	 * @throws RuntimeException if reading fails
+	 */
 	@SuppressWarnings("unchecked")
 	public static <T> List<MapNode<T>> loadFile(File file) {
 		try {

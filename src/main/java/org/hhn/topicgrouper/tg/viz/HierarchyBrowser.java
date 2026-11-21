@@ -69,6 +69,10 @@ import org.hhn.topicgrouper.tg.report.TopTopicSearcher;
 import org.hhn.topicgrouper.tg.report.store.MapNode;
 import org.hhn.topicgrouper.tg.report.store.WordInfo;
 
+/**
+ * Swing application for browsing a serialized topic hierarchy (MapNode list) as a tree and a filterable table of topics.
+ * @param <T> the word type
+ */
 public class HierarchyBrowser<T> {
 	/*
 	 * Filter by topic size, all, number of topics in history (set number),
@@ -88,12 +92,24 @@ public class HierarchyBrowser<T> {
 
 	private MapNode<T> root;
 	private List<MapNode<T>> allNodes;
+	/**
+	 * Indices into allNodes of the topics currently shown in the table.
+	 */
 	private final TIntList nodeIndices;
+	/**
+	 * Base value of the color channels used for frequency coloring.
+	 */
 	private final int alphaBase;
 
+	/**
+	 * Whether sizes are doubled for high-DPI displays.
+	 */
 	private final boolean highDPI;
 
 	private boolean inSelection = false;
+	/**
+	 * Window size for the log delta change ratio.
+	 */
 	private int logDeltaChangeWindow = 5;
 	private final JCheckBox showFrCheckBox;
 	private final JCheckBox frColorCheckBox;
@@ -117,6 +133,10 @@ public class HierarchyBrowser<T> {
 
 	private final TopTopicSearcher<T> topicSearcher;
 
+	/**
+	 * Creates and shows the browser window.
+	 * @param highDPI double pixel sizes for high-DPI displays
+	 */
 	@SuppressWarnings("serial")
 	public HierarchyBrowser(boolean highDPI) {
 		this.highDPI = highDPI;
@@ -422,10 +442,18 @@ public class HierarchyBrowser<T> {
 		frame.setVisible(true);
 	}
 
+	/**
+	 * Scales a pixel size for the display.
+	 * @param pixel size in pixels
+	 * @return the size, doubled on high-DPI
+	 */
 	protected int getPixel(int pixel) {
 		return highDPI ? 2 * pixel : pixel;
 	}
 
+	/**
+	 * Notifies the table that its structure and data changed.
+	 */
 	protected void tableChanged() {
 		table.tableChanged(new TableModelEvent(tableModel,
 				TableModelEvent.HEADER_ROW));
@@ -460,6 +488,10 @@ public class HierarchyBrowser<T> {
 //		table.getColumnModel().getColumn(1).setCellRenderer(tableCellRenderer);
 //	}
 
+	/**
+	 * Creates the menu bar with the file-open entry.
+	 * @return the menu bar
+	 */
 	protected JMenuBar createMenu() {
 		JMenuBar menuBar = new JMenuBar();
 		JMenu menu = new JMenu("File");
@@ -511,10 +543,17 @@ public class HierarchyBrowser<T> {
 		return menuBar;
 	}
 
+	/**
+	 * Applies the currently selected table filter.
+	 */
 	protected void adjustNodeIndices() {
 		adjustNodeIndices((TableFilters) tableFilterComboBox.getSelectedItem());
 	}
 
+	/**
+	 * Applies the given filter, shows its settings panel and refreshes the table.
+	 * @param filter the filter to apply
+	 */
 	protected void adjustNodeIndices(TableFilters filter) {
 		settingsPanel.remove(2);
 		switch (filter) {
@@ -549,6 +588,11 @@ public class HierarchyBrowser<T> {
 		tableChanged();
 	}
 
+	/**
+	 * Selects topics whose log delta change reaches the ratio level, together with their children.
+	 * @param ratioLevel minimum delta change ratio
+	 * @param maxTopic number of last history steps to examine
+	 */
 	protected void adjustByRatioLevel(double ratioLevel, int maxTopic) {
 		nodeIndices.clear();
 		if (allNodes != null) {
@@ -577,6 +621,10 @@ public class HierarchyBrowser<T> {
 		}
 	}
 
+	/**
+	 * Selects the given number of best topics from the hierarchy.
+	 * @param level number of topics to select
+	 */
 	protected void adjustNodeIndicesByHierarchyLevel(int level) {
 		nodeIndices.clear();
 		List<MapNode<T>> res = topicSearcher.getBestTopics(level, root);
@@ -586,6 +634,12 @@ public class HierarchyBrowser<T> {
 		// collectByLevel(root, 1, level);
 	}
 
+	/**
+	 * Collects nodes at the target depth of the hierarchy.
+	 * @param node current node
+	 * @param level depth of the current node
+	 * @param targetLevel depth to collect
+	 */
 	protected void collectByLevel(MapNode<T> node, int level, int targetLevel) {
 		if (node == null) {
 			return;
@@ -598,6 +652,10 @@ public class HierarchyBrowser<T> {
 		}
 	}
 
+	/**
+	 * Selects the topics of the solution with the given number of topics.
+	 * @param topicId number of topics (node id) to reconstruct
+	 */
 	protected void adjustNodeIndicesByHistory(int topicId) {
 		nodeIndices.clear();
 		if (allNodes != null) {
@@ -614,6 +672,12 @@ public class HierarchyBrowser<T> {
 		}
 	}
 
+	/**
+	 * Marks the node and all its descendants in the bit set.
+	 * @param node current node
+	 * @param bitSet set receiving the marks
+	 * @param topicId offset subtracted from node ids
+	 */
 	protected void markDeps(MapNode<T> node, BitSet bitSet, int topicId) {
 		if (node == null || node.getId() < 1) {
 			return;
@@ -623,6 +687,10 @@ public class HierarchyBrowser<T> {
 		markDeps(node.getRightNode(), bitSet, topicId);
 	}
 
+	/**
+	 * Selects topics containing at least the given number of words.
+	 * @param minTopicSize minimum topic size
+	 */
 	protected void adjustNodeIndicesByTopicSize(int minTopicSize) {
 		nodeIndices.clear();
 		if (allNodes != null) {
@@ -635,6 +703,9 @@ public class HierarchyBrowser<T> {
 		}
 	}
 
+	/**
+	 * Selects all nodes.
+	 */
 	protected void adjustNodeIndicesByAll() {
 		nodeIndices.clear();
 		if (allNodes != null) {
@@ -644,6 +715,10 @@ public class HierarchyBrowser<T> {
 		}
 	}
 
+	/**
+	 * Creates a read-only tree model over the MapNode hierarchy.
+	 * @return the tree model
+	 */
 	protected TreeModel createTreeModel() {
 		return new TreeModel() {
 			@Override
@@ -697,6 +772,11 @@ public class HierarchyBrowser<T> {
 		};
 	}
 
+	/**
+	 * Returns the ratio of a node's delta likelihood to the average of the preceding window of nodes.
+	 * @param index index into allNodes
+	 * @return the ratio, 0 if too few predecessors
+	 */
 	protected double getLogDeltaChange(int index) {
 		if (index < logDeltaChangeWindow) {
 			return 0;
@@ -709,12 +789,23 @@ public class HierarchyBrowser<T> {
 		return allNodes.get(index).getDeltaLikelihood() / avg;
 	}
 
+	/**
+	 * Shows a file chooser.
+	 * @param parent parent frame
+	 * @return the selected file, or null
+	 */
 	protected File showOpenFileMenu(JFrame parent) {
 		JFileChooser fileChooser = new JFileChooser(".");
 		fileChooser.showDialog(parent, "Choose TG File...");
 		return fileChooser.getSelectedFile();
 	}
 
+	/**
+	 * Loads a serialized MapNode list from a file.
+	 * @param file the file
+	 * @return the node list
+	 * @throws RuntimeException if reading fails
+	 */
 	@SuppressWarnings("unchecked")
 	protected List<MapNode<T>> loadFile(File file) {
 		try {
@@ -732,27 +823,49 @@ public class HierarchyBrowser<T> {
 		}
 	}
 
+	/**
+	 * Table model listing the selected topics with their size, frequency and top words.
+	 */
 	protected class TGTableModel implements TableModel {
 		private int maxWords;
 		private boolean withFrequencies;
 		private List<WordInfo<T>> wordInfoBuffer = new ArrayList<WordInfo<T>>();
 
+		/**
+		 * Creates a model that shows frequencies.
+		 */
 		public TGTableModel() {
 			this.withFrequencies = true;
 		}
 
+		/**
+		 * Sets the number of word columns.
+		 * @param maxWords maximum words shown per topic
+		 */
 		public void setMaxWords(int maxWords) {
 			this.maxWords = maxWords;
 		}
 
+		/**
+		 * Returns the number of word columns.
+		 * @return maximum words shown per topic
+		 */
 		public int getMaxWords() {
 			return maxWords;
 		}
 
+		/**
+		 * Returns whether word frequencies are shown next to the words.
+		 * @return true if frequencies are shown
+		 */
 		public boolean isWithFrequencies() {
 			return withFrequencies;
 		}
 
+		/**
+		 * Sets whether word frequencies are shown.
+		 * @param withFrequencies true to show frequencies
+		 */
 		public void setWithFrequencies(boolean withFrequencies) {
 			this.withFrequencies = withFrequencies;
 		}
@@ -884,6 +997,10 @@ public class HierarchyBrowser<T> {
 		return new Color(r, alphaBase, b);
 	}
 
+	/**
+	 * Starts the browser.
+	 * @param args ignored
+	 */
 	public static void main(String[] args) {
 		try {
 			// Set System L&F

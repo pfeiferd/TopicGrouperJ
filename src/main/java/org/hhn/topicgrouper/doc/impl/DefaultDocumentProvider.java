@@ -8,28 +8,57 @@ import java.util.ArrayList;
 import org.hhn.topicgrouper.doc.Document;
 import org.hhn.topicgrouper.doc.DocumentProvider;
 
+/**
+ * A mutable {@link org.hhn.topicgrouper.doc.DocumentProvider}: documents and their
+ * words are added incrementally, the vocabulary grows accordingly.
+ */
 public class DefaultDocumentProvider<T> extends WordMapDocumentProvider<T> {
 
 	private static final long serialVersionUID = -6944447751973536193L;
 
+	/**
+	 * Creates a provider with an empty vocabulary.
+	 */
 	public DefaultDocumentProvider() {
 		this(new DefaultVocab<T>());
 	}
 	
+	/**
+	 * Creates an empty provider using the given vocabulary.
+	 *
+	 * @param vocab the vocabulary, may already contain words
+	 */
 	public DefaultDocumentProvider(DefaultVocab<T> vocab) {
 		super(vocab, new ArrayList<Document<T>>(), new TIntArrayList());
 	}
 
+	/**
+	 * Creates an empty document that is part of this provider.
+	 */
 	public DefaultDocument newDocument() {
 		DefaultDocument document = new DefaultDocument(entries.size());
 		entries.add(document);
 		return document;
 	}
 
+	/**
+	 * Copies a document without word filter.
+	 *
+	 * @param d the document to copy
+	 * @param minFrequency minimum global frequency of words, 0 = keep all
+	 * @return the new document or <code>null</code> if no words were left
+	 */
 	public DefaultDocument addDocument(Document<T> d, int minFrequency) {
 		return addDocument(d, minFrequency, null);
 	}
 
+	/**
+	 * Copies a document (words are mapped to this provider's vocabulary).
+	 *
+	 * @param minFrequency words with a lower global frequency in the source provider are dropped (0 = keep all)
+	 * @param filter optional word filter
+	 * @return the new document or <code>null</code> if no words were left (then nothing is added)
+	 */
 	public DefaultDocument addDocument(Document<T> d, int minFrequency,
 			DocumentWordFilter<T> filter) {
 		DefaultDocument r = newDocument();
@@ -43,6 +72,14 @@ public class DefaultDocumentProvider<T> extends WordMapDocumentProvider<T> {
 		}
 	}
 	
+	/**
+	 * Copies the words of a document that pass the frequency and filter criteria.
+	 *
+	 * @param d source document
+	 * @param r target document
+	 * @param minFrequency words with a lower global frequency in the source provider are skipped (0 = keep all)
+	 * @param filter optional word filter, may be <code>null</code>
+	 */
 	protected void copyWords(Document<T> d, DefaultDocument r, int minFrequency,
 			DocumentWordFilter<T> filter) {
 		TIntIterator it = d.getWordIndices().iterator();
@@ -58,10 +95,19 @@ public class DefaultDocumentProvider<T> extends WordMapDocumentProvider<T> {
 		}		
 	}
 
+	/**
+	 * Copies a document keeping all words.
+	 *
+	 * @param d the document to copy
+	 * @return the new document or <code>null</code> if it has no words
+	 */
 	public DefaultDocument addDocument(Document<T> d) {
 		return addDocument(d, 0);
 	}
 
+	/**
+	 * Removes the document and its word counts and renumbers the remaining documents.
+	 */
 	public void removeDocument(DefaultDocument d) {
 		if (entries.remove(d)) {
 			TIntIterator it = d.getWordIndices().iterator();
@@ -80,18 +126,37 @@ public class DefaultDocumentProvider<T> extends WordMapDocumentProvider<T> {
 		}
 	}
 
+	/**
+	 * A document that belongs to this provider and whose words can be added; it keeps the
+	 * provider's vocabulary and word frequencies up to date.
+	 */
 	public class DefaultDocument extends AbstractDocumentImpl<T> {
 		private static final long serialVersionUID = 6606498048898601551L;
 		private boolean removed = false;
 		
+		/**
+		 * @param index the index of the document in the provider
+		 */
 		public DefaultDocument(int index) {
 			super(index);
 		}
 
+		/**
+		 * Adds one occurrence of a word.
+		 *
+		 * @param word the word, added to the vocabulary if new
+		 */
 		public void addWord(T word) {
 			addWord(word, 1);
 		}
 
+		/**
+		 * Adds several occurrences of a word.
+		 *
+		 * @param word the word, added to the vocabulary if new
+		 * @param times the number of occurrences
+		 * @throws IllegalStateException if the document was removed from its provider
+		 */
 		public void addWord(T word, int times) {
 			if (removed) {
 				throw new IllegalStateException(
@@ -106,13 +171,25 @@ public class DefaultDocumentProvider<T> extends WordMapDocumentProvider<T> {
 			size += times;
 		}
 		
+		/**
+		 * @return the enclosing provider
+		 */
 		@Override
 		public DocumentProvider<T> getProvider() {
 			return DefaultDocumentProvider.this;
 		}
 	}
 
+	/**
+	 * Decides which words are copied when documents are added to a provider.
+	 *
+	 * @param <T> the word type
+	 */
 	public interface DocumentWordFilter<T> {
+		/**
+		 * @param word the word
+		 * @return <code>true</code> if the word should be kept
+		 */
 		public boolean acceptWord(T word);
 	}
 }

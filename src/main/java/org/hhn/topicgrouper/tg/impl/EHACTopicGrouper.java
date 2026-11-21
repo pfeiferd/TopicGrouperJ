@@ -3,6 +3,13 @@ package org.hhn.topicgrouper.tg.impl;
 import org.hhn.topicgrouper.doc.DocumentProvider;
 import org.hhn.topicgrouper.tg.TGSolutionListener;
 
+/**
+ * Topic Grouper with an efficient heap based agglomerative clustering: every
+ * topic keeps a priority queue of all join candidates. This is fast, but needs memory
+ * quadratic in the vocabulary size. See {@link LowMemTopicGrouper} for large vocabularies.
+ *
+ * @param <T> the type of the words
+ */
 public class EHACTopicGrouper<T> extends AbstractTopicGrouper<T> {
 	protected final MyPriorityQueue<JoinCandidate>[] allJcs;
 	protected final JoinCandidate[] jcSafe;
@@ -22,7 +29,7 @@ public class EHACTopicGrouper<T> extends AbstractTopicGrouper<T> {
 		int initCounter = 0;
 
 		for (int i = 0; i < maxTopics; i++) {
-			allJcs[i] = new MyPriorityQueue<JoinCandidate>(maxTopics - 1);
+			allJcs[i] = new MyPriorityQueue<JoinCandidate>(Math.max(1, maxTopics - 1));
 		}
 
 		for (int i = 0; i < maxTopics; i++) {

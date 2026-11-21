@@ -2,21 +2,49 @@ package org.hhn.topicgrouper.doc.impl;
 
 import org.hhn.topicgrouper.doc.DocumentProvider;
 
+/**
+ * Measures how well learned topic-word distributions match known true ones (e.g. of synthetic data).
+ * Since topics are unordered, all assignments of model topics to true topics are tried and the best one is used
+ * (factorial running time in the number of topics).
+ *
+ * @param <T> the word type
+ */
 public class TrueTopicAccuracyCalculator<T> {
+	/**
+	 * How the difference between model and true word probabilities is measured.
+	 */
 	public enum MeasuringMethod {
+		/**
+		 * MIN: overlap (sum of minima), ABS: absolute difference, SQUARE: squared difference.
+		 */
 		MIN, ABS, SQUARE
 	}
 
 	private MeasuringMethod measuringMethod = MeasuringMethod.ABS;
 
+	/**
+	 * @param measuringMethod the method used by subsequent computations (default ABS)
+	 */
 	public void setMeasuringMethod(MeasuringMethod measuringMethod) {
 		this.measuringMethod = measuringMethod;
 	}
 
+	/**
+	 * @return the current measuring method
+	 */
 	public MeasuringMethod getMeasuringMethod() {
 		return measuringMethod;
 	}
 
+	/**
+	 * Computes the accuracy after checking that the model's distributions are valid.
+	 *
+	 * @param documentProvider provides the vocabulary
+	 * @param topics number of topics
+	 * @param provider access to the model and true word probabilities
+	 * @return the accuracy of the best topic assignment, 1 meaning identical
+	 * @throws IllegalArgumentException if the model probabilities are inconsistent
+	 */
 	public double computeAccuracy(DocumentProvider<T> documentProvider,
 			int topics, PwtProvider<T> provider) {
 		// Just a check to ensure we work on useful stuff:
@@ -25,12 +53,25 @@ public class TrueTopicAccuracyCalculator<T> {
 		return computeAccuracyPure(documentProvider, topics, provider);
 	}
 
+	/**
+	 * Computes the accuracy without checking the model.
+	 *
+	 * @param documentProvider provides the vocabulary
+	 * @param topics number of topics
+	 * @param provider access to the model and true word probabilities
+	 * @return the accuracy of the best topic assignment
+	 */
 	public double computeAccuracyPure(DocumentProvider<T> documentProvider,
 			int topics, PwtProvider<T> provider) {
 		return computeMaxAccuracyCount(0, documentProvider, new int[topics],
 				provider);
 	}
 
+	/**
+	 * Checks that all probabilities are in [0, 1] and that each model topic sums to 1.
+	 *
+	 * @throws IllegalArgumentException if the model is inconsistent
+	 */
 	protected void assertModelSanity(DocumentProvider<T> documentProvider,
 			int topics, PwtProvider<T> provider) {
 		for (int i = 0; i < topics; i++) {
@@ -58,6 +99,15 @@ public class TrueTopicAccuracyCalculator<T> {
 		}
 	}
 
+	/**
+	 * Recursively enumerates all permutations of topics and returns the best accuracy.
+	 *
+	 * @param pos the position in the permutation to fill next
+	 * @param documentProvider provides the vocabulary
+	 * @param perm the permutation under construction (model topic to true topic)
+	 * @param provider access to the model and true word probabilities
+	 * @return the best accuracy over all completions
+	 */
 	protected double computeMaxAccuracyCount(int pos,
 			DocumentProvider<T> documentProvider, int[] perm,
 			PwtProvider<T> provider) {
@@ -84,6 +134,14 @@ public class TrueTopicAccuracyCalculator<T> {
 		return best;
 	}
 
+	/**
+	 * Computes the accuracy for a fixed assignment of model topics to true topics.
+	 *
+	 * @param documentProvider provides the vocabulary
+	 * @param topicAssignments model topic i is compared to true topic <code>topicAssignments[i]</code>
+	 * @param provider access to the model and true word probabilities
+	 * @return the accuracy (for ABS and SQUARE one minus the normalized difference, for MIN the normalized overlap)
+	 */
 	protected double computeAccuracyCountHelp(
 			DocumentProvider<T> documentProvider, int[] topicAssignments,
 			PwtProvider<T> provider) {
@@ -116,9 +174,24 @@ public class TrueTopicAccuracyCalculator<T> {
 		return MeasuringMethod.MIN.equals(measuringMethod) ? res : 1 - res;
 	}
 
+	/**
+	 * Supplies model and true word probabilities per topic.
+	 *
+	 * @param <T> the word type
+	 */
 	public interface PwtProvider<T> {
+		/**
+		 * @param topic the model topic
+		 * @param wordIndex the word index in the vocabulary
+		 * @return P(word | topic) according to the learned model
+		 */
 		public double getPwtFromModel(int topic, int wordIndex);
 
+		/**
+		 * @param topic the true topic
+		 * @param word the word
+		 * @return the true P(word | topic)
+		 */
 		public double getCorrectPwt(int topic, T word);
 	}
 }

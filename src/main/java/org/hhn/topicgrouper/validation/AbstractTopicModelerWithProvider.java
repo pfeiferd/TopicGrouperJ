@@ -5,16 +5,33 @@ import java.util.Random;
 
 import org.hhn.topicgrouper.doc.DocumentProvider;
 
+/**
+ * Topic modeler that is trained on the documents of a {@link DocumentProvider}
+ * and holds a random number generator.
+ *
+ * @param <T> the type of the words
+ */
 public abstract class AbstractTopicModelerWithProvider<T> extends AbstractTopicModeler<T> implements Serializable {
 	private static final long serialVersionUID = 4277347140213560841L;
 
+	/**
+	 * Source of randomness.
+	 */
 	protected Random random;
+	/**
+	 * The training documents.
+	 */
 	protected DocumentProvider<T> provider;
 
 	protected AbstractTopicModelerWithProvider() {
 		//no-args -> serialization constructor
 	}
 
+	/**
+	 * @param random source of randomness
+	 * @param provider the training documents; its vocabulary is used
+	 * @param nTopics the number of topics
+	 */
 	public AbstractTopicModelerWithProvider(Random random, DocumentProvider<T> provider, int nTopics) {
 		super(provider.getVocab(), nTopics);
 		this.random = random;

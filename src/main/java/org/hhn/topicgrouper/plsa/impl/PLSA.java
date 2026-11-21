@@ -10,6 +10,11 @@ import org.hhn.topicgrouper.doc.Document;
 import org.hhn.topicgrouper.doc.DocumentProvider;
 import org.hhn.topicgrouper.validation.AbstractTopicModelerWithProvider;
 
+/**
+ * Probabilistic latent semantic analysis trained with the EM algorithm.
+ *
+ * @param <T> the type of the words
+ */
 public class PLSA<T> extends AbstractTopicModelerWithProvider<T> {
 	private final List<Document<T>> docs;
 	private final int docSize;
@@ -24,6 +29,12 @@ public class PLSA<T> extends AbstractTopicModelerWithProvider<T> {
 
 	private double alphaConc;
 
+	/**
+	 * @param random source of randomness
+	 * @param provider the training documents
+	 * @param nTopics the number of topics
+	 * @param alphaConc concentration used to derive alpha from the topic probabilities
+	 */
 	public PLSA(Random random, DocumentProvider<T> provider, int nTopics,
 			double alphaConc) {
 		super(random, provider, nTopics);
@@ -36,11 +47,17 @@ public class PLSA<T> extends AbstractTopicModelerWithProvider<T> {
 		docTermTopicPros = new double[docSize][nWords][nTopics];
 	}
 
+	/**
+	 * @param alphaConc the concentration used to derive alpha
+	 */
 	@Override
 	public void setAlphaConc(double alphaConc) {
 		this.alphaConc = alphaConc;
 	}
 
+	/**
+	 * Runs the given number of EM iterations.
+	 */
 	public void train(int maxIter) {
 		// init docTermMatrix
 		for (int docIndex = 0; docIndex < docSize; docIndex++) {
@@ -71,6 +88,9 @@ public class PLSA<T> extends AbstractTopicModelerWithProvider<T> {
 		System.out.println("done");
 	}
 
+	/**
+	 * Computes the topic probabilities from the final posteriors p(z|d,w) weighted by word counts.
+	 */
 	protected void computeTopicProbabilities() {
 		int R = provider.getSize();
 		for (int i = 0; i < nTopics; i++) {
@@ -84,11 +104,18 @@ public class PLSA<T> extends AbstractTopicModelerWithProvider<T> {
 		}
 	}
 
+	/**
+	 * @return the concentration used to derive alpha
+	 */
 	@Override
 	public double getAlphaConc() {
 		return alphaConc;
 	}
 
+	/**
+	 * @param i the topic
+	 * @return the topic probability times the concentration
+	 */
 	@Override
 	public double getAlpha(int i) {
 		return topicProb[i] * alphaConc;
@@ -196,6 +223,12 @@ public class PLSA<T> extends AbstractTopicModelerWithProvider<T> {
 		}
 	}
 
+	/**
+	 * Fills the array with random probabilities that sum to one (all entries positive).
+	 *
+	 * @param pros the array to fill
+	 * @return the same array
+	 */
 	public double[] randomProbabilities(double[] pros) {
 		int total = 0;
 		for (int i = 0; i < pros.length; i++) {
@@ -213,6 +246,9 @@ public class PLSA<T> extends AbstractTopicModelerWithProvider<T> {
 		return pros;
 	}
 
+	/**
+	 * @return p(z|d) as an array indexed by document and topic
+	 */
 	public double[][] getDocTopics() {
 		return docTopicPros;
 	}
@@ -222,6 +258,10 @@ public class PLSA<T> extends AbstractTopicModelerWithProvider<T> {
 	 */
 	private final static double MAGICNUM = 0.0000000000000001;
 
+	/**
+	 * @param num a number
+	 * @return num, or a tiny positive constant if num is zero
+	 */
 	public double avoidZero(double num) {
 		if (num == 0.0) {
 			return MAGICNUM;

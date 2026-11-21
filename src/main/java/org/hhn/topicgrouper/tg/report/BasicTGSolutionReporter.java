@@ -23,21 +23,54 @@ import org.hhn.topicgrouper.tg.TGSolution;
 import org.hhn.topicgrouper.tg.TGSolutionListener;
 import org.hhn.topicgrouper.tg.validation.TGPerplexityCalculator;
 
+/**
+ * Solution listener that prints progress and topic details to a stream and plots improvement, its derived ratio or test perplexity in a live Chart2D window.
+ * @param <T> the word type
+ */
 public class BasicTGSolutionReporter<T> implements TGSolutionListener<T> {
+	/**
+	 * Chart trace receiving one point per solution update.
+	 */
 	private final ITrace2D trace;
+	/**
+	 * Stream to which the report is written.
+	 */
 	private final PrintStream pw;
+	/**
+	 * Topic count at or below which full topic details are printed.
+	 */
 	private final int reportDetailsAtTopicSize;
 	private final TGPerplexityCalculator<T> perplexityCalculator;
 	private DocumentProvider<T> testDocumentProvider;
+	/**
+	 * Whether the improvement ratio (instead of the raw improvement) is plotted.
+	 */
 	private final boolean derive;
+	/**
+	 * Whether every update is reported in detail.
+	 */
 	private final boolean verbose;
 	private final ImprovementAssessor assessor;
 
+	/**
+	 * Creates a verbose reporter using the bag-of-words factor.
+	 * @param pw stream to report to
+	 * @param reportDetailsAtTopicSize report topic details once the number of topics is at most this value
+	 * @param derive plot the smoothed improvement ratio instead of the raw improvement
+	 */
 	public BasicTGSolutionReporter(PrintStream pw, int reportDetailsAtTopicSize,
 			boolean derive) {
 		this(pw, reportDetailsAtTopicSize, derive, true, true);
 	}
 
+	/**
+	 * Creates a reporter and opens the chart window.
+	 * @param pw stream to report to
+	 * @param reportDetailsAtTopicSize report topic details once the number of topics is at most this value
+	 * @param derive plot the smoothed improvement ratio instead of the raw improvement
+	 * @param verbose print every update in detail
+	 * @param bowFactor whether the perplexity calculator applies the bag-of-words factor
+	 */
 	public BasicTGSolutionReporter(PrintStream pw, int reportDetailsAtTopicSize,
 			boolean derive, boolean verbose, boolean bowFactor) {
 		this.pw = pw;
@@ -82,6 +115,10 @@ public class BasicTGSolutionReporter<T> implements TGSolutionListener<T> {
 		frame.setVisible(true);
 	}
 
+	/**
+	 * Sets the held-out documents used to plot perplexity instead of improvement.
+	 * @param documentProvider test documents, or null to disable perplexity
+	 */
 	public void setTestDocumentProvider(DocumentProvider<T> documentProvider) {
 		this.testDocumentProvider = documentProvider;
 	}
@@ -210,6 +247,12 @@ public class BasicTGSolutionReporter<T> implements TGSolutionListener<T> {
 		pw.println("]");
 	}
 
+	/**
+	 * Prints the words of a topic with their global frequencies, most frequent first.
+	 * @param solution solution providing the vocabulary and frequencies
+	 * @param topic word ids of the topic
+	 * @param pw stream to print to
+	 */
 	public static <T> void printTopicDetails(TGSolution<T> solution,
 			TIntCollection topic, PrintStream pw) {
 		TopicInfo<T>[] tuples = new TopicInfo[topic.size()];

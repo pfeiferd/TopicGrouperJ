@@ -8,11 +8,28 @@ import java.util.Random;
 
 import org.hhn.topicgrouper.doc.Document;
 
+/**
+ * Left-to-right sampler with independent particles, each keeping its own topic assignments
+ * (Wallach et al., "Evaluation Methods for Topic Models", 2009, Algorithm 3).
+ *
+ * @param <T> the type of the words
+ */
 public abstract class LeftToRightParticleSampler<T> extends LeftToRightSamplerBase<T> {
 	// For "left to right" with particles.
+	/**
+	 * Topic assignments of the words processed so far, per particle.
+	 */
 	protected final TIntList[] z;
+	/**
+	 * Topic counts per particle.
+	 */
 	protected final int[][] lrTopicAssignmentCounts;
 
+	/**
+	 * @param random source of randomness
+	 * @param particles number of particles
+	 * @param ntopics the number of topics
+	 */
 	public LeftToRightParticleSampler(Random random, int particles, int ntopics) {
 		super(random, particles, ntopics);
 		lrTopicAssignmentCounts = new int[particles][ntopics];
@@ -23,11 +40,20 @@ public abstract class LeftToRightParticleSampler<T> extends LeftToRightSamplerBa
 		}
 	}
 
+	/**
+	 * Estimates the log probability of a document.
+	 *
+	 * @param d the document
+	 * @return the estimated log probability
+	 */
 	public double leftToRight(Document<T> d) {
 		initFields();
 		return leftToRightHelp(d);
 	}
 
+	/**
+	 * Resets the word list and the assignments of all particles.
+	 */
 	protected void initFields() {
 		super.initFields();
 		for (int i = 0; i < z.length; i++) {
@@ -74,6 +100,12 @@ public abstract class LeftToRightParticleSampler<T> extends LeftToRightSamplerBa
 		return pn / z.length;
 	}
 
+	/**
+	 * Draws an index from the unnormalized discrete distribution.
+	 *
+	 * @param probs unnormalized probabilities
+	 * @return the drawn index
+	 */
 	protected int nextDiscrete(double[] probs) {
 		double sum = 0.0;
 		for (int i = 0; i < probs.length; i++) {
@@ -91,9 +123,21 @@ public abstract class LeftToRightParticleSampler<T> extends LeftToRightSamplerBa
 		return probs.length - 1;
 	}
 
+	/**
+	 * @param t the topic
+	 * @return the Dirichlet prior parameter alpha of the topic
+	 */
 	protected abstract double getAlpha(int t);
 
+	/**
+	 * @return the sum of all alpha values
+	 */
 	protected abstract double getAlphaSum();
 
+	/**
+	 * @param t the topic
+	 * @param wordIndex the word
+	 * @return the probability of the word in the topic
+	 */
 	protected abstract double getPhi(int t, int wordIndex);
 }

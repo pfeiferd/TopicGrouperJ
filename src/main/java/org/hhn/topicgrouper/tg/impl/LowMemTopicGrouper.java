@@ -1,7 +1,6 @@
 package org.hhn.topicgrouper.tg.impl;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.PriorityQueue;
@@ -10,6 +9,12 @@ import org.hhn.topicgrouper.doc.DocumentProvider;
 import org.hhn.topicgrouper.tg.TGSolution;
 import org.hhn.topicgrouper.tg.TGSolutionListener;
 
+/**
+ * Topic Grouper that only stores the best join partner per topic (memory linear in
+ * the vocabulary size). Outdated candidates are recomputed lazily.
+ *
+ * @param <T> the type of the words
+ */
 public class LowMemTopicGrouper<T> extends AbstractTopicGrouper<T> {
 	protected final PriorityQueue<MyJoinCandidate> allJcs;
 	private final Collection<MyJoinCandidate> addLaterCache;
@@ -21,12 +26,15 @@ public class LowMemTopicGrouper<T> extends AbstractTopicGrouper<T> {
 
 	public LowMemTopicGrouper(int minWordFrequency, DocumentProvider<T> documentProvider, int minTopics) {
 		super(minWordFrequency, documentProvider, minTopics);
-		allJcs = new PriorityQueue<MyJoinCandidate>(maxTopics);
+		allJcs = new PriorityQueue<MyJoinCandidate>(Math.max(1, maxTopics));
 		addLaterCache = new ArrayList<MyJoinCandidate>();
 
 		this.deferJCUpdates = true;
 	}
 
+	/**
+	 * Whether outdated join candidates are recomputed only when they reach the top of the queue (default: true).
+	 */
 	public void setDeferJCUpdates(boolean deferJCUpdates) {
 		this.deferJCUpdates = deferJCUpdates;
 	}
@@ -73,7 +81,12 @@ public class LowMemTopicGrouper<T> extends AbstractTopicGrouper<T> {
 				}
 			}
 		}
-		allJcs.addAll(Arrays.asList(joinCandidates));
+		// Entries stay null if there are less than two topics.
+		for (MyJoinCandidate jc : joinCandidates) {
+			if (jc != null) {
+				allJcs.add(jc);
+			}
+		}
 	}
 
 	protected void groupTopics(TGSolutionListener<T> solutionListener) {
@@ -179,6 +192,9 @@ public class LowMemTopicGrouper<T> extends AbstractTopicGrouper<T> {
 		return allJcs.poll();
 	}
 
+	/**
+	 * The number of join candidate recomputations during the last run.
+	 */
 	public int getJCUpdates() {
 		return jcUpdates;
 	}
@@ -205,6 +221,9 @@ public class LowMemTopicGrouper<T> extends AbstractTopicGrouper<T> {
 		jc.init(bestJ, bestLikelihood, bestImprovement);
 	}
 
+	/**
+	 * A join candidate that also knows its own topic <code>i</code>; <code>j == -1</code> marks an outdated candidate.
+	 */
 	protected static class MyJoinCandidate extends JoinCandidate {
 		public int i;
 

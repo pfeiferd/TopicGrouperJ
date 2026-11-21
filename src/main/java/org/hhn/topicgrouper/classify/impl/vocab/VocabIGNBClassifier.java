@@ -11,10 +11,28 @@ import org.hhn.topicgrouper.doc.DocumentProvider.Vocab;
 import org.hhn.topicgrouper.doc.LabeledDocument;
 import org.hhn.topicgrouper.doc.LabelingDocumentProvider;
 
+/**
+ * Naive Bayes classifier that uses single words as "topics": only the best words
+ * are kept as features, ranked by a score where smaller is better (here the conditional
+ * entropy of the label given the presence of the word, i.e. information gain).
+ *
+ * @param <T> the word type of the documents
+ * @param <L> the label type
+ */
 public class VocabIGNBClassifier<T, L> extends
 		AbstractTopicBasedNBClassifier<T, L> {
+	/**
+	 * The indices of the selected words.
+	 */
 	protected final int[] topicIds;
 
+	/**
+	 * Creates the classifier and selects the features.
+	 *
+	 * @param lambda smoothing weight, see {@link AbstractTopicBasedNBClassifier}
+	 * @param documentProvider labeled documents used to rank the words
+	 * @param keepWords maximum number of words to keep
+	 */
 	public VocabIGNBClassifier(double lambda,
 			LabelingDocumentProvider<T, L> documentProvider, int keepWords) {
 		super(lambda);
@@ -24,6 +42,13 @@ public class VocabIGNBClassifier<T, L> extends
 //		}
 	}
 
+	/**
+	 * Selects the words with the smallest score.
+	 *
+	 * @param documentProvider labeled documents used for scoring
+	 * @param maxBest maximum number of words to select
+	 * @return word indices ordered by increasing score (entries are -1 if fewer words were available)
+	 */
 	protected int[] getBestWords(
 			LabelingDocumentProvider<T, L> documentProvider, int maxBest) {
 		Vocab<T> vocab = documentProvider.getVocab();
@@ -58,6 +83,16 @@ public class VocabIGNBClassifier<T, L> extends
 	}
 
 	// The smaller the better...
+	/**
+	 * Scores a word by the weighted entropy of the label distribution over documents
+	 * containing and not containing the word (Laplace smoothed). Smaller is better.
+	 *
+	 * @param wordIndex the word
+	 * @param documentProvider the labeled documents
+	 * @param posMap scratch map (label to document count), cleared and reused by this method
+	 * @param negMap scratch map (label to document count), cleared and reused by this method
+	 * @return the score
+	 */
 	protected double computeScore(int wordIndex,
 			LabelingDocumentProvider<T, L> documentProvider,
 			TObjectIntMap<L> posMap, TObjectIntMap<L> negMap) {
@@ -99,11 +134,18 @@ public class VocabIGNBClassifier<T, L> extends
 		return -(sumPos * wPosCount / docs) - (sumNeg * wNegCount / docs);
 	}
 
+	/**
+	 * @return the indices of the selected words
+	 */
 	@Override
 	protected int[] getTopicIndices() {
 		return topicIds;
 	}
 
+	/**
+	 * @param wordIndex the word index
+	 * @return the word index itself if the word was selected, otherwise <code>Integer.MIN_VALUE</code>
+	 */
 	@Override
 	protected int getTopicIndex(int wordIndex) {
 		return topicIndicesBack.containsKey(wordIndex) ? wordIndex : Integer.MIN_VALUE;

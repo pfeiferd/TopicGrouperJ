@@ -6,16 +6,38 @@ import org.hhn.topicgrouper.lda.impl.LDAGibbsSampler;
 import org.hhn.topicgrouper.validation.BasicPerplexityCalculator;
 import org.hhn.topicgrouper.validation.AbstractTopicModeler;
 
+/**
+ * Perplexity calculator that estimates the topic distribution of the reference document by
+ * Gibbs-sampling fold-in with the trained LDA sampler (Wallach et al., "Evaluation Methods for
+ * Topic Models", 2009, equations 7 and 27).
+ *
+ * @param <T> the type of the words
+ */
 public class PerplexityCalculatorEstimatedTheta<T> extends
 		BasicPerplexityCalculator<T> {
+	/**
+	 * Number of fold-in iterations per document.
+	 */
 	protected final int foldInIterations;
 	private LDAGibbsSampler<T>.FoldInStore foldInStore;
 
+	/**
+	 * Uses 100 samples and no document splitter.
+	 *
+	 * @param bowFactor whether to include the bag-of-words factor
+	 * @param foldInIterations number of fold-in iterations
+	 */
 	public PerplexityCalculatorEstimatedTheta(boolean bowFactor,
 			int foldInIterations) {
 		this(bowFactor, null, foldInIterations, 100);
 	}
 
+	/**
+	 * @param bowFactor whether to include the bag-of-words factor
+	 * @param documentSplitter splits test documents into reference and test part
+	 * @param foldInIterations number of fold-in iterations
+	 * @param samplingMax number of samples of p(t|d)
+	 */
 	public PerplexityCalculatorEstimatedTheta(boolean bowFactor,
 			DocumentSplitter<T> documentSplitter, int foldInIterations, int samplingMax) {
 		super(bowFactor, documentSplitter, samplingMax);

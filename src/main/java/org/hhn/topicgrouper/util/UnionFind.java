@@ -1,9 +1,16 @@
 package org.hhn.topicgrouper.util;
 
+/**
+ * Union-find (disjoint set) structure over the integers 0 to N-1.
+ * After <code>union(p, q)</code> the representative of the joint set is the one of <code>q</code>.
+ */
 public class UnionFind {
     private int[] parent;  // parent[i] = parent of i
     private int count;     // number of components
 
+    /**
+     * @param N the number of elements, each initially in its own set.
+     */
     public UnionFind(int N) {
         parent = new int[N];
         count = N;
@@ -12,10 +19,17 @@ public class UnionFind {
         }
     }
 
+    /**
+     * The current number of disjoint sets.
+     */
     public int count() {
         return count;
     }
   
+    /**
+     * @return the representative of the set containing p.
+     * @throws IndexOutOfBoundsException if p is not in 0 .. N-1
+     */
     public int find(int p) {
         validate(p);
         while (p != parent[p])
@@ -31,9 +45,15 @@ public class UnionFind {
         }
     }
     
+    /**
+     * Whether p and q are in the same set.
+     */
     public boolean connected(int p, int q) {
         return find(p) == find(q);
     }
+    /**
+     * Merges the sets containing p and q.
+     */
     public void union(int p, int q) {
         int rootP = find(p);
         int rootQ = find(q);

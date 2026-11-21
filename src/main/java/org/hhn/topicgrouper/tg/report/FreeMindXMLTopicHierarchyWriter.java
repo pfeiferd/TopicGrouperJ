@@ -7,23 +7,51 @@ import java.io.PrintStream;
 import org.hhn.topicgrouper.tg.report.store.MapNode;
 import org.hhn.topicgrouper.tg.report.store.WordInfo;
 
+/**
+ * Writes a topic hierarchy of MapNodes as a FreeMind mind map (XML).
+ * @param <T> the word type
+ */
 public class FreeMindXMLTopicHierarchyWriter<T> {
+	/**
+	 * Whether node backgrounds are colored by word frequency.
+	 */
 	private final boolean withFrColor;
+	/**
+	 * Base value of the color channels used for node backgrounds.
+	 */
 	private final int alphaBase;
 
+	/**
+	 * Creates a writer with frequency coloring and the default color base (180).
+	 */
 	public FreeMindXMLTopicHierarchyWriter() {
 		this(true);
 	}
 
+	/**
+	 * Creates a writer with the default color base (180).
+	 * @param withFrColor color nodes by frequency
+	 */
 	public FreeMindXMLTopicHierarchyWriter(boolean withFrColor) {
 		this(withFrColor, 180);
 	}
 
+	/**
+	 * Creates a writer.
+	 * @param withFrColor color nodes by frequency
+	 * @param alphaBase base value of the color channels
+	 */
 	public FreeMindXMLTopicHierarchyWriter(boolean withFrColor, int alphaBase) {
 		this.withFrColor = withFrColor;
 		this.alphaBase = alphaBase;
 	}
 
+	/**
+	 * Writes the given root nodes as a complete FreeMind map.
+	 * @param xmlFile stream to write to
+	 * @param nodes MapNode objects to write as top-level branches
+	 * @throws IOException on write failure
+	 */
 	public void writeToFile(OutputStream xmlFile, Object[] nodes) throws IOException {
 		PrintStream pw = new PrintStream(xmlFile);
 		pw.println("<map version=\"1.0.1\">");
@@ -42,6 +70,12 @@ public class FreeMindXMLTopicHierarchyWriter<T> {
 		pw.println("</map>");
 	}
 
+	/**
+	 * Recursively writes a node, its children and a likelihood note as FreeMind XML; nodes without top words are skipped.
+	 * @param pw stream to write to
+	 * @param node node to write
+	 * @param avgMaxFrequency average top-word frequency used to scale the node color
+	 */
 	public void writeNode(PrintStream pw, MapNode<T> node,
 			double avgMaxFrequency) {
 		if (node.getTopTopicWordInfos().isEmpty()) {

@@ -8,17 +8,30 @@ import org.hhn.topicgrouper.tg.TGSolution;
 import org.hhn.topicgrouper.tg.TGSolutionListener;
 import org.hhn.topicgrouper.tg.validation.TGPerplexityCalculator;
 
+/**
+ * Solution listener that writes one semicolon-separated line per solution update (number of topics, optional perplexity, improvement, log likelihood).
+ * @param <T> the word type
+ */
 public class CSVSolutionReporter<T> implements TGSolutionListener<T> {
 	private final PrintStream pw;
 	private final TGPerplexityCalculator<T> perplexityCalculator;
 	private DocumentProvider<T> testDocumentProvider;
 
+	/**
+	 * Creates a CSV reporter.
+	 * @param pw stream to write to
+	 * @param bowFactor whether the perplexity calculator applies the bag-of-words factor
+	 */
 	public CSVSolutionReporter(PrintStream pw, boolean bowFactor) {
 		this.pw = pw;
 		this.perplexityCalculator = new TGPerplexityCalculator<T>(bowFactor,
 				new DefaultDocumentSplitter<T>(), 1);
 	}
 
+	/**
+	 * Sets the held-out documents used to compute a perplexity column.
+	 * @param documentProvider test documents, or null to omit perplexity
+	 */
 	public void setTestDocumentProvider(DocumentProvider<T> documentProvider) {
 		this.testDocumentProvider = documentProvider;
 	}

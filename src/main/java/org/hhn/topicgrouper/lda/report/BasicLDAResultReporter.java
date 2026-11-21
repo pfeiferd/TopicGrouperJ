@@ -7,11 +7,26 @@ import org.hhn.topicgrouper.lda.impl.LDAGibbsSampler;
 import org.hhn.topicgrouper.lda.impl.LDASolutionListener;
 import org.hhn.topicgrouper.validation.AbstractTopicModeler;
 
+/**
+ * Listener that prints progress, the run time and the top words of each topic.
+ *
+ * @param <T> the type of the words
+ */
 public class BasicLDAResultReporter<T> implements LDASolutionListener<T> {
+	/**
+	 * Where the report goes.
+	 */
 	protected final PrintStream pw;
+	/**
+	 * Number of words printed per topic.
+	 */
 	protected final int topWords;
 	private long startTime;
 
+	/**
+	 * @param pw where to print
+	 * @param topWords number of words printed per topic
+	 */
 	public BasicLDAResultReporter(PrintStream pw, int topWords) {
 		this.pw = pw;
 		this.topWords = topWords;
@@ -49,6 +64,13 @@ public class BasicLDAResultReporter<T> implements LDASolutionListener<T> {
 	}
 	
 	
+	/**
+	 * Prints the topics in descending order of probability, each with its most probable words.
+	 *
+	 * @param pw where to print
+	 * @param sampler the model
+	 * @param topWords number of words printed per topic
+	 */
 	public static <T> void printTopics(PrintStream pw, AbstractTopicModeler<T> sampler, int topWords) {
 		ValueAndIndex[] vi = new ValueAndIndex[sampler.getNTopics()];
 		for (int i = 0; i < vi.length; i++) {

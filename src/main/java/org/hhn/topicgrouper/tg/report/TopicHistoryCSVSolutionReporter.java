@@ -7,10 +7,25 @@ import java.io.PrintStream;
 import org.hhn.topicgrouper.tg.TGSolution;
 import org.hhn.topicgrouper.tg.TGSolutionListener;
 
+/**
+ * Solution listener that writes a CSV line for each newly merged topic, including its size, frequency, likelihood data and words.
+ * @param <T> the word type
+ */
 public class TopicHistoryCSVSolutionReporter<T> implements TGSolutionListener<T> {
+	/**
+	 * Stream to write to.
+	 */
 	private final PrintStream pw;
+	/**
+	 * Minimum size of a merged topic for it to be reported.
+	 */
 	private final int reportDetailsAtTopicSize;
 
+	/**
+	 * Creates a reporter.
+	 * @param pw stream to write to
+	 * @param reportDetailsAtTopicSize only topics with at least this many words are reported
+	 */
 	public TopicHistoryCSVSolutionReporter(PrintStream pw,
 			int reportDetailsAtTopicSize) {
 		this.pw = pw;

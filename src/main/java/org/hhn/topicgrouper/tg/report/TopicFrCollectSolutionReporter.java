@@ -8,12 +8,26 @@ import java.util.Arrays;
 import org.hhn.topicgrouper.tg.TGSolution;
 import org.hhn.topicgrouper.tg.TGSolutionListener;
 
+/**
+ * Solution listener that collects, for every number of topics, the sorted topic frequencies.
+ * @param <T> the word type
+ */
 public class TopicFrCollectSolutionReporter<T> implements TGSolutionListener<T> {
+	/**
+	 * Sorted topic frequencies indexed by number of topics minus one.
+	 */
 	private int[][] frequenciesPerNTopics;
 
+	/**
+	 * Creates a collecting reporter.
+	 */
 	public TopicFrCollectSolutionReporter() {
 	}
 
+	/**
+	 * Returns the collected frequencies; entry i holds the ascending topic frequencies of the solution with i+1 topics.
+	 * @return frequency arrays, null entries for unseen topic counts
+	 */
 	public int[][] getFrequenciesPerNTopics() {
 		return frequenciesPerNTopics;
 	}

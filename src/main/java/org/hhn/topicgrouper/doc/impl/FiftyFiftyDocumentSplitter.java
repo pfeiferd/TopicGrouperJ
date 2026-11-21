@@ -8,6 +8,12 @@ import org.hhn.topicgrouper.doc.Document;
 import org.hhn.topicgrouper.doc.DocumentProvider;
 import org.hhn.topicgrouper.doc.DocumentSplitter;
 
+/**
+ * Splits a document randomly into two halves of (almost) equal size, A and B, and yields two splits:
+ * A as reference with B as test, and B as reference with A as test.
+ *
+ * @param <T> the word type
+ */
 public class FiftyFiftyDocumentSplitter<T> implements DocumentSplitter<T> {
 	private final Random random;
 	private final Split<T> splitA;
@@ -18,6 +24,11 @@ public class FiftyFiftyDocumentSplitter<T> implements DocumentSplitter<T> {
 	private int splitCount;
 	private int counter;
 
+	/**
+	 * Creates the splitter.
+	 *
+	 * @param random source of randomness for the assignment of word occurrences
+	 */
 	public FiftyFiftyDocumentSplitter(Random random) {
 		this.random = random;
 		splitA = new Split<T>() {
@@ -44,6 +55,9 @@ public class FiftyFiftyDocumentSplitter<T> implements DocumentSplitter<T> {
 		};
 	}
 
+	/**
+	 * Randomly distributes the word occurrences of the document to two halves and restarts the iteration.
+	 */
 	@Override
 	public void setDocument(Document<T> d) {
 		counter++;
@@ -73,16 +87,25 @@ public class FiftyFiftyDocumentSplitter<T> implements DocumentSplitter<T> {
 		}
 	}
 
+	/**
+	 * @return the current (unsplit) document
+	 */
 	@Override
 	public Document<T> getDocument() {
 		return d;
 	}
 
+	/**
+	 * @return 2
+	 */
 	@Override
 	public int getSplits() {
 		return 2;
 	}
 
+	/**
+	 * @return the two splits in turn, then <code>null</code>
+	 */
 	@Override
 	public Split<T> nextSplit() {
 		if (splitCount == 0) {
@@ -95,9 +118,15 @@ public class FiftyFiftyDocumentSplitter<T> implements DocumentSplitter<T> {
 		return null;
 	}
 
+	/**
+	 * One half of the split document.
+	 */
 	protected class SplitDocument extends AbstractDocumentImpl<T> {
 		private static final long serialVersionUID = 6914217677401557723L;
 
+		/**
+		 * @param index the index of the original document
+		 */
 		public SplitDocument(int index) {
 			super(index);
 		}

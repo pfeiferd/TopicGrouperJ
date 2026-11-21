@@ -6,8 +6,18 @@ import java.util.List;
 import org.hhn.topicgrouper.doc.Document;
 import org.hhn.topicgrouper.doc.DocumentProvider;
 
+/**
+ * Prints basic corpus statistics.
+ */
 public class StatsReport {
 
+	/**
+	 * Prints the number of documents and words and the mean and standard deviation of document size,
+	 * different words per document, word frequency and document frequency.
+	 *
+	 * @param entryProvider the corpus
+	 * @param out where to print
+	 */
 	public static <T> void report(DocumentProvider<T> entryProvider, PrintStream out) {
 		List<Document<T>> docs = entryProvider.getDocuments();
 		out.println("Number of Docs: " + docs.size());
