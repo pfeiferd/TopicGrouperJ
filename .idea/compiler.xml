@@ -6,7 +6,8 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="topic-grouper" />
+        <module name="topic-grouper-api" />
+        <module name="topic-grouper-eval" />
       </profile>
     </annotationProcessing>
   </component>

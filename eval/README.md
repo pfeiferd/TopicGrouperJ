@@ -1,0 +1,133 @@
+# Topic Grouper evaluation
+
+The experiments of the papers, runnable from one jar and producing CSV files and the SVG figures of
+the papers. The module depends on the library module `api`.
+
+| Paper | Experiments | Package |
+|---|---|---|
+| Topic Grouper (ECIR 2019 and its extended version) | `perplexity`, `twc-series`, `performance`, `topics` | `org.hhn.topicgrouper.eval.ecir2019` |
+| Feature reduction using topic modeling | `classification` | `org.hhn.topicgrouper.eval.featurereduction` |
+| Homonym extension (`doc/topic-grouper.md`, Section 6) | `homonyms` | `org.hhn.topicgrouper.eval.homonyms` |
+
+## Quick start
+
+```
+mvn install                                   # builds api and eval, runs the tests
+scripts/download-data.sh                      # the publicly available data sets (see below)
+java -jar eval/target/topic-grouper-eval.jar ecir2019 --quick    # a small run of all ECIR experiments
+java -jar eval/target/topic-grouper-eval.jar all                 # the full runs (days)
+```
+
+`java -jar topic-grouper-eval.jar [experiments] [--data DIR] [--out DIR] [--quick] [--lda-burn-in N] [--lda-iterations N]`
+
+* `experiments`: a comma separated list of experiment names (`perplexity`, `twc-series`,
+  `performance`, `topics`, `classification`, `homonyms`), paper names (`ecir2019`, `feature-reduction`,
+  `homonyms`) or `all` (the default).
+* `--data DIR`: the data directory (default `data`); experiments whose data set is missing are skipped
+  with a message.
+* `--out DIR`: the result directory (default `results`).
+* `--quick`: small sizes (few topics, iterations, repetitions, real corpora reduced to 2000 random
+  documents) to check that everything runs; the numbers are not meaningful.
+* `--lda-burn-in N`, `--lda-iterations N`: burn-in and sampling iterations of the LDA models in the
+  perplexity, `twc-series` and `homonyms` experiments (defaults 500 and 200, see below; the LDA
+  training dominates the run time on the text corpora).
+
+An experiment whose CSV file already exists in the result directory is skipped, so an interrupted run is
+resumed by starting it again. While an experiment runs, its rows go to `<name>.csv.part`; the file is
+renamed when the experiment has finished, so a `.part` file is always an unfinished one. Delete a CSV file
+to repeat its experiment.
+
+The sizes of the full and the quick runs are in `Settings`.
+
+The hierarchies recorded by the `topics` experiment (`results/<corpus>.json.gz`) can be drawn again
+with other settings and browsed:
+
+```
+scripts/draw-hierarchy.sh results/reuters.json.gz reuters-20.svg --topics 20 --cost --indent --dashed 0.5
+scripts/browse-hierarchy.sh results/reuters.json.gz
+```
+
+`draw-hierarchy.sh` takes `--topics N` (stop at the solution with N topics), `--min-size N`,
+`--max-depth N`, `--top-words N`, `--font-size N`, `--cost`, `--likelihood`, `--no-ids`,
+`--no-word-count`, `--indent` (by join cost) and `--dashed COST`; `browse-hierarchy.sh` starts the Swing browser of the `api` module
+(FlatLaf), which also exports SVG drawings of a selected subtree.
+
+## Data
+
+Put the data sets into `data/` (or `--data`). `scripts/download-data.sh` fetches the public ones.
+
+| Data set | Used by | Expected files | Source |
+|---|---|---|---|
+| synthetic corpus ("TWC") | perplexity, twc-series, performance, topics, homonyms | generated | `data/TWCLDAPaperDocumentGenerator` (after Tan and Ou) |
+| NIPS | perplexity, topics | `nips/docword.nips.txt`, `nips/vocab.nips.txt` | UCI bag of words |
+| New York Times | topics | `nytimes/docword.nytimes.txt`, `nytimes/vocab.nytimes.txt` | UCI bag of words (large) |
+| AP extract (2246 articles) | perplexity, performance, topics | `ap/ap.txt` | Blei's lda-c `ap.tgz` |
+| AP (TREC) | perplexity, topics | `ap-full/ap*` (the SGML files) | TREC / LDC, not public |
+| Reuters-21578 | classification, performance, topics | `reuters21578/*.sgm`, or `reuters-nltk/reuters.zip` | UCI KDD, or the ApteMod version distributed with NLTK |
+| 20 Newsgroups | classification, performance | `20news-18828/<group>/<file>` | qwone.com (duplicates removed) |
+| OHSUMED (ohscal) | classification | `ohsumed/ohscal.wc.arff` | Forman's 19 text data sets (sparse ARFF) |
+| Online Retail | perplexity, topics | `online-retail/Online Retail.csv` | UCI (ships as `.xlsx`; export as `;` separated CSV) |
+| Ta-Feng grocery | perplexity | `tafeng/D01_D02_D11_D12` (the four files concatenated with one header) | mirrors of the Ta-Feng data set |
+| US supermarket | perplexity | `us-supermarket/vocab.uss.csv`, `us-supermarket/docword.uss.csv` | not public |
+
+The parsers are in `org.hhn.topicgrouper.data` of the `api` module; their Javadoc describes the formats.
+
+## Experiments and output files
+
+All CSV files are `;` separated with a header line; `method` (or `solver`) names the series.
+
+| File | Columns | Content |
+|---|---|---|
+| `perplexity-<corpus>.csv` | `method;topics;perplexity;alphaConc` | hold-out perplexity over the number of topics: `tg` (Topic Grouper, left-to-right estimator, Dirichlet concentration optimized on a part of the training documents), `tg-smoothed` (explicit smoothed p(t\|d), concentration 50), `lda` / `lda-avg` (LDA, left-to-right and averaging estimate), `lda-opt` / `lda-opt-avg` (LDA with re-estimated alpha and beta), `plsa` (small corpora), `unigram` |
+| `twc-alpha.csv` | `alpha1;method;perplexity;perplexityStdDev;errorRate;errorRateStdDev;tries` | synthetic corpus at 4 topics over the prior alpha_1 given to LDA (concentration 6.5, beta 4 re-estimated, `tries` runs); the references `tg` (concentration 6.5), `plsa`, `unigram` and `perfect` (the true topics) are constant and repeated for every alpha_1 |
+| `twc-docs.csv` | `docs;method;perplexity;perplexityStdDev;errorRate;errorRateStdDev;tries` | synthetic corpus at 4 topics over the number of documents (LDA with the true prior) |
+| `performance-<corpus>.csv` | `solver;docs;avgSeconds;stdDevSeconds;avgWords` | run time of the solvers `ehac` and `lowmem` (single threaded) and `ehac-mt`, `lowmem-mt` (one thread per processor) over the number of documents (random subsets, several tries) |
+| `topics-<corpus>.csv`, `<corpus>.mm`, `<corpus>.json.gz`, `figs/hierarchy-<corpus>.svg` | `topic;size;rank;word;frequency` | the ten most frequent words of every topic at the example number of topics (40), and the whole hierarchy as a FreeMind mind map, as a JSON file for the hierarchy browser (`org.hhn.topicgrouper.tg.viz.HierarchyBrowser` in `api`) and as an SVG drawing down to the example number of topics; `reuters-sense.*` (plus `reuters-sense-full.svg`, the whole hierarchy) is the same for the sense splitting solver on the words occurring at least 5 times (its memory is quadratic in the vocabulary) |
+| `classification-<corpus>.csv` | `method;topics;microAvg;macroAvg;lambda` | accuracy of naive Bayes on topics from Topic Grouper (`tg-nb`, `tg-nb-smoothed`), tf-idf on topics (`tg-tfidf`), naive Bayes on LDA topics (`lda-nb`, `lda-nb-opt`) and on selected words (`vocab-ig`, `vocab-df`), over the number of topics / words |
+| `homonyms.csv` | `homonyms;method;perplexity;errorRate;splits` | synthetic corpus with an increasing number of homonyms of 2 to 4 senses (almost single-topic documents), 4 topics: plain Topic Grouper (`tg`), Topic Grouper with word senses (`tg-sense`, see `doc/topic-grouper.md`, Section 6), LDA with fixed alpha (`lda`) and with an optimized alpha vector (`lda-alpha`); `errorRate` is measured against the true topic-word distributions, `splits` is the number of senses created |
+
+## Figures
+
+Every experiment draws its figures as SVG files into `results/figs/` when it has written a CSV file
+(`Figures`, see the table below for the names); `scripts/draw-figures.sh [results]` redraws them from the
+CSV files, e.g. after merging the results of several machines. The documents `doc/topic-grouper.md` and
+`doc/feature-reduction.md` reference the figures as `figs/<name>.svg`, so copying `results/figs/` to
+`doc/figs/` updates them.
+
+| CSV file | Figures in `figs/` |
+|---|---|
+| `perplexity-<corpus>.csv` | `perplexity-<corpus>.svg` |
+| `twc-alpha.csv`, `twc-docs.csv` | `twc-alpha-perplexity.svg`, `twc-alpha-error.svg`, `twc-docs-perplexity.svg`, `twc-docs-error.svg` |
+| `performance-<corpus>.csv` | `performance-<corpus>.svg` |
+| `classification-<corpus>.csv` | `classification-<corpus>-micro.svg`, `classification-<corpus>-macro.svg` |
+| `homonyms.csv` | `homonyms-error.svg`, `homonyms-perplexity.svg` |
+| (topics experiment) | `hierarchy-<corpus>.svg`, the hierarchy down to the example number of topics |
+
+## Notes and deviations from the original code
+
+* The original experiment programs (one class per corpus and method, written against LingPipe 3.9.3
+  and weka) were merged into the parametrized experiments of this module; the corpora, splits, seeds
+  and model parameters are those of the papers (see the Javadoc of the experiment classes and
+  `Settings`). LingPipe 4.1.2 is used for tokenizing and stemming (the `PunctuationStopListTokenizer`
+  of 3.9.3 no longer exists; the word filters of the parsers remove punctuation tokens anyway),
+  Reuters-21578 is read by an own SGML reader (the ten largest topics, one copy per topic) and the
+  OHSUMED ARFF file by an own reader instead of weka.
+* The original error-rate experiments of the first generation (`TWCPerplexityErrorRate*`,
+  `APExtractPerplexity*`) were not functional (the accuracy calculator was fed inconsistent models) and
+  were dropped; the series of `twc-series` are the working ones of the paper.
+* Timing uses `System.nanoTime` in fractional seconds (the original truncated to whole seconds) and
+  stops when the corpus is exhausted instead of averaging in zeros.
+* The LDA fold-in and iteration counts and the topic grids are the ones of the papers in `Settings.full()`.
+  The left-to-right perplexity estimator uses 5 particles and the search for the Dirichlet concentration
+  of Topic Grouper 5 refinement steps (the papers used 20 and 10): the estimator is quadratic in the
+  document length, and on the text corpora these two settings dominated the run time. For the same
+  reason the LDA models of the perplexity, `twc-series` and `homonyms` experiments run 500 burn-in and
+  200 sampling iterations instead of the papers' 2000 and 1000 (`--lda-burn-in`, `--lda-iterations`
+  restore any other value).
+* A review of the library against the standard formulations fixed several bugs that change numbers compared
+  with the original experiment code: LDA's topic-word estimate is now the smoothed `(n_kw + beta) / (n_k + V beta)`
+  (it was the unsmoothed maximum likelihood estimate), the averaging perplexity estimator normalizes p(t|d) with
+  the model's word marginal, the naive Bayes classifier normalizes P(t|c) over the topic words of a class (it
+  divided by all words), PLSA uses the standard M-step for p(z|d), and the Dirichlet(1) sampler of the synthetic
+  corpus generator draws uniformly from the simplex (it normalized uniform variates). The synthetic corpora
+  therefore differ from those of the paper's runs; the parameters are the same.

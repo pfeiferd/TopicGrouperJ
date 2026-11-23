@@ -1,0 +1,136 @@
+package org.hhn.topicgrouper.eval.classify.impl.lda;
+
+import gnu.trove.list.TDoubleList;
+
+import org.hhn.topicgrouper.eval.classify.impl.AbstractTopicBasedBasicProbClassifier;
+import org.hhn.topicgrouper.doc.Document;
+import org.hhn.topicgrouper.lda.impl.LDAGibbsSampler;
+
+/**
+ * Probabilistic classifier whose topics are the topics of a trained LDA model.
+ * Training documents are represented by their Gibbs sampler topic assignment counts (smoothed with the
+ * Dirichlet prior), test documents by averaged fold-in samples.
+ *
+ * @param <T> the word type of the documents
+ * @param <L> the label type
+ */
+public class LDABasicProbClassifier<T, L> extends AbstractTopicBasedBasicProbClassifier<T, L> {
+	private final LDAGibbsSampler<T> ldaGibbsSampler;
+	private final int foldInterations;
+	private final int foldInSamples;
+
+	/**
+	 * Creates the classifier.
+	 *
+	 * @param lambda smoothing weight (see superclass; the LDA specific smoothing is done elsewhere)
+	 * @param ldaGibbsSampler the trained sampler; its training documents must be the ones passed to train
+	 * @param foldIterations number of Gibbs iterations for folding in a test document
+	 * @param foldInSamples number of fold-in samples averaged per test document
+	 */
+	public LDABasicProbClassifier(double lambda, LDAGibbsSampler<T> ldaGibbsSampler,
+			int foldIterations, int foldInSamples) {
+		super(lambda);
+		this.ldaGibbsSampler = ldaGibbsSampler;
+		this.foldInterations = foldIterations;
+		this.foldInSamples = foldInSamples;
+	}
+
+	/**
+	 * Adds the Dirichlet-smoothed topic assignment counts of a training document
+	 * (taken from the sampler's current state) to the vector.
+	 *
+	 * @param d a document known to the sampler
+	 * @param v vector of length {@link #getNTopics()} that is incremented
+	 */
+	@Override
+	protected void computeTopicFrequency(Document<T> d, double[] v) {
+		for (int i = 0; i < v.length; i++) {
+			// We are just getting the current sample state from the Gibbs
+			// sampler.
+			// To be exact, we would have to average over several the examples.
+			// TODO: Really wanna do this? --> No - we go over so many document
+			// - that's enough averaging...
+			int c = ldaGibbsSampler.getDocumentTopicAssignmentCount(
+					d.getIndex(), i);
+			// Alpha smoothing via Dirichlet
+			v[i] += (c + ldaGibbsSampler.getAlpha(i))
+					/ (d.getSize() + ldaGibbsSampler.getAlphaConc())
+					* d.getSize();
+		}
+	}
+
+	/**
+	 * Computes log P(topic | label) without further smoothing, as smoothing is already part of the topic frequencies.
+	 *
+	 * @param l index of the label
+	 * @param topic topic index
+	 * @return the log probability
+	 */
+	@Override
+	protected double getLogPtc(int l, int topic) {
+		TDoubleList pt = ptc.get(l);
+		double total = pt.get(0);
+		double sumt = pt.get(topic + 1);
+
+		// No smoothing here any more - already done in computeTopicFrequency()
+		return Math.log(sumt / total);
+	}
+
+	/**
+	 * Folds the test document into the LDA model and averages its topic proportions over several samples.
+	 *
+	 * @param d the test document
+	 * @return expected topic frequencies (proportions scaled by the document size)
+	 */
+	@Override
+	protected double[] computeTopicFrequencyTest(Document<T> d) {
+		double[] res = new double[getNTopics()];
+
+		// We are just getting the current fold in sample from the Gibbs
+		// sampler.
+		// To be more exact, we have to average over the examples.
+		LDAGibbsSampler<T>.FoldInStore store = ldaGibbsSampler.foldIn(
+				foldInterations, d);
+		for (int j = 0; j < foldInSamples; j++) {
+			int[] h = store.getDTopicAssignmentCounts();
+			for (int i = 0; i < res.length; i++) {
+				// This is wrong: Dirichlet smoothing is already done inside nextFoldInPtdSample()
+				// res[i] += (h[i] + ldaGibbsSampler.getAlpha(i))
+				// / (d.getSize() + ldaGibbsSampler.getAlphaConc());
+				res[i] += ((double) h[i]) / d.getSize();
+			}
+			store.nextFoldInPtdSample();
+		}
+		for (int i = 0; i < res.length; i++) {
+			res[i] = d.getSize() * res[i] / foldInSamples;
+		}
+
+		return res;
+	}
+
+	/**
+	 * @return the number of topics of the LDA model
+	 */
+	@Override
+	protected int getNTopics() {
+		return ldaGibbsSampler.getNTopics();
+	}
+
+	/**
+	 * @return an empty array; the topics are the LDA topics and need no index mapping
+	 */
+	@Override
+	protected int[] getTopicIndices() {
+		return new int[0];
+	}
+
+	/**
+	 * Not supported as words are not mapped to topics here.
+	 *
+	 * @throws IllegalStateException always
+	 */
+	@Override
+	protected int getTopicIndex(int wordIndex) {
+		throw new IllegalStateException("should not get called");
+	}
+}

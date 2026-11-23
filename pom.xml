@@ -4,120 +4,63 @@
 	<groupId>topic-grouper</groupId>
 	<artifactId>topic-grouper</artifactId>
 	<version>0.1.1-SNAPSHOT</version>
+	<packaging>pom</packaging>
+	<name>Topic Grouper</name>
+
+	<modules>
+		<!-- The library: Topic Grouper, LDA, PLSA, perplexity estimators, classifiers. -->
+		<module>api</module>
+		<!-- The experiments of the papers (depends on api). -->
+		<module>eval</module>
+	</modules>
+
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.compiler.target>1.8</maven.compiler.target>
+		<junit.version>4.13.2</junit.version>
 	</properties>
 
-	<dependencies>
-		<dependency>
-			<groupId>net.sf.trove4j</groupId>
-			<artifactId>trove4j</artifactId>
-			<version>3.0.3</version>
-		</dependency>
-		<dependency>
-			<groupId>net.sf.jchart2d</groupId>
-			<artifactId>jchart2d</artifactId>
-			<version>3.3.2</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-math3</artifactId>
-			<version>3.6.1</version>
-		</dependency>
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>4.13.2</version>
-			<scope>test</scope>
-		</dependency>
-	</dependencies>
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>junit</groupId>
+				<artifactId>junit</artifactId>
+				<version>${junit.version}</version>
+				<scope>test</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
 	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>exec-maven-plugin</artifactId>
-				<version>1.5.0</version>
-				<configuration>
-					<!-- <mainClass>org.hhn.topicgrouper.paper.classfication.AllClassificationExperimentsRunner</mainClass> -->
-					<!-- <mainClass>org.hhn.topicgrouper.paper.perplexity.retail.AllPerplexityExperimentsRunner</mainClass> -->
-					<!-- <mainClass>org.hhn.topicgrouper.paper.perplexity.twc.AllPerplexityExperimentsRunner</mainClass> -->
-					<mainClass>org.hhn.topicgrouper.paper.perplexity.docs.AllPerplexityExperimentsRunner</mainClass>
-					<arguments>
-					</arguments>
-					<classpathScope>test</classpathScope>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<configuration>
-					<encoding>UTF-8</encoding>
-					<source>1.8</source>
-					<target>1.8</target>
-					<!-- The paper experiments need libraries that are not on Maven Central, see profile legacy-experiments. -->
-					<testExcludes>
-						<testExclude>**/eval/**</testExclude>
-						<testExclude>**/paper/**</testExclude>
-						<testExclude>**/demo/**</testExclude>
-						<testExclude>**/com/aliasi/**</testExclude>
-						<testExclude>**/util/EvalRunner.java</testExclude>
-						<testExclude>**/util/DirichletSampler.java</testExclude>
-					</testExcludes>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-source-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>attach-sources</id>
-						<phase>verify</phase>
-						<goals>
-							<goal>jar-no-fork</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-		</plugins>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<version>3.11.0</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-surefire-plugin</artifactId>
+					<version>3.2.2</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-jar-plugin</artifactId>
+					<version>3.3.0</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-source-plugin</artifactId>
+					<version>3.3.0</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-dependency-plugin</artifactId>
+					<version>3.6.1</version>
+				</plugin>
+			</plugins>
+		</pluginManagement>
 	</build>
-	<profiles>
-		<!-- Original experiment code of the paper (src/test/java/.../paper, eval, demo).
-		     It needs a LingPipe 3.9.3 build that is not on Maven Central:
-		     install it with bin/updateRepository.sh and run Maven with -Plegacy-experiments.
-		     The reproducible evaluation lives in the module "evaluation". -->
-		<profile>
-			<id>legacy-experiments</id>
-			<dependencies>
-				<dependency>
-					<groupId>de.julielab</groupId>
-					<artifactId>aliasi-lingpipe</artifactId>
-					<version>3.9.3</version>
-					<scope>test</scope>
-				</dependency>
-				<dependency>
-					<groupId>args4j</groupId>
-					<artifactId>args4j</artifactId>
-					<version>2.37</version>
-					<scope>test</scope>
-				</dependency>
-				<dependency>
-					<groupId>nz.ac.waikato.cms.weka</groupId>
-					<artifactId>weka-stable</artifactId>
-					<version>3.8.0</version>
-					<scope>test</scope>
-				</dependency>
-			</dependencies>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-compiler-plugin</artifactId>
-						<configuration>
-							<testExcludes combine.self="override" />
-						</configuration>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-	</profiles>
 </project>
