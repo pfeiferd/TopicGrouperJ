@@ -15,7 +15,7 @@ public class PerplexityExperimentTest extends TestCase {
 				new PerplexityExperiment.Corpus("twc", new Datasets(dir).twc(400).split).withPlsa());
 		File out = new File(dir, "perplexity-twc.csv");
 		List<String> lines = Files.readAllLines(out.toPath());
-		assertEquals("method;topics;perplexity;alphaConc", lines.get(0));
+		assertEquals("method;topics;perplexity;alphaConc;splits", lines.get(0));
 		double unigram = Double.NaN, tg10 = Double.NaN;
 		for (String line : lines) {
 			String[] c = line.split(";");
