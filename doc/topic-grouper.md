@@ -421,7 +421,7 @@ does not.
 All figures are SVG files drawn by the `eval` module into `results/figs/` (`eval/scripts/run-evaluation.sh` runs the experiments,
 `eval/scripts/draw-figures.sh` redraws the charts from the CSV files). Copying `results/figs/` to `doc/figs/` updates the figures of this
 document and of [`feature-reduction.md`](feature-reduction.md); the figures of a `--quick` run are only smoke tests. The LDA numbers differ
-slightly from the papers because the library's LDA estimates were corrected (smoothed topic-word estimate, averaging estimator).
+slightly from the papers because the library's averaging perplexity estimator was corrected and LDA runs fewer iterations.
 
 ### A.1 Topic Grouper (ECIR 2019 and the extended version)
 

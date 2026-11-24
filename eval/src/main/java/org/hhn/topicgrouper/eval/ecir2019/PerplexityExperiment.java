@@ -125,7 +125,9 @@ public class PerplexityExperiment {
 
 	/**
 	 * Runs all methods for one corpus and writes <code>perplexity-&lt;name&gt;.csv</code>
-	 * with the columns <code>method;topics;perplexity;alphaConc</code>.
+	 * with the columns <code>method;topics;perplexity;alphaConc;splits</code>
+	 * (<code>splits</code>: the number of word senses of <code>tg-sense</code>,
+	 * empty for the other methods).
 	 *
 	 * @param c
 	 *            the corpus and its parameters
@@ -135,11 +137,20 @@ public class PerplexityExperiment {
 		if (Csv.skipIfDone(file)) {
 			return;
 		}
-		final Csv csv = new Csv(file, "method", "topics", "perplexity", "alphaConc");
+		final Csv csv = new Csv(file, "method", "topics", "perplexity", "alphaConc", "splits");
 		try {
 			Sink sink = new Sink() {
+				/** Splits reported for the row about to be written, empty if none. */
+				private String splits = "";
+
+				@Override
+				public void acceptSplits(String method, int topics, int count) {
+					splits = String.valueOf(count);
+				}
+
 				public void accept(String method, int topics, double perplexity, double param, double errorRate) {
-					csv.row(method, topics, perplexity, param);
+					csv.row(method, topics, perplexity, param, splits);
+					splits = "";
 				}
 			};
 			TopicFilter grid = new TopicFilter() {

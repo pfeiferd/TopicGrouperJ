@@ -15,7 +15,7 @@ public final class Settings {
 	public int ldaBurnIn;
 	/** Sampling iterations of LDA (after burn-in). */
 	public int ldaIterations;
-	/** Particles of the left-to-right perplexity estimator (LDA; Topic Grouper is evaluated in closed form). */
+	/** Particles of the left-to-right perplexity estimator (LDA and Topic Grouper with senses; plain Topic Grouper is evaluated in closed form). */
 	public int particles;
 	/** Number of refinement steps when optimizing the alpha concentration of TG. */
 	public int alphaOptSteps;
@@ -68,11 +68,10 @@ public final class Settings {
 
 	/**
 	 * The full setup of the papers (e.g. 200 topics, 6000 synthetic documents, 10 refinement steps for
-	 * the Dirichlet concentration of Topic Grouper), except for the settings that dominate the run time
-	 * on the text corpora: the left-to-right perplexity estimator of the LDA models uses 5 particles
-	 * (the papers used 20; the estimator is quadratic in the document length) and LDA runs 500 burn-in
-	 * and 200 sampling iterations (the papers used 2000 and 1000; both can be set on the command line,
-	 * see {@link Main}). Independent model runs use one thread per available processor.
+	 * the Dirichlet concentration of Topic Grouper, 20 particles of the left-to-right estimator), except
+	 * for the LDA iterations, which dominate the run time on the text corpora: 500 burn-in and 200
+	 * sampling iterations (the papers used 2000 and 1000; both can be set on the command line, see
+	 * {@link Main}). Independent model runs use one thread per available processor.
 	 *
 	 * @return the sizes used for the papers
 	 */
@@ -82,7 +81,7 @@ public final class Settings {
 		s.topicStep = 10;
 		s.ldaBurnIn = 500;
 		s.ldaIterations = 200;
-		s.particles = 5;
+		s.particles = 20;
 		s.alphaOptSteps = 10;
 		s.threads = Runtime.getRuntime().availableProcessors();
 		s.senseMaxWords = 12000;

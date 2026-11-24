@@ -81,7 +81,7 @@ All CSV files are `;` separated with a header line; `method` (or `solver`) names
 
 | File | Columns | Content |
 |---|---|---|
-| `perplexity-<corpus>.csv` | `method;topics;perplexity;alphaConc` | hold-out perplexity over the number of topics: `tg` (Topic Grouper, Dirichlet concentration optimized on a part of the training documents; the document probabilities are computed in closed form, see below), `tg-sense` (Topic Grouper with word senses, sense splitting solver with the default minimum lift 2, left-to-right estimate; only for vocabularies up to `Settings.senseMaxWords` words), `lda` / `lda-avg` (LDA, left-to-right and averaging estimate), `lda-opt` / `lda-opt-avg` (LDA with re-estimated alpha and beta), `plsa` (small corpora), `unigram` |
+| `perplexity-<corpus>.csv` | `method;topics;perplexity;alphaConc;splits` | hold-out perplexity over the number of topics (`splits`: the number of word senses created by the sense splitting solver, only for `tg-sense`): `tg` (Topic Grouper, Dirichlet concentration optimized on a part of the training documents; the document probabilities are computed in closed form, see below), `tg-sense` (Topic Grouper with word senses, sense splitting solver with the default minimum lift 2, left-to-right estimate; only for vocabularies up to `Settings.senseMaxWords` words), `lda` / `lda-avg` (LDA, left-to-right and averaging estimate), `lda-opt` / `lda-opt-avg` (LDA with re-estimated alpha and beta), `plsa` (small corpora), `unigram` |
 | `twc-alpha.csv` | `alpha1;method;perplexity;perplexityStdDev;errorRate;errorRateStdDev;tries` | synthetic corpus at 4 topics over the prior alpha_1 given to LDA (concentration 6.5, beta 4 re-estimated, `tries` runs); the references `tg` (concentration 6.5), `plsa`, `unigram` and `perfect` (the true topics) are constant and repeated for every alpha_1 |
 | `twc-docs.csv` | `docs;method;perplexity;perplexityStdDev;errorRate;errorRateStdDev;tries` | synthetic corpus at 4 topics over the number of documents (LDA with the true prior) |
 | `performance-<corpus>.csv` | `solver;docs;avgSeconds;stdDevSeconds;avgWords` | run time of the solvers `ehac` and `lowmem` (single threaded) and `ehac-mt`, `lowmem-mt` (one thread per processor) over the number of documents (random subsets, several tries) |
@@ -120,14 +120,14 @@ CSV files, e.g. after merging the results of several machines. The documents `do
   were dropped; the series of `twc-series` are the working ones of the paper.
 * Timing uses `System.nanoTime` in fractional seconds (the original truncated to whole seconds) and
   stops when the corpus is exhausted instead of averaging in zeros.
-* The LDA fold-in and iteration counts, the topic grids and the 10 refinement steps of the search for
-  the Dirichlet concentration of Topic Grouper are the ones of the papers in `Settings.full()`. The
-  left-to-right perplexity estimator of the LDA models uses 5 particles (the papers used 20): the
-  estimator is quadratic in the document length and dominated the run time on the text corpora. For
-  the same reason the LDA models of the perplexity, `twc-series` and `homonyms` experiments run 500
-  burn-in and 200 sampling iterations instead of the papers' 2000 and 1000 (`--lda-burn-in`,
-  `--lda-iterations` restore any other value), and the LDA models of the different topic numbers are
-  trained in parallel (`--threads`).
+* The LDA fold-in counts, the topic grids, the 10 refinement steps of the search for the Dirichlet
+  concentration of Topic Grouper and the 20 particles of the left-to-right estimator are the ones of
+  the papers in `Settings.full()`. Only the LDA models of the perplexity, `twc-series` and `homonyms`
+  experiments run 500 burn-in and 200 sampling iterations instead of the papers' 2000 and 1000, since
+  the LDA training dominates the run time on the text corpora (`--lda-burn-in`, `--lda-iterations`
+  restore any other value); the LDA models of the different topic numbers are trained in parallel
+  (`--threads`). The left-to-right estimator is quadratic in the document length and linear in the
+  particles and the topics a word can belong to; for LDA it is the second large cost.
 * The perplexity of Topic Grouper solutions is computed in closed form (`TGExactPerplexityCalculator`):
   every word has exactly one topic, so the resampling step of the papers' left-to-right estimator is a
   point mass and the estimate is exact, the product of the topic-word probabilities times the
@@ -139,11 +139,13 @@ CSV files, e.g. after merging the results of several machines. The documents `do
   (p(t|d) interpolated with a fixed weight) is gone: without a reference document it measured the
   unigram model, and it was never part of the papers.
 * A review of the library against the standard formulations fixed several bugs that change numbers compared
-  with the original experiment code: LDA's topic-word estimate is now the smoothed `(n_kw + beta) / (n_k + V beta)`
-  (it was the unsmoothed maximum likelihood estimate), the averaging perplexity estimator normalizes p(t|d) with
+  with the original experiment code: the averaging perplexity estimator normalizes p(t|d) with
   the model's word marginal, the naive Bayes classifier normalizes P(t|c) over the topic words of a class (it
   divided by all words), PLSA uses the standard M-step for p(z|d), and the Dirichlet(1) sampler of the synthetic
   corpus generator draws uniformly from the simplex (it normalized uniform variates), and the left-to-right
   calculator for Topic Grouper solutions (`TGLRPerplexityCalculator`) now honours the document splitter it is
-  given (it always evaluated whole documents, which is what the papers' experiments used anyway). The synthetic corpora
+  given (it always evaluated whole documents, which is what the papers' experiments used anyway).
+  LDA's topic-word estimate is the maximum likelihood estimate `n_kw / n_k` averaged over the sampling
+  iterations, as in the papers' experiments (`LDAGibbsSampler.setSmoothedPhi(true)` selects the smoothed
+  `(n_kw + beta) / (n_k + V beta)` instead). The synthetic corpora
   therefore differ from those of the paper's runs; the parameters are the same.

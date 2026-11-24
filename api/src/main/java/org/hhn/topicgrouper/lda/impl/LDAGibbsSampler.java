@@ -25,8 +25,10 @@ import org.hhn.topicgrouper.validation.AbstractTopicModelerWithProvider;
  * proportional to (n_dk + alpha_k) * (n_kw + beta_kw) / (n_k + sum_w beta_kw), the counts
  * excluding the occurrence itself.
  * <p>
- * The estimate of phi is the average of (n_kw + beta_kw) / (n_k + sum_w beta_kw) over the
- * sampling iterations after burn-in; the topic probabilities are the averaged relative
+ * The estimate of phi is the average of the maximum likelihood estimate n_kw / n_k over the
+ * sampling iterations after burn-in (as in the papers' experiments), or, with
+ * {@link #setSmoothedPhi(boolean)}, of the smoothed estimate
+ * (n_kw + beta_kw) / (n_k + sum_w beta_kw); the topic probabilities are the averaged relative
  * values of n_k. During burn-in the hyper parameters can optionally be re-estimated every
  * {@link #getAlphaBetaUpdate()} iterations with the fixed point iteration of Minka,
  * "Estimating a Dirichlet distribution", 2000 (see {@link #setUpdateAlphaBeta(boolean)}).
@@ -96,6 +98,10 @@ public class LDAGibbsSampler<T> extends AbstractTopicModelerWithProvider<T> impl
 	 * Whether beta is re-estimated during burn-in.
 	 */
 	private boolean updateBeta;
+	/**
+	 * Whether phi is estimated as (n_kw + beta_kw) / (n_k + sum_w beta_kw) instead of n_kw / n_k.
+	 */
+	private boolean smoothedPhi;
 	/**
 	 * Interval (in iterations) of the alpha/beta updates and of the logging.
 	 */
@@ -270,6 +276,26 @@ public class LDAGibbsSampler<T> extends AbstractTopicModelerWithProvider<T> impl
 	 *
 	 * @param updateBeta whether beta is re-estimated during burn-in
 	 */
+	/**
+	 * Selects the estimate of phi: the maximum likelihood estimate n_kw / n_k (false, the
+	 * default) or the smoothed (n_kw + beta_kw) / (n_k + sum_w beta_kw).
+	 *
+	 * @param smoothedPhi whether to add the Dirichlet prior to the counts
+	 */
+	public void setSmoothedPhi(boolean smoothedPhi) {
+		this.smoothedPhi = smoothedPhi;
+	}
+
+	/**
+	 * Whether phi is estimated with the Dirichlet prior added to the counts (default false,
+	 * the maximum likelihood estimate n_kw / n_k of the papers' experiments).
+	 *
+	 * @return whether the smoothed estimate (n_kw + beta_kw) / (n_k + sum_w beta_kw) is used
+	 */
+	public boolean isSmoothedPhi() {
+		return smoothedPhi;
+	}
+
 	public void setUpdateBeta(boolean updateBeta) {
 		this.updateBeta = updateBeta;
 	}
@@ -338,15 +364,15 @@ public class LDAGibbsSampler<T> extends AbstractTopicModelerWithProvider<T> impl
 			}
 
 			if (i >= burnIn) {
-				// Update phi by averaging the smoothed estimate
-				// (n_kw + beta_kw) / (n_k + sum_w beta_kw) over the current counts.
+				// Update phi by averaging the estimate over the current counts:
+				// n_kw / n_k, or smoothed (n_kw + beta_kw) / (n_k + sum_w beta_kw).
 				for (int k = 0; k < topicWordAssignmentCount.length; k++) {
-					double denominator = topicFrCount[k] + getBetaSum(k);
-					// Check to avoid division by zero if the topic is empty and beta is zero.
+					double denominator = topicFrCount[k] + (smoothedPhi ? getBetaSum(k) : 0);
+					// Check to avoid division by zero if the topic is empty (and beta is zero).
 					if (denominator > 0) {
 						for (int j = 0; j < topicWordAssignmentCount[k].length; j++) {
-							phi[k][j] += (topicWordAssignmentCount[k][j] + getBeta(
-									k, j)) / denominator;
+							phi[k][j] += (topicWordAssignmentCount[k][j]
+									+ (smoothedPhi ? getBeta(k, j) : 0)) / denominator;
 						}
 					} else {
 						// Remember zero situations (once per iteration) for

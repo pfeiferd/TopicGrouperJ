@@ -52,12 +52,12 @@ public class LDAGibbsSamplerTest extends TestCase {
 		assertEquals(1.0, lda.getAlphaConc(), 1e-12);
 		lda.solve(100, 20, null);
 
-		// Rows of phi are distributions.
+		// Rows of phi are distributions (the maximum likelihood estimate may contain zeros).
 		for (int k = 0; k < 2; k++) {
 			double sum = 0;
 			for (int w = 0; w < lda.getNWords(); w++) {
 				double phi = lda.getPhi(k, w);
-				assertTrue(phi > 0 && phi <= 1);
+				assertTrue(phi >= 0 && phi <= 1);
 				sum += phi;
 			}
 			assertEquals(1.0, sum, 1e-9);
@@ -88,6 +88,27 @@ public class LDAGibbsSamplerTest extends TestCase {
 	 * effectively observed. Minka's update started at alpha = (5, 5) must move
 	 * towards (1, 1).
 	 */
+	public void testSmoothedPhiIsPositiveAndNormalized() {
+		DefaultDocumentProvider<String> p = createSeparatedCorpus();
+		LDAGibbsSampler<String> lda = new LDAGibbsSampler<String>(new Random(42), p, 2, 1.0, 0.1);
+		lda.setSmoothedPhi(true);
+		assertTrue(lda.isSmoothedPhi());
+		lda.solve(100, 20, null);
+		for (int k = 0; k < 2; k++) {
+			double sum = 0;
+			for (int w = 0; w < lda.getNWords(); w++) {
+				double phi = lda.getPhi(k, w);
+				// beta / (n_k + V beta) at least
+				assertTrue(phi > 0 && phi <= 1);
+				sum += phi;
+			}
+			assertEquals(1.0, sum, 1e-9);
+		}
+		int kA = sumPhi(lda, 0, A) > sumPhi(lda, 1, A) ? 0 : 1;
+		assertTrue(sumPhi(lda, kA, A) > 0.9);
+		assertTrue(sumPhi(lda, 1 - kA, B) > 0.9);
+	}
+
 	public void testAlphaUpdateApproachesTrueAlpha() {
 		Random random = new Random(3);
 		DefaultDocumentProvider<String> p = new DefaultDocumentProvider<String>();

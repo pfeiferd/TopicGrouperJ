@@ -17,6 +17,7 @@ import org.hhn.topicgrouper.doc.impl.TrueTopicAccuracyCalculator.PwtProvider;
 import org.hhn.topicgrouper.data.TWCLDAPaperDocumentGenerator;
 import org.hhn.topicgrouper.lda.impl.LDAGibbsSampler;
 import org.hhn.topicgrouper.plsa.impl.PLSA;
+import org.hhn.topicgrouper.tg.TGSenseSolution;
 import org.hhn.topicgrouper.tg.TGSolution;
 import org.hhn.topicgrouper.tg.TGSolutionListener;
 import org.hhn.topicgrouper.tg.TGSolver;
@@ -58,6 +59,22 @@ public class ModelEvaluation {
 		 *            not computed
 		 */
 		void accept(String method, int topics, double perplexity, double param, double errorRate);
+
+		/**
+		 * Receives the number of word senses created by the sense splitting solver
+		 * for a solution; called right before {@link #accept} with the same method and
+		 * number of topics, only for solutions with word senses. Does nothing by
+		 * default.
+		 *
+		 * @param method
+		 *            name of the method
+		 * @param topics
+		 *            number of topics
+		 * @param splits
+		 *            number of sense splits in the solution
+		 */
+		default void acceptSplits(String method, int topics, int splits) {
+		}
 	}
 
 	/** Selects the topic numbers to evaluate. */
@@ -309,6 +326,10 @@ public class ModelEvaluation {
 					double err = Double.NaN;
 					if (generator != null && n == 4) {
 						err = errorRate(calc.getPerplexityCalculator().getTopicModeler());
+					}
+					if (solution instanceof TGSenseSolution) {
+						sink.acceptSplits(configs[i].method, n,
+								((TGSenseSolution<String>) solution).getNumberOfSplits());
 					}
 					sink.accept(configs[i].method, n, p, calc.getAlphaConc(), err);
 				}
