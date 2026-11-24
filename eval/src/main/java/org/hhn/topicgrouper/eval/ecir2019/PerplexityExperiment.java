@@ -17,14 +17,15 @@ import org.hhn.topicgrouper.eval.TopicGrouperFactory;
 
 /**
  * Hold-out perplexity over the number of topics (ECIR 2019 paper, the figures
- * of Section 5): Topic Grouper with the left-to-right estimator and an
- * optimized Dirichlet concentration (<code>tg</code>), Topic Grouper with the
- * simple smoothed estimator (<code>tg-smoothed</code>), LDA with the fixed
- * prior (<code>lda</code>, left-to-right estimate; <code>lda-avg</code>,
- * averaging estimate) and with re-estimated alpha and beta
- * (<code>lda-opt</code>), PLSA (<code>plsa</code>) on the smaller corpora and
- * the unigram model (<code>unigram</code>). The parameters per corpus are those
- * of the paper, see {@link Corpus}.
+ * of Section 5): Topic Grouper with an optimized Dirichlet concentration
+ * (<code>tg</code>; the document probabilities are computed in closed form,
+ * which equals the paper's left-to-right estimate), LDA with the fixed prior
+ * (<code>lda</code>, left-to-right estimate; <code>lda-avg</code>, averaging
+ * estimate) and with re-estimated alpha and beta (<code>lda-opt</code>), PLSA
+ * (<code>plsa</code>) on the smaller corpora and the unigram model
+ * (<code>unigram</code>). The LDA models of the topic numbers are trained in
+ * parallel. The parameters per corpus are those of the paper, see
+ * {@link Corpus}.
  */
 public class PerplexityExperiment {
 	/** The parameters of one corpus. */
@@ -33,16 +34,12 @@ public class PerplexityExperiment {
 		public final String name;
 		/** Training and test documents. */
 		public final Split<DocumentProvider<String>> split;
-		/** Initial Dirichlet concentration of the left-to-right estimator for Topic Grouper. */
+		/** Initial Dirichlet concentration of p(t|d) for Topic Grouper. */
 		public double tgAlpha = 50;
 		/** Share of the training documents the concentration is optimized on. */
 		public double optimizeShare = 0.1;
 		/** Topic numbers evaluated: 1 and the multiples of this step. */
 		public int topicStep = 10;
-		/** Particles of the left-to-right estimator (0: the setting's default). */
-		public int particles;
-		/** Also evaluate the smoothed estimator for Topic Grouper (fixed concentration 50). */
-		public boolean withSmoothedTG = true;
 		/** Also evaluate PLSA (feasible for small vocabularies only). */
 		public boolean withPlsa;
 
@@ -92,18 +89,6 @@ public class PerplexityExperiment {
 		 */
 		public Corpus topicStep(int step) {
 			topicStep = step;
-			return this;
-		}
-
-		/**
-		 * Sets {@link #particles}.
-		 *
-		 * @param particles
-		 *            particles of the left-to-right estimator
-		 * @return this corpus with another number of particles
-		 */
-		public Corpus particles(int particles) {
-			this.particles = particles;
 			return this;
 		}
 
@@ -161,22 +146,10 @@ public class PerplexityExperiment {
 			ModelEvaluation evaluation = new ModelEvaluation(c.split, settings);
 			evaluation.unigram(sink);
 
-			TGConfig lr = new TGConfig(settings);
-			lr.alpha = c.tgAlpha;
-			lr.optimizeShare = c.optimizeShare;
-			if (c.particles > 0) {
-				lr.particles = c.particles;
-			}
-			TGConfig[] configs;
-			if (c.withSmoothedTG) {
-				TGConfig smoothed = new TGConfig();
-				smoothed.method = "tg-smoothed";
-				smoothed.smoothed = true;
-				configs = new TGConfig[] { lr, smoothed };
-			} else {
-				configs = new TGConfig[] { lr };
-			}
-			evaluation.topicGrouper(configs, grid, sink, new TopicGrouperFactory().create(c.split.train));
+			TGConfig tg = new TGConfig(settings);
+			tg.alpha = c.tgAlpha;
+			tg.optimizeShare = c.optimizeShare;
+			evaluation.topicGrouper(tg, grid, sink, new TopicGrouperFactory().create(c.split.train));
 
 			LDAConfig lda = new LDAConfig();
 			lda.withAveraging = true;

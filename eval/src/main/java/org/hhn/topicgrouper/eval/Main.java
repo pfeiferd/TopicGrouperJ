@@ -8,7 +8,7 @@ import java.util.Set;
 
 /**
  * Command line of the evaluation:
- * <code>[experiments] [--data DIR] [--out DIR] [--quick] [--lda-burn-in N] [--lda-iterations N]</code>,
+ * <code>[experiments] [--data DIR] [--out DIR] [--quick] [--lda-burn-in N] [--lda-iterations N] [--threads N]</code>,
  * where <code>experiments</code> is a comma separated list of experiment names,
  * paper names or <code>all</code> (see {@link Evaluation}), <code>--data</code>
  * the data directory (default <code>data</code>), <code>--out</code> the result
@@ -16,7 +16,9 @@ import java.util.Set;
  * small sizes of {@link Settings#quick()}, and <code>--lda-burn-in</code> and
  * <code>--lda-iterations</code> override the burn-in and sampling iterations of
  * the LDA models of the perplexity, synthetic series and homonym experiments
- * ({@link Settings#ldaBurnIn}, {@link Settings#ldaIterations}).
+ * ({@link Settings#ldaBurnIn}, {@link Settings#ldaIterations}), and
+ * <code>--threads</code> the number of threads for independent model runs
+ * ({@link Settings#threads}, default: the available processors).
  */
 public final class Main {
 	private Main() {
@@ -34,6 +36,7 @@ public final class Main {
 		Settings settings = Settings.full();
 		int ldaBurnIn = -1;
 		int ldaIterations = -1;
+		int threads = -1;
 		Set<String> names = new LinkedHashSet<String>();
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("--data")) {
@@ -46,6 +49,12 @@ public final class Main {
 				ldaBurnIn = positiveInt(args[i], args[++i]);
 			} else if (args[i].equals("--lda-iterations")) {
 				ldaIterations = positiveInt(args[i], args[++i]);
+			} else if (args[i].equals("--threads")) {
+				threads = positiveInt(args[i], args[++i]);
+				if (threads == 0) {
+					usage("--threads needs a positive integer");
+					return;
+				}
 			} else if (args[i].startsWith("--")) {
 				usage("unknown option " + args[i]);
 				return;
@@ -58,6 +67,9 @@ public final class Main {
 		}
 		if (ldaIterations >= 0) {
 			settings.ldaIterations = ldaIterations;
+		}
+		if (threads > 0) {
+			settings.threads = threads;
 		}
 		Set<String> experiments = new LinkedHashSet<String>();
 		if (names.isEmpty() || names.contains("all")) {
@@ -105,7 +117,7 @@ public final class Main {
 	private static void usage(String error) {
 		System.err.println(error);
 		System.err.println("usage: [experiment|paper|all][,...] [--data DIR] [--out DIR] [--quick]"
-				+ " [--lda-burn-in N] [--lda-iterations N]");
+				+ " [--lda-burn-in N] [--lda-iterations N] [--threads N]");
 		System.err.println("papers and experiments: " + Evaluation.getPapers());
 	}
 }

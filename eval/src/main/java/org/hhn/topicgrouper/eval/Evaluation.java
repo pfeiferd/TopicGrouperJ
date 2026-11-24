@@ -114,7 +114,7 @@ public class Evaluation {
 		PerplexityExperiment e = new PerplexityExperiment(settings, out);
 		e.run(new Corpus("twc", data.twc(settings.twcDocs).split).withPlsa());
 		if (data.hasNips()) {
-			e.run(new Corpus("nips", data.nips()).tgAlpha(4).particles(5));
+			e.run(new Corpus("nips", data.nips()).tgAlpha(4));
 		} else {
 			skip("perplexity-nips", "nips");
 		}
@@ -124,7 +124,7 @@ public class Evaluation {
 			skip("perplexity-ap-extract", "ap");
 		}
 		if (data.hasApFull()) {
-			e.run(new Corpus("ap-full", data.apFullPerplexity(settings.apFullDocs)).tgAlpha(4).particles(5)
+			e.run(new Corpus("ap-full", data.apFullPerplexity(settings.apFullDocs)).tgAlpha(4)
 					.optimizeShare(0.01));
 		} else {
 			skip("perplexity-ap-full", "ap-full");

@@ -42,6 +42,6 @@ public class TGLRPerplexityCalculator<T> extends TGPerplexityCalculator<T> {
 	 * @return a left-to-right perplexity calculator
 	 */
 	protected BasicPerplexityCalculator<T> createBasicPerplexityCalculator() {
-		return new PerplexityCalculatorLeftToRight<T>(random, bowFactor, initParticles());
+		return new PerplexityCalculatorLeftToRight<T>(random, bowFactor, documentSplitter, initParticles());
 	}
 }

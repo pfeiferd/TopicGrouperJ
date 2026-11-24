@@ -79,6 +79,8 @@ public class HomonymExperiment {
 						twc.split.train, 1);
 				TGConfig senseConfig = new TGConfig(settings);
 				senseConfig.method = "tg-sense";
+				// A word may have several senses and thus topics: the closed form does not apply.
+				senseConfig.leftToRight = true;
 				evaluation.topicGrouper(senseConfig, FOUR_TOPICS, new Sink() {
 					public void accept(String method, int topics, double perplexity, double param, double errorRate) {
 						csv.row(homonyms, method, perplexity, errorRate, sense.getNumberOfSplits());

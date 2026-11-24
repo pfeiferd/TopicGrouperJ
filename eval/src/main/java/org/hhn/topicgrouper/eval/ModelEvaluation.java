@@ -1,6 +1,12 @@
 package org.hhn.topicgrouper.eval;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import org.hhn.topicgrouper.doc.DocumentProvider;
 import org.hhn.topicgrouper.doc.impl.DefaultDocumentSplitter;
@@ -14,6 +20,7 @@ import org.hhn.topicgrouper.plsa.impl.PLSA;
 import org.hhn.topicgrouper.tg.TGSolution;
 import org.hhn.topicgrouper.tg.TGSolutionListener;
 import org.hhn.topicgrouper.tg.TGSolver;
+import org.hhn.topicgrouper.tg.validation.TGExactPerplexityCalculator;
 import org.hhn.topicgrouper.tg.validation.TGLRPerplexityCalculator;
 import org.hhn.topicgrouper.tg.validation.TGPerplexityCalculator;
 import org.hhn.topicgrouper.validation.AbstractTopicModeler;
@@ -66,18 +73,23 @@ public class ModelEvaluation {
 	}
 
 	/**
-	 * How Topic Grouper solutions are evaluated. By default (the paper's "TG-LR")
-	 * the left-to-right estimator is used and the Dirichlet concentration of
-	 * p(t|d) is optimized on a part of the training documents for every
-	 * solution; with <code>optimizeShare</code> 0 the concentration stays at
-	 * <code>alpha</code>; with <code>smoothed</code> the simpler estimator with an
-	 * explicit, smoothed p(t|d) is used instead.
+	 * How Topic Grouper solutions are evaluated. The document probabilities are
+	 * computed in closed form ({@link TGExactPerplexityCalculator}), which gives
+	 * the numbers of the paper's left-to-right estimator exactly, and the
+	 * Dirichlet concentration of p(t|d) is optimized on a part of the training
+	 * documents for every solution; with <code>optimizeShare</code> 0 the
+	 * concentration stays at <code>alpha</code>. <code>leftToRight</code>
+	 * selects the left-to-right sampler itself, which is needed for solutions
+	 * with word senses.
 	 */
 	public static class TGConfig {
 		/** Name of the method in the results. */
 		public String method = "tg";
-		/** Use the smoothed p(t|d) estimator instead of the left-to-right one. */
-		public boolean smoothed;
+		/**
+		 * Use the left-to-right sampler (with <code>particles</code> particles)
+		 * instead of the closed form; required for solutions with word senses.
+		 */
+		public boolean leftToRight;
 		/** Initial (or, without optimization, fixed) Dirichlet concentration. */
 		public double alpha = 50;
 		/** Particles of the left-to-right estimator. */
@@ -259,19 +271,19 @@ public class ModelEvaluation {
 		final TGPerplexityCalculator<String>[] calcs = new TGPerplexityCalculator[configs.length];
 		for (int i = 0; i < configs.length; i++) {
 			final TGConfig c = configs[i];
-			optimizeOn[i] = c.optimizeShare > 0 && !c.smoothed
+			optimizeOn[i] = c.optimizeShare > 0
 					? new HoldOutSplitter<String>(new Random(10), split.train, c.optimizeShare, 0, false,
 							(DefaultVocab<String>) split.train.getVocab()).getHoldOut()
 					: null;
-			calcs[i] = c.smoothed
-					? new TGPerplexityCalculator<String>(false, new DefaultDocumentSplitter<String>(), c.alpha)
-					: new TGLRPerplexityCalculator<String>(new Random(42), false,
+			calcs[i] = c.leftToRight
+					? new TGLRPerplexityCalculator<String>(new Random(42), false,
 							new DefaultDocumentSplitter<String>(), c.alpha) {
 						@Override
 						protected int initParticles() {
 							return c.particles;
 						}
-					};
+					}
+					: new TGExactPerplexityCalculator<String>(false, new DefaultDocumentSplitter<String>(), c.alpha);
 			calcs[i].init();
 		}
 		solver.solve(new TGSolutionListener<String>() {
@@ -329,7 +341,11 @@ public class ModelEvaluation {
 	}
 
 	/**
-	 * LDA with the given configuration, a new model for every selected topic number.
+	 * LDA with the given configuration, a new model for every selected topic
+	 * number. The models are trained and evaluated in parallel on
+	 * {@link Settings#threads} threads (the models are independent, and the
+	 * results do not depend on the number of threads); the results are handed
+	 * to the sink in ascending order of the topic number.
 	 *
 	 * @param c
 	 *            how LDA is trained
@@ -338,12 +354,88 @@ public class ModelEvaluation {
 	 * @param sink
 	 *            receives one result per selected topic number
 	 */
-	public void lda(LDAConfig c, TopicFilter filter, Sink sink) {
+	public void lda(final LDAConfig c, TopicFilter filter, Sink sink) {
+		List<Integer> topicNumbers = new ArrayList<Integer>();
 		for (int topics = 1; topics <= Math.max(settings.maxTopics, 4); topics++) {
 			if (filter.accept(topics)) {
-				System.out.println(c.method + ", " + topics + " topics: training ("
-						+ settings.ldaBurnIn + " burn-in + " + settings.ldaIterations + " iterations)");
-				evaluate(c.method, trainLDA(c, topics), c.withAveraging, sink);
+				topicNumbers.add(topics);
+			}
+		}
+		int threads = Math.max(1, Math.min(settings.threads, topicNumbers.size()));
+		if (threads == 1) {
+			for (int topics : topicNumbers) {
+				ldaTask(c, topics).run(sink);
+			}
+			return;
+		}
+		ExecutorService executor = Executors.newFixedThreadPool(threads);
+		try {
+			// Large models first: they take the longest.
+			final Future<?>[] futures = new Future<?>[topicNumbers.size()];
+			final BufferedSink[] results = new BufferedSink[topicNumbers.size()];
+			for (int i = topicNumbers.size() - 1; i >= 0; i--) {
+				final LDATask task = ldaTask(c, topicNumbers.get(i));
+				final BufferedSink buffer = results[i] = new BufferedSink();
+				futures[i] = executor.submit(new Runnable() {
+					public void run() {
+						task.run(buffer);
+					}
+				});
+			}
+			for (int i = 0; i < futures.length; i++) {
+				futures[i].get();
+				results[i].replay(sink);
+			}
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw new RuntimeException(e);
+		} catch (ExecutionException e) {
+			Throwable cause = e.getCause();
+			if (cause instanceof RuntimeException) {
+				throw (RuntimeException) cause;
+			}
+			if (cause instanceof Error) {
+				throw (Error) cause;
+			}
+			throw new RuntimeException(cause);
+		} finally {
+			executor.shutdownNow();
+		}
+	}
+
+	/** Trains and evaluates one LDA model. */
+	private final class LDATask {
+		private final LDAConfig c;
+		private final int topics;
+
+		LDATask(LDAConfig c, int topics) {
+			this.c = c;
+			this.topics = topics;
+		}
+
+		void run(Sink sink) {
+			System.out.println(c.method + ", " + topics + " topics: training (" + settings.ldaBurnIn
+					+ " burn-in + " + settings.ldaIterations + " iterations)");
+			evaluate(c.method, trainLDA(c, topics), c.withAveraging, sink);
+		}
+	}
+
+	private LDATask ldaTask(LDAConfig c, int topics) {
+		return new LDATask(c, topics);
+	}
+
+	/** Collects results to hand them on later, in order. */
+	private static final class BufferedSink implements Sink {
+		private final List<Object[]> rows = new ArrayList<Object[]>();
+
+		public synchronized void accept(String method, int topics, double perplexity, double param,
+				double errorRate) {
+			rows.add(new Object[] { method, topics, perplexity, param, errorRate });
+		}
+
+		synchronized void replay(Sink sink) {
+			for (Object[] r : rows) {
+				sink.accept((String) r[0], (Integer) r[1], (Double) r[2], (Double) r[3], (Double) r[4]);
 			}
 		}
 	}

@@ -192,7 +192,7 @@ public class TwcSeriesExperiment {
 		plot(docsFile);
 	}
 
-	/** Topic Grouper with the left-to-right estimator at the fixed concentration 6.5. */
+	/** Topic Grouper at the fixed concentration 6.5 (no optimization). */
 	private TGConfig fixedAlphaTG() {
 		TGConfig c = new TGConfig(settings);
 		c.alpha = ALPHA_CONC;

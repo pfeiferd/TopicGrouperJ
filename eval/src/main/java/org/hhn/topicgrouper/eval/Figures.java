@@ -45,7 +45,6 @@ public class Figures {
 	private static final Map<String, String> LABELS = new LinkedHashMap<String, String>();
 	static {
 		LABELS.put("tg", "Topic Grouper");
-		LABELS.put("tg-smoothed", "Topic Grouper, smoothed p(t|d)");
 		LABELS.put("tg-sense", "Topic Grouper with senses");
 		LABELS.put("lda", "LDA");
 		LABELS.put("lda-avg", "LDA, averaging estimate");

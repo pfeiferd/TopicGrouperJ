@@ -15,10 +15,12 @@ public final class Settings {
 	public int ldaBurnIn;
 	/** Sampling iterations of LDA (after burn-in). */
 	public int ldaIterations;
-	/** Particles of the left-to-right perplexity estimator. */
+	/** Particles of the left-to-right perplexity estimator (LDA; Topic Grouper is evaluated in closed form). */
 	public int particles;
 	/** Number of refinement steps when optimizing the alpha concentration of TG. */
 	public int alphaOptSteps;
+	/** Threads for independent model runs (the LDA models of the perplexity experiment). */
+	public int threads;
 	/** Largest number of topics evaluated with PLSA. */
 	public int plsaMaxTopics;
 	/** EM iterations of PLSA. */
@@ -60,12 +62,12 @@ public final class Settings {
 	}
 
 	/**
-	 * The full setup of the papers (e.g. 200 topics, 6000 synthetic documents), except for the settings
-	 * that dominate the run time on the text corpora: the left-to-right perplexity estimator uses 5
-	 * particles and the search for the Dirichlet concentration 5 refinement steps (the papers used 20 and
-	 * 10; the estimator is quadratic in the document length), and LDA runs 500 burn-in and 200 sampling
-	 * iterations (the papers used 2000 and 1000; both can be set on the command line, see
-	 * {@link Main}).
+	 * The full setup of the papers (e.g. 200 topics, 6000 synthetic documents, 10 refinement steps for
+	 * the Dirichlet concentration of Topic Grouper), except for the settings that dominate the run time
+	 * on the text corpora: the left-to-right perplexity estimator of the LDA models uses 5 particles
+	 * (the papers used 20; the estimator is quadratic in the document length) and LDA runs 500 burn-in
+	 * and 200 sampling iterations (the papers used 2000 and 1000; both can be set on the command line,
+	 * see {@link Main}). Independent model runs use one thread per available processor.
 	 *
 	 * @return the sizes used for the papers
 	 */
@@ -76,7 +78,8 @@ public final class Settings {
 		s.ldaBurnIn = 500;
 		s.ldaIterations = 200;
 		s.particles = 5;
-		s.alphaOptSteps = 5;
+		s.alphaOptSteps = 10;
+		s.threads = Runtime.getRuntime().availableProcessors();
 		s.plsaMaxTopics = 200;
 		s.plsaIterations = 150;
 		s.twcDocs = 6000;
@@ -111,6 +114,7 @@ public final class Settings {
 		s.ldaIterations = 20;
 		s.particles = 5;
 		s.alphaOptSteps = 3;
+		s.threads = Runtime.getRuntime().availableProcessors();
 		s.plsaMaxTopics = 10;
 		s.plsaIterations = 10;
 		s.twcDocs = 1500;
@@ -145,6 +149,7 @@ public final class Settings {
 		s.ldaIterations = ldaIterations;
 		s.particles = particles;
 		s.alphaOptSteps = alphaOptSteps;
+		s.threads = threads;
 		s.plsaMaxTopics = plsaMaxTopics;
 		s.plsaIterations = plsaIterations;
 		s.twcDocs = twcDocs;
