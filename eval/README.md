@@ -81,7 +81,7 @@ All CSV files are `;` separated with a header line; `method` (or `solver`) names
 
 | File | Columns | Content |
 |---|---|---|
-| `perplexity-<corpus>.csv` | `method;topics;perplexity;alphaConc` | hold-out perplexity over the number of topics: `tg` (Topic Grouper, Dirichlet concentration optimized on a part of the training documents; the document probabilities are computed in closed form, see below), `lda` / `lda-avg` (LDA, left-to-right and averaging estimate), `lda-opt` / `lda-opt-avg` (LDA with re-estimated alpha and beta), `plsa` (small corpora), `unigram` |
+| `perplexity-<corpus>.csv` | `method;topics;perplexity;alphaConc` | hold-out perplexity over the number of topics: `tg` (Topic Grouper, Dirichlet concentration optimized on a part of the training documents; the document probabilities are computed in closed form, see below), `tg-sense` (Topic Grouper with word senses, sense splitting solver with the default minimum lift 2, left-to-right estimate; only for vocabularies up to `Settings.senseMaxWords` words), `lda` / `lda-avg` (LDA, left-to-right and averaging estimate), `lda-opt` / `lda-opt-avg` (LDA with re-estimated alpha and beta), `plsa` (small corpora), `unigram` |
 | `twc-alpha.csv` | `alpha1;method;perplexity;perplexityStdDev;errorRate;errorRateStdDev;tries` | synthetic corpus at 4 topics over the prior alpha_1 given to LDA (concentration 6.5, beta 4 re-estimated, `tries` runs); the references `tg` (concentration 6.5), `plsa`, `unigram` and `perfect` (the true topics) are constant and repeated for every alpha_1 |
 | `twc-docs.csv` | `docs;method;perplexity;perplexityStdDev;errorRate;errorRateStdDev;tries` | synthetic corpus at 4 topics over the number of documents (LDA with the true prior) |
 | `performance-<corpus>.csv` | `solver;docs;avgSeconds;stdDevSeconds;avgWords` | run time of the solvers `ehac` and `lowmem` (single threaded) and `ehac-mt`, `lowmem-mt` (one thread per processor) over the number of documents (random subsets, several tries) |
@@ -133,7 +133,9 @@ CSV files, e.g. after merging the results of several machines. The documents `do
   point mass and the estimate is exact, the product of the topic-word probabilities times the
   Dirichlet-multinomial likelihood of the document's topic counts. The numbers equal those of the
   left-to-right sampler up to rounding (checked by a unit test and on NIPS at 200 topics), at a cost
-  linear instead of quadratic in the document length. The `tg-smoothed` series of earlier versions
+  linear instead of quadratic in the document length. Solutions with word senses (`tg-sense`) still
+  need the sampler, which now only considers the topics in which a word has a non-zero probability
+  (one or a few for Topic Grouper models instead of all; the samples have the same distribution). The `tg-smoothed` series of earlier versions
   (p(t|d) interpolated with a fixed weight) is gone: without a reference document it measured the
   unigram model, and it was never part of the papers.
 * A review of the library against the standard formulations fixed several bugs that change numbers compared

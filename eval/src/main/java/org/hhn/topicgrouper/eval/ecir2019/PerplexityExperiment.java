@@ -19,7 +19,11 @@ import org.hhn.topicgrouper.eval.TopicGrouperFactory;
  * Hold-out perplexity over the number of topics (ECIR 2019 paper, the figures
  * of Section 5): Topic Grouper with an optimized Dirichlet concentration
  * (<code>tg</code>; the document probabilities are computed in closed form,
- * which equals the paper's left-to-right estimate), LDA with the fixed prior
+ * which equals the paper's left-to-right estimate), Topic Grouper with word
+ * senses (<code>tg-sense</code>, the sense splitting solver with its default
+ * minimum lift, evaluated with the left-to-right sampler since a word may have
+ * several topics; only for vocabularies up to {@link Settings#senseMaxWords}
+ * words, the solver's memory being quadratic in the vocabulary), LDA with the fixed prior
  * (<code>lda</code>, left-to-right estimate; <code>lda-avg</code>, averaging
  * estimate) and with re-estimated alpha and beta (<code>lda-opt</code>), PLSA
  * (<code>plsa</code>) on the smaller corpora and the unigram model
@@ -149,7 +153,22 @@ public class PerplexityExperiment {
 			TGConfig tg = new TGConfig(settings);
 			tg.alpha = c.tgAlpha;
 			tg.optimizeShare = c.optimizeShare;
-			evaluation.topicGrouper(tg, grid, sink, new TopicGrouperFactory().create(c.split.train));
+			TopicGrouperFactory factory = new TopicGrouperFactory();
+			evaluation.topicGrouper(tg, grid, sink, factory.create(c.split.train));
+
+			int words = c.split.train.getVocab().getNumberOfWords();
+			if (words <= settings.senseMaxWords) {
+				TGConfig sense = new TGConfig(settings);
+				sense.method = "tg-sense";
+				sense.leftToRight = true;
+				sense.alpha = c.tgAlpha;
+				sense.optimizeShare = c.optimizeShare;
+				evaluation.topicGrouper(sense, grid, sink, factory.createSenseSplitting(c.split.train, 1));
+			} else {
+				System.out.println("tg-sense skipped for " + c.name + ": " + words
+						+ " words exceed the limit of " + settings.senseMaxWords
+						+ " (the sense splitting solver's memory is quadratic in the vocabulary)");
+			}
 
 			LDAConfig lda = new LDAConfig();
 			lda.withAveraging = true;

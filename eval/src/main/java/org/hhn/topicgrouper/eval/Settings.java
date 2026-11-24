@@ -21,6 +21,11 @@ public final class Settings {
 	public int alphaOptSteps;
 	/** Threads for independent model runs (the LDA models of the perplexity experiment). */
 	public int threads;
+	/**
+	 * Largest vocabulary for which the perplexity experiment also runs the sense splitting
+	 * solver (<code>tg-sense</code>; its memory is quadratic in the vocabulary).
+	 */
+	public int senseMaxWords;
 	/** Largest number of topics evaluated with PLSA. */
 	public int plsaMaxTopics;
 	/** EM iterations of PLSA. */
@@ -80,6 +85,7 @@ public final class Settings {
 		s.particles = 5;
 		s.alphaOptSteps = 10;
 		s.threads = Runtime.getRuntime().availableProcessors();
+		s.senseMaxWords = 12000;
 		s.plsaMaxTopics = 200;
 		s.plsaIterations = 150;
 		s.twcDocs = 6000;
@@ -115,6 +121,7 @@ public final class Settings {
 		s.particles = 5;
 		s.alphaOptSteps = 3;
 		s.threads = Runtime.getRuntime().availableProcessors();
+		s.senseMaxWords = 12000;
 		s.plsaMaxTopics = 10;
 		s.plsaIterations = 10;
 		s.twcDocs = 1500;
@@ -150,6 +157,7 @@ public final class Settings {
 		s.particles = particles;
 		s.alphaOptSteps = alphaOptSteps;
 		s.threads = threads;
+		s.senseMaxWords = senseMaxWords;
 		s.plsaMaxTopics = plsaMaxTopics;
 		s.plsaIterations = plsaIterations;
 		s.twcDocs = twcDocs;

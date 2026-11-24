@@ -76,26 +76,14 @@ public abstract class LeftToRightParticleSampler<T> extends LeftToRightSamplerBa
 				// Line 6
 				int wordIndexN2 = linearWordIndices.get(n2);
 				lrTopicAssignmentCounts[r][z[r].get(n2)]--;
-				for (int k = 0; k < pzn.length; k++) {
-					pzn[k] = getPhi(k, wordIndexN2)
-							* (lrTopicAssignmentCounts[r][k] + getAlpha(k));
-				}
-				int zn2 = nextDiscrete(pzn);
+				int zn2 = sampleTopic(wordIndexN2, lrTopicAssignmentCounts[r]);
 				z[r].set(n2, zn2);
 				lrTopicAssignmentCounts[r][zn2]++;
 			}
 			// Line 8
-			for (int t = 0; t < pzn.length; t++) {
-				pn += getPhi(t, wordIndex)
-						* (lrTopicAssignmentCounts[r][t] + getAlpha(t))
-						/ (n + getAlphaSum());
-			}
+			pn += wordProbability(wordIndex, lrTopicAssignmentCounts[r], n);
 			// Line 9
-			for (int k = 0; k < pzn.length; k++) {
-				pzn[k] = getPhi(k, wordIndex)
-						* (lrTopicAssignmentCounts[r][k] + getAlpha(k));
-			}
-			int zn = nextDiscrete(pzn);
+			int zn = sampleTopic(wordIndex, lrTopicAssignmentCounts[r]);
 			z[r].add(zn);
 			lrTopicAssignmentCounts[r][zn]++;
 		}

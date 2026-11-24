@@ -1,5 +1,6 @@
 package org.hhn.topicgrouper.validation;
 
+import java.util.Arrays;
 import java.util.Random;
 
 import org.hhn.topicgrouper.doc.Document;
@@ -72,6 +73,44 @@ public class PerplexityCalculatorLeftToRight<T> extends
 		return true;
 	}
 
+	/**
+	 * Whether the samplers restrict a word to the topics in which the model gives it a
+	 * non-zero probability (default true). This does not change the distribution of
+	 * the samples; it saves the work on the other topics, which matters for models in
+	 * which words belong to few topics (Topic Grouper, also with word senses).
+	 *
+	 * @return whether the candidate topics of the words are precomputed
+	 */
+	protected boolean useSparseTopics() {
+		return true;
+	}
+
+	/**
+	 * The topics in which each word has a non-zero probability, or <code>null</code>
+	 * if most entries of phi are non-zero (then the dense loops are cheaper).
+	 *
+	 * @param sampler the model
+	 * @return per word its topics in ascending order, or <code>null</code>
+	 */
+	protected static <T> int[][] candidateTopics(AbstractTopicModeler<T> sampler) {
+		int nTopics = sampler.getNTopics();
+		int nWords = sampler.getNWords();
+		int[][] candidates = new int[nWords][];
+		long nonZero = 0;
+		int[] buffer = new int[nTopics];
+		for (int w = 0; w < nWords; w++) {
+			int count = 0;
+			for (int t = 0; t < nTopics; t++) {
+				if (sampler.getPhi(t, w) > 0) {
+					buffer[count++] = t;
+				}
+			}
+			candidates[w] = Arrays.copyOf(buffer, count);
+			nonZero += count;
+		}
+		return nonZero * 2 > (long) nTopics * nWords ? null : candidates;
+	}
+
 	@Override
 	public void setTopicModeler(AbstractTopicModeler<T> topicModeler) {
 		super.setTopicModeler(topicModeler);
@@ -100,9 +139,15 @@ public class PerplexityCalculatorLeftToRight<T> extends
 	 */
 	protected LeftToRightSamplerBase<T> createLeftToRightParticleSampler(
 			final AbstractTopicModeler<T> sampler) {
+		final int[][] candidates = useSparseTopics() ? candidateTopics(sampler) : null;
 		if (useUnbiased()) {
 			return new LeftToRightSequentialSampler<T>(random, particles,
 					sampler.getNTopics()) {
+				@Override
+				protected int[] getCandidateTopics(int wordIndex) {
+					return candidates == null ? null : candidates[wordIndex];
+				}
+
 				@Override
 				protected double getAlpha(int t) {
 					return sampler.getAlpha(t);
@@ -121,6 +166,11 @@ public class PerplexityCalculatorLeftToRight<T> extends
 		} else {
 			return new LeftToRightParticleSampler<T>(random, particles,
 					sampler.getNTopics()) {
+				@Override
+				protected int[] getCandidateTopics(int wordIndex) {
+					return candidates == null ? null : candidates[wordIndex];
+				}
+
 				@Override
 				protected double getAlpha(int t) {
 					return sampler.getAlpha(t);

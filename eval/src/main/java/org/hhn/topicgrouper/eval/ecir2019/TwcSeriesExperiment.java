@@ -14,6 +14,7 @@ import org.hhn.topicgrouper.eval.ModelEvaluation.TGConfig;
 import org.hhn.topicgrouper.eval.ModelEvaluation.TopicFilter;
 import org.hhn.topicgrouper.eval.Settings;
 import org.hhn.topicgrouper.tg.impl.EHACTopicGrouper;
+import org.hhn.topicgrouper.tg.impl.SenseSplittingTopicGrouper;
 import org.hhn.topicgrouper.util.MathExt;
 
 /**
@@ -122,6 +123,9 @@ public class TwcSeriesExperiment {
 			ModelEvaluation evaluation = new ModelEvaluation(twc.split, settings, twc.generator);
 			Repeated tg = new Repeated(1);
 			evaluation.topicGrouper(fixedAlphaTG(), FOUR_TOPICS, tg, new EHACTopicGrouper<String>(1, twc.split.train, 1));
+			Repeated tgSense = new Repeated(1);
+			evaluation.topicGrouper(fixedAlphaTGSense(), FOUR_TOPICS, tgSense,
+					new SenseSplittingTopicGrouper<String>(1, twc.split.train, 1));
 			Repeated unigram = new Repeated(1);
 			evaluation.unigram(unigram);
 			Repeated perfect = new Repeated(1);
@@ -142,6 +146,7 @@ public class TwcSeriesExperiment {
 				}
 				lda.row(csv, alpha1, "lda");
 				tg.row(csv, alpha1, "tg");
+				tgSense.row(csv, alpha1, "tg-sense");
 				plsa.row(csv, alpha1, "plsa");
 				unigram.row(csv, alpha1, "unigram");
 				perfect.row(csv, alpha1, "perfect");
@@ -175,6 +180,10 @@ public class TwcSeriesExperiment {
 				Repeated tg = new Repeated(1);
 				evaluation.topicGrouper(fixedAlphaTG(), FOUR_TOPICS, tg, new EHACTopicGrouper<String>(1, twc.split.train, 1));
 				tg.row(csv, docs, "tg");
+				Repeated tgSense = new Repeated(1);
+				evaluation.topicGrouper(fixedAlphaTGSense(), FOUR_TOPICS, tgSense,
+						new SenseSplittingTopicGrouper<String>(1, twc.split.train, 1));
+				tgSense.row(csv, docs, "tg-sense");
 				Repeated lda = new Repeated(settings.twcTries);
 				for (int t = 0; t < settings.twcTries; t++) {
 					evaluation.lda(new FixedPriorLDA(new double[] { 5, 0.5, 0.5, 0.5 }, t), FOUR_TOPICS, lda);
@@ -197,6 +206,14 @@ public class TwcSeriesExperiment {
 		TGConfig c = new TGConfig(settings);
 		c.alpha = ALPHA_CONC;
 		c.optimizeShare = 0;
+		return c;
+	}
+
+	/** Topic Grouper with word senses at the fixed concentration 6.5 (left-to-right sampler). */
+	private TGConfig fixedAlphaTGSense() {
+		TGConfig c = fixedAlphaTG();
+		c.method = "tg-sense";
+		c.leftToRight = true;
 		return c;
 	}
 

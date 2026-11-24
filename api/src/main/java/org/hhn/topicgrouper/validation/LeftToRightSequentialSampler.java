@@ -66,10 +66,7 @@ public abstract class LeftToRightSequentialSampler<T> extends
 				if (r > 0) {
 					counts[zz.get(n2)]--;
 				}
-				for (int k = 0; k < pzn.length; k++) {
-					pzn[k] = getPhi(k, wordIndexN2) * (counts[k] + getAlpha(k));
-				}
-				int zn2 = nextDiscrete(pzn);
+				int zn2 = sampleTopic(wordIndexN2, counts);
 				h[zn2]++;
 				if (r == 0) {
 					zz.add(zn2);
@@ -78,10 +75,7 @@ public abstract class LeftToRightSequentialSampler<T> extends
 				}
 				counts[zn2]++;
 			}
-			for (int t = 0; t < pzn.length; t++) {
-				pn += getPhi(t, wordIndex) * (h[t] + getAlpha(t))
-						/ (n + getAlphaSum());
-			}
+			pn += wordProbability(wordIndex, h, n);
 		}
 		return pn / particles;
 	}
