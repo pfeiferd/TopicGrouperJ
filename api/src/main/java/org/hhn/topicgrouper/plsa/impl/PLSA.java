@@ -14,8 +14,12 @@ import org.hhn.topicgrouper.validation.AbstractTopicModelerWithProvider;
  * Probabilistic latent semantic analysis (Hofmann, "Probabilistic Latent Semantic Indexing",
  * SIGIR 1999) trained with the EM algorithm: the E-step computes the posteriors
  * p(z|d,w) from the current p(z|d) and p(w|z), the M-step re-estimates p(w|z) (phi) and p(z|d)
- * from the word counts weighted by the posteriors. Since PLSA has no Dirichlet prior,
- * {@link #getAlpha(int)} derives one from the topic probabilities and a configurable concentration.
+ * from the word counts weighted by the posteriors. Both steps are fused and run over the
+ * words that occur in a document only, so the posteriors are never stored: the memory is
+ * that of p(w|z) and p(z|d) plus the word counts of the documents, and the time per
+ * iteration is linear in the number of distinct document-word pairs times the number of
+ * topics. Since PLSA has no Dirichlet prior, {@link #getAlpha(int)} derives one from the
+ * topic probabilities and a configurable concentration.
  *
  * @param <T> the type of the words
  */
@@ -30,9 +34,14 @@ public class PLSA<T> extends AbstractTopicModelerWithProvider<T> {
 	private final int docSize;
 
 	/**
-	 * docTermMatrix[d][w], the number of occurrences of word w in document d.
+	 * docWords[d], the indices of the words occurring in document d, ascending.
 	 */
-	private final int[][] docTermMatrix;
+	private final int[][] docWords;
+
+	/**
+	 * docCounts[d][i], the number of occurrences of word docWords[d][i] in document d.
+	 */
+	private final int[][] docCounts;
 
 	/**
 	 * docTopicPros[d][z], the probability p(z|d) of topic z in document d.
@@ -40,9 +49,16 @@ public class PLSA<T> extends AbstractTopicModelerWithProvider<T> {
 	private final double[][] docTopicPros;
 
 	/**
-	 * docTermTopicPros[d][w][z], the posterior p(z|d,w) of topic z given document d and word w.
+	 * phiNumerators[z][w], the posterior weighted counts sum_d n(d,w) p(z|d,w) of the
+	 * current M-step.
 	 */
-	private final double[][][] docTermTopicPros;
+	private final double[][] phiNumerators;
+
+	/**
+	 * topicMass[z], the posterior weighted number of tokens sum_{d,w} n(d,w) p(z|d,w) of
+	 * the last M-step (the denominator of p(w|z)).
+	 */
+	private final double[] topicMass;
 
 	/**
 	 * Concentration used to derive alpha from the topic probabilities.
@@ -63,10 +79,27 @@ public class PLSA<T> extends AbstractTopicModelerWithProvider<T> {
 		docs = provider.getDocuments();
 		docSize = docs.size();
 		this.alphaConc = alphaConc;
-		// element represent times the word appear in this document
-		docTermMatrix = new int[docSize][nWords];
+		docWords = new int[docSize][];
+		docCounts = new int[docSize][];
+		for (int docIndex = 0; docIndex < docSize; docIndex++) {
+			Document<T> doc = docs.get(docIndex);
+			int[] words = new int[doc.getWordIndices().size()];
+			TIntIterator it = doc.getWordIndices().iterator();
+			for (int i = 0; i < words.length; i++) {
+				words[i] = it.next();
+			}
+			// A fixed order makes the floating point sums reproducible.
+			Arrays.sort(words);
+			int[] counts = new int[words.length];
+			for (int i = 0; i < words.length; i++) {
+				counts[i] = doc.getWordFrequency(words[i]);
+			}
+			docWords[docIndex] = words;
+			docCounts[docIndex] = counts;
+		}
 		docTopicPros = new double[docSize][nTopics];
-		docTermTopicPros = new double[docSize][nWords][nTopics];
+		phiNumerators = new double[nTopics][nWords];
+		topicMass = new double[nTopics];
 	}
 
 	/**
@@ -84,17 +117,6 @@ public class PLSA<T> extends AbstractTopicModelerWithProvider<T> {
 	 * @param maxIter the number of EM iterations
 	 */
 	public void train(int maxIter) {
-		// init docTermMatrix
-		for (int docIndex = 0; docIndex < docSize; docIndex++) {
-			Document<T> doc = docs.get(docIndex);
-			TIntIterator it = doc.getWordIndices().iterator();
-			while (it.hasNext()) {
-				int wordIndex = it.next();
-				docTermMatrix[docIndex][wordIndex] = doc
-						.getWordFrequency(wordIndex);
-			}
-		}
-
 		// init p(z|d),for each document the constraint is sum(p(z|d))=1.0
 		for (int i = 0; i < docSize; i++) {
 			randomProbabilities(docTopicPros[i]);
@@ -131,34 +153,28 @@ public class PLSA<T> extends AbstractTopicModelerWithProvider<T> {
 	public double computeLogLikelihood() {
 		double ll = 0;
 		for (int docIndex = 0; docIndex < docSize; docIndex++) {
-			for (int wordIndex = 0; wordIndex < nWords; wordIndex++) {
-				int n = docTermMatrix[docIndex][wordIndex];
-				if (n > 0) {
-					double pw = 0;
-					for (int topicIndex = 0; topicIndex < nTopics; topicIndex++) {
-						pw += docTopicPros[docIndex][topicIndex]
-								* phi[topicIndex][wordIndex];
-					}
-					ll += n * Math.log(pw);
+			int[] words = docWords[docIndex];
+			int[] counts = docCounts[docIndex];
+			double[] theta = docTopicPros[docIndex];
+			for (int i = 0; i < words.length; i++) {
+				double pw = 0;
+				for (int topicIndex = 0; topicIndex < nTopics; topicIndex++) {
+					pw += theta[topicIndex] * phi[topicIndex][words[i]];
 				}
+				ll += counts[i] * Math.log(pw);
 			}
 		}
 		return ll;
 	}
 
 	/**
-	 * Computes the topic probabilities from the final posteriors p(z|d,w) weighted by word counts.
+	 * Computes the topic probabilities from the posteriors p(z|d,w) of the last EM iteration
+	 * weighted by the word counts (zero before the first iteration).
 	 */
 	protected void computeTopicProbabilities() {
 		int R = provider.getSize();
 		for (int i = 0; i < nTopics; i++) {
-			double topicSum = 0;
-			for (int j = 0; j < docSize; j++) {
-				for (int k = 0; k < nWords; k++) {
-					topicSum += docTermMatrix[j][k] * docTermTopicPros[j][k][i];
-				}
-			}
-			topicProb[i] = topicSum / R;
+			topicProb[i] = topicMass[i] / R;
 		}
 	}
 
@@ -185,101 +201,76 @@ public class PLSA<T> extends AbstractTopicModelerWithProvider<T> {
 	}
 
 	/**
-	 * Buffer for the unnormalized posteriors of the topics in the E-step.
+	 * Buffer for the posteriors of the topics of one document-word pair in the E-step.
 	 */
 	private final double[] perTopicPro = new double[nTopics];
 
 	/**
-	 * 
-	 * EM algorithm
-	 * 
+	 * Buffer for the posterior weighted counts of the topics of one document in the M-step.
+	 */
+	private final double[] perDocTopicCount = new double[nTopics];
+
+	/**
+	 * One EM iteration: for every document-word pair with n(d,w) &gt; 0 the posterior
+	 * p(z|d,w) = p(z|d) p(w|z) / sum_z' p(z'|d) p(w|z') is computed (E-step) and at once
+	 * added, weighted by n(d,w), to the new estimates of p(w|z) and p(z|d) (M-step):
+	 * p(w|z) = sum_d n(d,w) p(z|d,w) / sum_{d,w'} n(d,w') p(z|d,w'), and
+	 * p(z|d) = sum_w n(d,w) p(z|d,w) / sum_{w,z'} n(d,w) p(z'|d,w). Pairs with n(d,w) = 0
+	 * contribute nothing to either sum and are skipped.
 	 */
 	private void em() {
-		/*
-		 * E-step,calculate posterior probability p(z|d,w,&),& is model
-		 * params(p(z|d),p(w|z))
-		 * 
-		 * p(z|d,w,&)=p(z|d)*p(w|z)/sum(p(z'|d)*p(w|z')) z' represent all
-		 * posible topic
-		 */
+		for (int topicIndex = 0; topicIndex < nTopics; topicIndex++) {
+			Arrays.fill(phiNumerators[topicIndex], 0);
+		}
+		Arrays.fill(topicMass, 0);
 		for (int docIndex = 0; docIndex < docSize; docIndex++) {
-			for (int wordIndex = 0; wordIndex < nWords; wordIndex++) {
+			int[] words = docWords[docIndex];
+			int[] counts = docCounts[docIndex];
+			double[] theta = docTopicPros[docIndex];
+			Arrays.fill(perDocTopicCount, 0);
+			for (int i = 0; i < words.length; i++) {
+				int wordIndex = words[i];
 				double total = 0.0;
-				Arrays.fill(perTopicPro, 0);
 				for (int topicIndex = 0; topicIndex < nTopics; topicIndex++) {
-					double numerator = docTopicPros[docIndex][topicIndex]
-							* phi[topicIndex][wordIndex];
+					double numerator = theta[topicIndex] * phi[topicIndex][wordIndex];
 					total += numerator;
 					perTopicPro[topicIndex] = numerator;
 				}
-
 				if (total == 0.0) {
 					total = avoidZero(total);
 				}
-
+				int n = counts[i];
 				for (int topicIndex = 0; topicIndex < nTopics; topicIndex++) {
-					docTermTopicPros[docIndex][wordIndex][topicIndex] = perTopicPro[topicIndex]
-							/ total;
+					double weighted = n * perTopicPro[topicIndex] / total;
+					phiNumerators[topicIndex][wordIndex] += weighted;
+					perDocTopicCount[topicIndex] += weighted;
 				}
 			}
+			// p(z|d): the denominator is the posterior weighted size of the document.
+			double totalDenominator = 0.0;
+			for (int topicIndex = 0; topicIndex < nTopics; topicIndex++) {
+				totalDenominator += perDocTopicCount[topicIndex];
+			}
+			if (totalDenominator == 0.0) {
+				totalDenominator = avoidZero(totalDenominator);
+			}
+			for (int topicIndex = 0; topicIndex < nTopics; topicIndex++) {
+				theta[topicIndex] = perDocTopicCount[topicIndex] / totalDenominator;
+			}
 		}
-
-		// M-step
-		/*
-		 * update
-		 * p(w|z),p(w|z)=sum(n(d',w)*p(z|d',w,&))/sum(sum(n(d',w')*p(z|d',w',&)))
-		 * 
-		 * d' represent all documents w' represent all vocabularies
-		 */
+		// p(w|z)
 		for (int topicIndex = 0; topicIndex < nTopics; topicIndex++) {
+			double[] numerators = phiNumerators[topicIndex];
 			double totalDenominator = 0.0;
 			for (int wordIndex = 0; wordIndex < nWords; wordIndex++) {
-				double numerator = 0.0;
-				for (int docIndex = 0; docIndex < docSize; docIndex++) {
-					numerator += docTermMatrix[docIndex][wordIndex]
-							* docTermTopicPros[docIndex][wordIndex][topicIndex];
-				}
-
-				phi[topicIndex][wordIndex] = numerator;
-
-				totalDenominator += numerator;
+				totalDenominator += numerators[wordIndex];
 			}
-
+			topicMass[topicIndex] = totalDenominator;
 			if (totalDenominator == 0.0) {
 				totalDenominator = avoidZero(totalDenominator);
 			}
-
 			for (int wordIndex = 0; wordIndex < nWords; wordIndex++) {
-				phi[topicIndex][wordIndex] = phi[topicIndex][wordIndex]
-						/ totalDenominator;
-			}
-		}
-		/*
-		 * update
-		 * p(z|d),p(z|d)=sum(n(d,w')*p(z|d,w'&))/sum(sum(n(d,w')*p(z'|d,w',&)))
-		 * 
-		 * w' represent all vocabularies z' represnet all topics
-		 */
-		for (int docIndex = 0; docIndex < docSize; docIndex++) {
-			// actually equal sum(w) of this doc
-			double totalDenominator = 0.0;
-			for (int topicIndex = 0; topicIndex < nTopics; topicIndex++) {
-				double numerator = 0.0;
-				for (int wordIndex = 0; wordIndex < nWords; wordIndex++) {
-					numerator += docTermMatrix[docIndex][wordIndex]
-							* docTermTopicPros[docIndex][wordIndex][topicIndex];
-				}
-				docTopicPros[docIndex][topicIndex] = numerator;
-				totalDenominator += numerator;
-			}
-
-			if (totalDenominator == 0.0) {
-				totalDenominator = avoidZero(totalDenominator);
-			}
-
-			for (int topicIndex = 0; topicIndex < nTopics; topicIndex++) {
-				docTopicPros[docIndex][topicIndex] = docTopicPros[docIndex][topicIndex]
-						/ totalDenominator;
+				phi[topicIndex][wordIndex] = numerators[wordIndex] / totalDenominator;
 			}
 		}
 	}

@@ -71,6 +71,63 @@ public class PLSATest extends TestCase {
 		assertEquals(1.0, topicSum, 1e-9);
 	}
 
+	/**
+	 * One EM iteration of the sparse, fused implementation equals the textbook
+	 * dense computation: posteriors for every (document, word) pair, then the
+	 * M-step sums over them.
+	 */
+	public void testOneIterationEqualsDenseReference() {
+		DefaultDocumentProvider<String> p = createProvider();
+		int topics = 3;
+		PLSA<String> plsa = new PLSA<String>(new Random(7), p, topics, 1.0);
+		// The same random start: train() draws p(z|d) for every document first, then p(w|z).
+		PLSA<String> start = new PLSA<String>(new Random(7), p, topics, 1.0);
+		int docs = p.getDocuments().size();
+		int words = p.getVocab().getNumberOfWords();
+		double[][] theta = new double[docs][];
+		for (int d = 0; d < docs; d++) {
+			theta[d] = start.randomProbabilities(new double[topics]);
+		}
+		double[][] phi = new double[topics][];
+		for (int k = 0; k < topics; k++) {
+			phi[k] = start.randomProbabilities(new double[words]);
+		}
+		plsa.train(1);
+
+		double[][] newPhi = new double[topics][words];
+		double[][] newTheta = new double[docs][topics];
+		double[] mass = new double[topics];
+		for (int d = 0; d < docs; d++) {
+			for (int w = 0; w < words; w++) {
+				int n = p.getDocuments().get(d).getWordFrequency(w);
+				double total = 0;
+				double[] post = new double[topics];
+				for (int k = 0; k < topics; k++) {
+					post[k] = theta[d][k] * phi[k][w];
+					total += post[k];
+				}
+				for (int k = 0; k < topics; k++) {
+					post[k] /= total;
+					newPhi[k][w] += n * post[k];
+					newTheta[d][k] += n * post[k];
+					mass[k] += n * post[k];
+				}
+			}
+		}
+		for (int k = 0; k < topics; k++) {
+			for (int w = 0; w < words; w++) {
+				assertEquals(newPhi[k][w] / mass[k], plsa.getPhi(k, w), 1e-12);
+			}
+			assertEquals(mass[k] / p.getSize(), plsa.getTopicProb(k), 1e-12);
+		}
+		for (int d = 0; d < docs; d++) {
+			double size = p.getDocuments().get(d).getSize();
+			for (int k = 0; k < topics; k++) {
+				assertEquals(newTheta[d][k] / size, plsa.getDocTopics()[d][k], 1e-12);
+			}
+		}
+	}
+
 	public void testRandomProbabilities() {
 		PLSA<String> plsa = new PLSA<String>(new Random(1), createProvider(), 2, 1.0);
 		double[] v = plsa.randomProbabilities(new double[5]);
