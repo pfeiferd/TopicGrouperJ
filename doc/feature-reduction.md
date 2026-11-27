@@ -28,7 +28,9 @@ unsupervised run. The classifier then works on $\lvert T\rvert$ features instead
 | `vocab-df` | the $k$ most frequent words (document frequency) | naive Bayes over the words |
 
 The two word based baselines are the classical feature selection methods; with $k = \lvert V\rvert$ they are the
-plain bag-of-words classifier. The number of features runs over a grid from 1 to several thousands.
+plain bag-of-words classifier. The number of features runs over a grid from 1 to several thousands; the LDA
+series stop at 1000 topics (a dense Gibbs sampler is linear in the number of topics, and the accuracy is flat
+from a few hundred topics on).
 
 ## 3. Corpora
 

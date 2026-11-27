@@ -5,7 +5,7 @@ the papers. The module depends on the library module `api`.
 
 | Paper | Experiments | Package |
 |---|---|---|
-| Topic Grouper (ECIR 2019 and its extended version) | `perplexity`, `twc-series`, `performance`, `topics` | `org.hhn.topicgrouper.eval.ecir2019` |
+| Topic Grouper (ECIR 2019 and its extended version) | `perplexity`, `twc-series`, `topics`, `performance` | `org.hhn.topicgrouper.eval.ecir2019` |
 | Feature reduction using topic modeling | `classification` | `org.hhn.topicgrouper.eval.featurereduction` |
 | Homonym extension (`doc/topic-grouper.md`, Section 6) | `homonyms` | `org.hhn.topicgrouper.eval.homonyms` |
 
@@ -21,8 +21,9 @@ java -jar eval/target/topic-grouper-eval.jar all                 # the full runs
 `java -jar topic-grouper-eval.jar [experiments] [--data DIR] [--out DIR] [--quick] [--lda-burn-in N] [--lda-iterations N] [--threads N]`
 
 * `experiments`: a comma separated list of experiment names (`perplexity`, `twc-series`,
-  `performance`, `topics`, `classification`, `homonyms`), paper names (`ecir2019`, `feature-reduction`,
-  `homonyms`) or `all` (the default).
+  `topics`, `classification`, `homonyms`, `performance`), paper names (`ecir2019`, `feature-reduction`,
+  `homonyms`) or `all` (the default). They run in the given order (`all`: the papers in the order of
+  the table above), except that the run time measurements (`performance`) always run last.
 * `--data DIR`: the data directory (default `data`); experiments whose data set is missing are skipped
   with a message.
 * `--out DIR`: the result directory (default `results`).
@@ -66,7 +67,7 @@ Put the data sets into `data/` (or `--data`). `scripts/download-data.sh` fetches
 | New York Times | topics | `nytimes/docword.nytimes.txt`, `nytimes/vocab.nytimes.txt` | UCI bag of words (large) |
 | AP extract (2246 articles) | perplexity, performance, topics | `ap/ap.txt` | Blei's lda-c `ap.tgz` |
 | AP (TREC) | perplexity, topics | `ap-full/ap*` (the SGML files) | TREC / LDC, not public |
-| Reuters-21578 | classification, performance, topics | `reuters21578/*.sgm`, or `reuters-nltk/reuters.zip` | UCI KDD, or the ApteMod version distributed with NLTK |
+| Reuters-21578 | perplexity, classification, performance, topics | `reuters21578/*.sgm`, or `reuters-nltk/reuters.zip` | UCI KDD, or the ApteMod version distributed with NLTK |
 | 20 Newsgroups | classification, performance | `20news-18828/<group>/<file>` | qwone.com (duplicates removed) |
 | OHSUMED (ohscal) | classification | `ohsumed/ohscal.wc.arff` | Forman's 19 text data sets (sparse ARFF) |
 | Online Retail | perplexity, topics | `online-retail/Online Retail.csv` | UCI (ships as `.xlsx`; export as `;` separated CSV) |
@@ -128,6 +129,10 @@ CSV files, e.g. after merging the results of several machines. The documents `do
   restore any other value); the LDA models of the different topic numbers are trained in parallel
   (`--threads`). The left-to-right estimator is quadratic in the document length and linear in the
   particles and the topics a word can belong to; for LDA it is the second large cost.
+* The LDA classifiers of `classification` are evaluated up to 1000 topics (the Topic Grouper and word
+  series up to 9000): the Gibbs sampler is linear in the topics and needs about 5 hours for a model of
+  1000 topics on Reuters-21578 (2000 iterations), 15 hours at 2000, while the accuracy is flat from a few
+  hundred topics on. These models are trained in parallel too.
 * The perplexity of Topic Grouper solutions is computed in closed form (`TGExactPerplexityCalculator`):
   every word has exactly one topic, so the resampling step of the papers' left-to-right estimator is a
   point mass and the estimate is exact, the product of the topic-word probabilities times the

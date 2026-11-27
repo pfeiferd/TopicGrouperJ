@@ -10,7 +10,9 @@ import java.util.Set;
  * Command line of the evaluation:
  * <code>[experiments] [--data DIR] [--out DIR] [--quick] [--lda-burn-in N] [--lda-iterations N] [--threads N]</code>,
  * where <code>experiments</code> is a comma separated list of experiment names,
- * paper names or <code>all</code> (see {@link Evaluation}), <code>--data</code>
+ * paper names or <code>all</code> (see {@link Evaluation}; the experiments run
+ * in the given order, except that <code>performance</code> always runs last),
+ * <code>--data</code>
  * the data directory (default <code>data</code>), <code>--out</code> the result
  * directory (default <code>results</code>), <code>--quick</code> selects the
  * small sizes of {@link Settings#quick()}, and <code>--lda-burn-in</code> and
@@ -84,6 +86,10 @@ public final class Main {
 				return;
 			}
 			experiments.addAll(e);
+		}
+		// The run time measurements are the least urgent figures: they run last.
+		if (experiments.remove("performance")) {
+			experiments.add("performance");
 		}
 		Evaluation evaluation = new Evaluation(new Datasets(data, settings.maxDocuments), settings, out);
 		for (String e : experiments) {

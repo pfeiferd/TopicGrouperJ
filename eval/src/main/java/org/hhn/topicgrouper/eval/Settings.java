@@ -93,7 +93,11 @@ public final class Settings {
 		s.twcDocsSteps = 20;
 		s.homonymCounts = new int[] { 0, 10, 20, 40, 80 };
 		s.classificationTopics = paperTopicGrid(9000);
-		s.ldaClassificationTopics = paperTopicGrid(5000);
+		// LDA stops at 1000 topics: the dense Gibbs sampler is linear in the
+		// topics (about 5 hours per 1000-topic model of 2000 iterations on
+		// Reuters, 15 hours at 2000), and the accuracy is flat from a few
+		// hundred topics on.
+		s.ldaClassificationTopics = paperTopicGrid(1000);
 		s.classLdaBurnIn = 1000;
 		s.classLdaIterations = 1000;
 		s.foldInIterations = 200;

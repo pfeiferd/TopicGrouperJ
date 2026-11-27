@@ -19,7 +19,7 @@ import org.hhn.topicgrouper.eval.homonyms.HomonymExperiment;
  * The experiments of the papers on the data sets of a data directory, results
  * into an output directory. The ECIR 2019 paper (<code>ecir2019</code>)
  * consists of <code>perplexity</code> (hold-out perplexity over the number of
- * topics on the corpora of the paper), <code>twc-series</code> (perplexity and
+ * topics on the corpora of the paper and on Reuters-21578), <code>twc-series</code> (perplexity and
  * error rate on the synthetic corpus over LDA's prior and over the number of
  * documents), <code>performance</code> (run time over the number of documents)
  * and <code>topics</code> (top words and mind maps); the feature reduction
@@ -30,10 +30,13 @@ import org.hhn.topicgrouper.eval.homonyms.HomonymExperiment;
 public class Evaluation {
 	private static final Map<String, List<String>> PAPERS = new LinkedHashMap<String, List<String>>();
 	static {
-		PAPERS.put("ecir2019", Arrays.asList("perplexity", "twc-series", "performance", "topics"));
+		PAPERS.put("ecir2019", Arrays.asList("perplexity", "twc-series", "topics", "performance"));
 		PAPERS.put("feature-reduction", Arrays.asList("classification"));
 		PAPERS.put("homonyms", Arrays.asList("homonyms"));
 	}
+
+	/** Minimum word frequency of the Reuters perplexity corpus (Section 6.6 of <code>doc/topic-grouper.md</code>). */
+	private static final int REUTERS_MIN_FREQUENCY = 30;
 
 	private final Datasets data;
 	private final Settings settings;
@@ -117,6 +120,12 @@ public class Evaluation {
 			e.run(new Corpus("nips", data.nips()).tgAlpha(4));
 		} else {
 			skip("perplexity-nips", "nips");
+		}
+		if (data.hasReuters()) {
+			// Section 6.6 of doc/topic-grouper.md: words occurring fewer than 30 times removed.
+			e.run(new Corpus("reuters", data.reutersPerplexity(REUTERS_MIN_FREQUENCY)).tgAlpha(4).withPlsa());
+		} else {
+			skip("perplexity-reuters", "reuters21578");
 		}
 		if (data.hasApExtract()) {
 			e.run(new Corpus("ap-extract", data.apExtractPerplexity()).tgAlpha(3).withPlsa());

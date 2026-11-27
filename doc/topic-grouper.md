@@ -373,7 +373,8 @@ words with fewer than 30 occurrences removed: 2069 words, 6993 training and 776 
 The senses are better than plain TG at 5 and 10 topics, equal at 20 and 1 to 3% worse from 50 topics on. The split words are specific content words,
 not function words. In real text most words have a single sense, so homonyms matter less than in the synthetic corpora, and the LDA comparison is
 the one of the paper. The numbers of this section were measured before a review of the library fixed the topic-word estimate of LDA, the Dirichlet
-sampler of the corpus generator and the averaging perplexity estimator; the `eval` module re-measures them (Figure 7).
+sampler of the corpus generator and the averaging perplexity estimator; the `eval` module re-measures them (experiment `perplexity`,
+`results/perplexity-reuters.csv` with the methods of the ECIR 2019 series, 20 particles).
 
 ### 6.7 Implementation map
 
